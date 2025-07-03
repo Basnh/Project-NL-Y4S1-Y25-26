@@ -8,26 +8,46 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS file -->
-    <link rel="stylesheet" href="/styles.css">
+    <!-- Ace Editor CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ace.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/ace/1.23.1/ext-language_tools.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-2xl">
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Sửa file cấu hình</h2>
-        <form th:action="@{/save-config}" method="post" class="space-y-6">
+        <form th:action="@{/save-config}" method="post" onsubmit="return saveEditorContent();">
             <input type="hidden" name="configFile" th:value="${configFile}" />
             <input type="hidden" name="host" th:value="${sshRequest.host}" />
             <input type="hidden" name="username" th:value="${sshRequest.username}" />
             <input type="hidden" name="password" th:value="${sshRequest.password}" />
-            <div>
-                <label for="content" class="block text-sm font-medium text-gray-700 mb-2">Nội dung file:</label>
-                <textarea id="content" name="content" th:text="${content}" rows="20"
-                    class="w-full border border-gray-300 rounded-lg p-4 font-mono text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out resize-y"></textarea>
+            <input type="hidden" name="content" id="contentHidden" />
+
+            <!-- Nhóm cấu hình -->
+            <div class="flex flex-wrap gap-2 mb-4">
+                <button type="button" onclick="filterGroup('all')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Tất cả</button>
+                <button type="button" onclick="filterGroup('network')" class="px-3 py-1 bg-blue-200 rounded hover:bg-blue-300">Network</button>
+                <button type="button" onclick="filterGroup('auth')" class="px-3 py-1 bg-green-200 rounded hover:bg-green-300">Authentication</button>
+                <button type="button" onclick="filterGroup('logging')" class="px-3 py-1 bg-yellow-200 rounded hover:bg-yellow-300">Logging</button>
+                <button type="button" onclick="filterGroup('other')" class="px-3 py-1 bg-purple-200 rounded hover:bg-purple-300">Khác</button>
             </div>
-            <div class="flex justify-center">
+
+            <div class="flex justify-between items-center mb-2">
+                <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="editor.undo()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-undo"></i> Hoàn tác</button>
+                    <button type="button" onclick="editor.redo()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-redo"></i> Làm lại</button>
+                    <button type="button" onclick="editor.execCommand('find')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-search"></i> Tìm kiếm</button>
+                    <button type="button" onclick="showPreview()" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"><i class="fas fa-eye"></i> Xem trước</button>
+                </div>
+                <span id="saveStatus" class="text-sm text-gray-500"></span>
+            </div>
+            <div id="editor" class="w-full h-[600px] border border-gray-300 rounded-lg"></div>
+            <div class="flex justify-center mt-6 gap-4">
                 <button type="submit"
                     class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
                     <i class="fas fa-save mr-2"></i> Lưu lại
+                </button>
+                <button type="button" onclick="showConfirm()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 ease-in-out font-semibold flex items-center">
+                    <i class="fas fa-check mr-2"></i> Xác nhận
                 </button>
             </div>
         </form>
@@ -37,5 +57,124 @@
             </a>
         </div>
     </div>
+
+    <!-- Modal xem trước -->
+    <div id="previewModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
+            <h3 class="text-xl font-bold mb-4">Xem trước cấu hình</h3>
+            <pre id="previewContent" class="bg-gray-100 p-4 rounded text-sm overflow-auto max-h-[400px]"></pre>
+            <div class="flex justify-end mt-4">
+                <button onclick="closePreview()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Đóng</button>
+            </div>
+        </div>
+    </div>
+    <!-- Modal xác nhận -->
+    <div id="confirmModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
+            <h3 class="text-xl font-bold mb-4 text-center">Xác nhận lưu cấu hình?</h3>
+            <p class="mb-6 text-center">Bạn có chắc chắn muốn lưu lại các thay đổi cấu hình này?</p>
+            <div class="flex justify-center gap-4">
+                <button onclick="closeConfirm()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Hủy</button>
+                <button onclick="submitForm()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Xác nhận</button>
+            </div>
+        </div>
+    </div>
+
+    <script th:inline="javascript">
+        // Khởi tạo Ace Editor với highlight cú pháp
+        const editor = ace.edit("editor");
+        editor.setTheme("ace/theme/monokai");
+        editor.session.setMode("ace/mode/sh");
+        editor.setOptions({
+            fontSize: "16px",
+            showLineNumbers: true,
+            showGutter: true,
+            enableBasicAutocompletion: true,
+            enableLiveAutocompletion: true,
+            highlightActiveLine: true,
+        });
+        var fileContent = /*[[${content}]]*/ "";
+        editor.setValue(fileContent, -1);
+
+        let isDirty = false;
+        editor.session.on('change', function() {
+            isDirty = true;
+            document.getElementById("saveStatus").textContent = "Chưa lưu thay đổi";
+        });
+
+        function saveEditorContent() {
+            document.getElementById("contentHidden").value = editor.getValue();
+            document.getElementById("saveStatus").textContent = "Đang lưu...";
+            isDirty = false;
+            return true;
+        }
+
+        window.addEventListener('beforeunload', function (e) {
+            if (isDirty) {
+                e.preventDefault();
+                e.returnValue = '';
+            }
+        });
+
+        // Xem trước cấu hình
+        function showPreview() {
+            document.getElementById('previewContent').textContent = editor.getValue();
+            document.getElementById('previewModal').classList.remove('hidden');
+        }
+        function closePreview() {
+            document.getElementById('previewModal').classList.add('hidden');
+        }
+
+        // Xác nhận lưu
+        function showConfirm() {
+            document.getElementById('confirmModal').classList.remove('hidden');
+        }
+        function closeConfirm() {
+            document.getElementById('confirmModal').classList.add('hidden');
+        }
+        function submitForm() {
+            closeConfirm();
+            saveEditorContent();
+            document.querySelector('form').submit();
+        }
+
+        // Chia nhóm cấu hình (lọc hiển thị)
+        let originalContent = fileContent;
+        function filterGroup(group) {
+            let lines = originalContent.split('\n');
+            let filtered = [];
+            if (group === 'all') {
+                editor.setValue(originalContent, -1);
+                return;
+            }
+            if (group === 'network') {
+                filtered = lines.filter(line => line.match(/Port|AddressFamily|ListenAddress/i));
+            } else if (group === 'auth') {
+                filtered = lines.filter(line => line.match(/Protocol|HostKey|Authentication|PasswordAuthentication|PermitRootLogin/i));
+            } else if (group === 'logging') {
+                filtered = lines.filter(line => line.match(/LogLevel|SyslogFacility/i));
+            } else if (group === 'other') {
+                filtered = lines.filter(line =>
+                    !line.match(/Port|AddressFamily|ListenAddress|Protocol|HostKey|Authentication|PasswordAuthentication|PermitRootLogin|LogLevel|SyslogFacility/i)
+                );
+            }
+            editor.setValue(filtered.join('\n') || "# Không tìm thấy cấu hình nhóm này!", -1);
+        }
+
+        function highlightErrorLines() {
+            // Xóa marker cũ
+            editor.session.clearBreakpoints();
+            editor.session.getMarkers(false);
+            let lines = editor.getValue().split('\n');
+            lines.forEach((line, idx) => {
+                // Ví dụ: đánh dấu dòng có từ 'error' hoặc dòng trống
+                if (/error/i.test(line) || line.trim() === "") {
+                    editor.session.setBreakpoint(idx, "ace_breakpoint"); // sẽ có dấu chấm tròn bên trái
+                }
+            });
+        }
+        // Gọi hàm này sau khi editor thay đổi
+        editor.session.on('change', highlightErrorLines);
+    </script>
 </body>
 </html>
