@@ -23,16 +23,11 @@
             <input type="hidden" name="content" id="contentHidden" />
 
             <!-- Nhóm cấu hình -->
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button type="button" onclick="filterGroup('all')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Tất cả</button>
-                <button type="button" onclick="filterGroup('network')" class="px-3 py-1 bg-blue-200 rounded hover:bg-blue-300">Network</button>
-                <button type="button" onclick="filterGroup('auth')" class="px-3 py-1 bg-green-200 rounded hover:bg-green-300">Authentication</button>
-                <button type="button" onclick="filterGroup('logging')" class="px-3 py-1 bg-yellow-200 rounded hover:bg-yellow-300">Logging</button>
-                <button type="button" onclick="filterGroup('other')" class="px-3 py-1 bg-purple-200 rounded hover:bg-purple-300">Khác</button>
-            </div>
+            <div id="groupButtons" class="flex flex-wrap gap-2 mb-4"></div>
 
             <div class="flex justify-between items-center mb-2">
                 <div class="flex flex-wrap gap-2">
+                    <button type="button" onclick="pasteFromClipboard()" class="px-3 py-1 bg-green-200 rounded hover:bg-green-300"><i class="fas fa-paste"></i> Dán</button>
                     <button type="button" onclick="editor.undo()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-undo"></i> Hoàn tác</button>
                     <button type="button" onclick="editor.redo()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-redo"></i> Làm lại</button>
                     <button type="button" onclick="editor.execCommand('find')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-search"></i> Tìm kiếm</button>
@@ -94,6 +89,8 @@
             highlightActiveLine: true,
         });
         var fileContent = /*[[${content}]]*/ "";
+        originalContent = fileContent; // Đảm bảo luôn là bản gốc
+
         editor.setValue(fileContent, -1);
 
         let isDirty = false;
@@ -138,28 +135,72 @@
             document.querySelector('form').submit();
         }
 
-        // Chia nhóm cấu hình (lọc hiển thị)
-        let originalContent = fileContent;
+        // Danh sách nhóm và từ khóa đặc trưng
+        const GROUPS = [
+            { name: 'Network', keywords: ['Port', 'AddressFamily', 'ListenAddress'] },
+            { name: 'Authentication', keywords: ['Protocol', 'HostKey', 'PasswordAuthentication', 'PermitRootLogin'] },
+            { name: 'Logging', keywords: ['LogLevel', 'SyslogFacility'] },
+        ];
+
+        // Sinh nút nhóm tĩnh
+        function renderGroupButtons() {
+            const groupButtons = document.getElementById('groupButtons');
+            groupButtons.innerHTML = '';
+            // Nút tất cả
+            const allBtn = document.createElement('button');
+            allBtn.textContent = 'Tất cả';
+            allBtn.type = 'button';
+            allBtn.className = 'px-3 py-1 bg-gray-200 rounded hover:bg-gray-300';
+            allBtn.onclick = () => filterGroup('all');
+            groupButtons.appendChild(allBtn);
+
+            // Các nhóm đặc trưng
+            GROUPS.forEach(group => {
+                const btn = document.createElement('button');
+                btn.textContent = group.name;
+                btn.type = 'button';
+                btn.className = 'px-3 py-1 bg-blue-200 rounded hover:bg-blue-300';
+                btn.onclick = () => filterGroup(group.name);
+                groupButtons.appendChild(btn);
+            });
+
+            // Nhóm khác
+            const otherBtn = document.createElement('button');
+            otherBtn.textContent = 'Khác';
+            otherBtn.type = 'button';
+            otherBtn.className = 'px-3 py-1 bg-purple-200 rounded hover:bg-purple-300';
+            otherBtn.onclick = () => filterGroup('other');
+            groupButtons.appendChild(otherBtn);
+        }
+
+        // Lọc theo nhóm đặc trưng
         function filterGroup(group) {
+            // Luôn dùng originalContent để filter, không lấy từ editor
             let lines = originalContent.split('\n');
-            let filtered = [];
             if (group === 'all') {
                 editor.setValue(originalContent, -1);
                 return;
             }
-            if (group === 'network') {
-                filtered = lines.filter(line => line.match(/Port|AddressFamily|ListenAddress/i));
-            } else if (group === 'auth') {
-                filtered = lines.filter(line => line.match(/Protocol|HostKey|Authentication|PasswordAuthentication|PermitRootLogin/i));
-            } else if (group === 'logging') {
-                filtered = lines.filter(line => line.match(/LogLevel|SyslogFacility/i));
-            } else if (group === 'other') {
-                filtered = lines.filter(line =>
-                    !line.match(/Port|AddressFamily|ListenAddress|Protocol|HostKey|Authentication|PasswordAuthentication|PermitRootLogin|LogLevel|SyslogFacility/i)
-                );
+            if (group === 'other') {
+                let allKeywords = GROUPS.flatMap(g => g.keywords);
+                let filtered = lines.filter(line => {
+                    return !allKeywords.some(keyword => line.trim().startsWith(keyword));
+                });
+                editor.setValue(filtered.join('\n') || "# Không tìm thấy cấu hình nhóm này!", -1);
+                return;
             }
-            editor.setValue(filtered.join('\n') || "# Không tìm thấy cấu hình nhóm này!", -1);
+            let groupObj = GROUPS.find(g => g.name === group);
+            if (groupObj) {
+                let filtered = lines.filter(line =>
+                    groupObj.keywords.some(keyword => line.trim().startsWith(keyword))
+                );
+                editor.setValue(filtered.join('\n') || "# Không tìm thấy cấu hình nhóm này!", -1);
+            }
         }
+
+        // Khởi tạo nhóm tĩnh khi load file
+        let originalContent = fileContent;
+        renderGroupButtons();
 
         function highlightErrorLines() {
             // Xóa marker cũ
@@ -174,7 +215,15 @@
             });
         }
         // Gọi hàm này sau khi editor thay đổi
-        editor.session.on('change', highlightErrorLines);
+r.session.on('change', highlightErrorLines);
+        async function pasteFromClipboard() {
+            try {
+                const text = await navigator.clipboard.readText();
+                editor.session.insert(editor.getCursorPosition(), text);
+            } catch (err) {
+                alert("Không thể truy cập clipboard. Hãy thử lại trên trình duyệt hỗ trợ hoặc cấp quyền clipboard.");
+            }
+        }
     </script>
 </body>
 </html>

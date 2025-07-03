@@ -18,6 +18,7 @@ public class AuthController {
         List<ServerInfo> servers = new ArrayList<>();
         servers.add(new ServerInfo("Server 1", "192.168.1.10", "ubuntu", "123456"));
         servers.add(new ServerInfo("Server 2", "192.168.1.20", "ubuntu", "123456"));
+        servers.add(new ServerInfo("Live server", "10.10.50.234", "b2204914", "123456"));
         users.add(new User("admin", "admin", servers));
     }
 
