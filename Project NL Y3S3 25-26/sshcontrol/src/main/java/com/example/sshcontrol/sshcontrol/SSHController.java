@@ -5,6 +5,7 @@ import com.example.sshcontrol.model.SSHRequest;
 import com.example.sshcontrol.service.SSHService;
 import com.example.sshcontrol.model.MultiServiceRequest;
 import com.example.sshcontrol.model.MultiConfigRequest;
+import com.example.sshcontrol.model.FileInfo;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -14,6 +15,10 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.io.File;
+import java.nio.file.Files;
+import java.nio.file.attribute.BasicFileAttributes;
+import java.util.ArrayList;
 
 
 @Controller
@@ -135,7 +140,28 @@ public class SSHController {
     }
 
     @GetMapping("/select-config")
-    public String showSelectConfig() {
+    public String selectConfig(@RequestParam String path, Model model) {
+        File folder = new File(path);
+        File[] fileArr = folder.listFiles();
+        List<FileInfo> files = new ArrayList<>();
+        if (fileArr != null) {
+            for (File f : fileArr) {
+                try {
+                    files.add(new FileInfo(
+                        f.getName(),
+                        f.getAbsolutePath(),
+                        f.isDirectory(),
+                        Files.readAttributes(f.toPath(), BasicFileAttributes.class).creationTime().toMillis(),
+                        f.lastModified()
+                    ));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
+            }
+        }
+        model.addAttribute("files", files);
+        model.addAttribute("currentPath", path);
+        // ... các thuộc tính khác ...
         return "select-config";
     }
 

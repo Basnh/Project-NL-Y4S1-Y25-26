@@ -17,7 +17,7 @@
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Sửa file cấu hình</h2>
         <form th:action="@{/save-config}" method="post" onsubmit="return saveEditorContent();">
             <input type="hidden" name="configFile" th:value="${configFile}" />
-            <input type="hidden" name="host" th:value="${sshRequest.host}" />
+            <input type="hidden" name="host" th:value="${sshRequest.host}" id="host-hidden" />
             <input type="hidden" name="username" th:value="${sshRequest.username}" />
             <input type="hidden" name="password" th:value="${sshRequest.password}" />
             <input type="hidden" name="content" id="contentHidden" />
@@ -47,7 +47,7 @@
             </div>
         </form>
         <div class="mt-8 text-center">
-            <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại trang dashboard
             </a>
         </div>
@@ -89,7 +89,7 @@
             highlightActiveLine: true,
         });
         var fileContent = /*[[${content}]]*/ "";
-        originalContent = fileContent; // Đảm bảo luôn là bản gốc
+        var originalContent = fileContent; // Đảm bảo luôn là bản gốc
 
         editor.setValue(fileContent, -1);
 
@@ -175,31 +175,35 @@
 
         // Lọc theo nhóm đặc trưng
         function filterGroup(group) {
-            // Luôn dùng originalContent để filter, không lấy từ editor
             let lines = originalContent.split('\n');
             if (group === 'all') {
                 editor.setValue(originalContent, -1);
                 return;
             }
+            let allKeywords = GROUPS.flatMap(g => g.keywords);
             if (group === 'other') {
-                let allKeywords = GROUPS.flatMap(g => g.keywords);
+                // Giữ lại dòng trắng, chỉ loại bỏ dòng cấu hình thuộc các nhóm đã định nghĩa
                 let filtered = lines.filter(line => {
-                    return !allKeywords.some(keyword => line.trim().startsWith(keyword));
+                    let lineNoComment = line.replace(/^#\s*/, '').trim();
+                    // Nếu là dòng comment không cấu hình thì loại bỏ, còn dòng trắng thì giữ lại
+                    if (lineNoComment.startsWith("#")) return false;
+                    // Nếu KHÔNG bắt đầu bằng bất kỳ từ khóa nào thì giữ lại
+                    return !allKeywords.some(keyword => lineNoComment.startsWith(keyword));
                 });
                 editor.setValue(filtered.join('\n') || "# Không tìm thấy cấu hình nhóm này!", -1);
                 return;
             }
             let groupObj = GROUPS.find(g => g.name === group);
             if (groupObj) {
-                let filtered = lines.filter(line =>
-                    groupObj.keywords.some(keyword => line.trim().startsWith(keyword))
-                );
+                let filtered = lines.filter(line => {
+                    let lineNoComment = line.replace(/^#\s*/, '').trim();
+                    return groupObj.keywords.some(keyword => lineNoComment.startsWith(keyword));
+                });
                 editor.setValue(filtered.join('\n') || "# Không tìm thấy cấu hình nhóm này!", -1);
             }
         }
 
         // Khởi tạo nhóm tĩnh khi load file
-        let originalContent = fileContent;
         renderGroupButtons();
 
         function highlightErrorLines() {
@@ -215,7 +219,8 @@
             });
         }
         // Gọi hàm này sau khi editor thay đổi
-r.session.on('change', highlightErrorLines);
+        editor.session.on('change', highlightErrorLines);
+
         async function pasteFromClipboard() {
             try {
                 const text = await navigator.clipboard.readText();
@@ -224,6 +229,15 @@ r.session.on('change', highlightErrorLines);
                 alert("Không thể truy cập clipboard. Hãy thử lại trên trình duyệt hỗ trợ hoặc cấp quyền clipboard.");
             }
         }
+
+        // Giữ lại tham số host khi quay lại dashboard
+        document.addEventListener('DOMContentLoaded', function() {
+            const urlParams = new URLSearchParams(window.location.search);
+            const hostParam = urlParams.get('host');
+            if (hostParam) {
+                document.getElementById('host-hidden').value = hostParam;
+            }
+        });
     </script>
 </body>
 </html>

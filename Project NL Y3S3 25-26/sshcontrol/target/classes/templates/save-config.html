@@ -28,13 +28,15 @@
         <div class="flex flex-col md:flex-row justify-center gap-4 mt-8">
             <form th:action="@{/edit-config}" method="get">
                 <input type="hidden" name="configFile" th:value="${configFile}" />
+                <input type="hidden" name="host" th:value="${host}" />
                 <button type="submit"
                     class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
                     <i class="fas fa-edit mr-2"></i>
                     Quay lại chỉnh sửa
                 </button>
             </form>
-            <form th:action="@{/}" method="get">
+            <form th:action="@{/dashboard}" method="get">
+                <input type="hidden" name="hosts" th:value="${host}" />
                 <button type="submit"
                     class="px-6 py-2 bg-gray-600 text-white rounded-md hover:bg-gray-700 transition duration-200 ease-in-out font-semibold flex items-center">
                     <i class="fas fa-home mr-2"></i>
