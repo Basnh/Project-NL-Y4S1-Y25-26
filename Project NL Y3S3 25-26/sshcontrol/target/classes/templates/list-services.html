@@ -4,9 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Danh sách dịch vụ</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/styles.css">
 </head>
@@ -60,13 +58,31 @@
         </div>
 
         <div class="mt-8 text-center">
-            <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
             </a>
         </div>
     </div>
 
     <script>
+        function vietHoaTrangThai(status) {
+            if (!status) return status;
+            status = status.trim().toLowerCase();
+            if (status === 'active') return 'Đang hoạt động';
+            if (status === 'inactive') return 'Không hoạt động';
+            return status;
+        }
+
+        function vietHoaTatCaTrangThai() {
+            document.querySelectorAll('#serviceTableBody tr').forEach(row => {
+                const statusCell = row.cells[1];
+                if (statusCell) {
+                    const span = statusCell.querySelector('span');
+                    if (span) span.textContent = vietHoaTrangThai(span.textContent);
+                }
+            });
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             const serviceSearch = document.getElementById('serviceSearch');
             const serviceTableBody = document.getElementById('serviceTableBody');
@@ -91,6 +107,7 @@
                     paginatedItems.forEach(row => serviceTableBody.appendChild(row));
                 }
 
+                vietHoaTatCaTrangThai();
                 updatePaginationControls();
             }
 
@@ -129,6 +146,15 @@
                     displayRows(currentPage);
                 }
             });
+
+            // Giữ lại tham số host khi quay lại dashboard
+            const urlParams = new URLSearchParams(window.location.search);
+            const host = urlParams.get('host');
+            if (host) {
+                document.getElementById('backToDashboard').href = '/dashboard?hosts=' + encodeURIComponent(host);
+            } else {
+                document.getElementById('backToDashboard').href = '/dashboard';
+            }
         });
     </script>
 </body>

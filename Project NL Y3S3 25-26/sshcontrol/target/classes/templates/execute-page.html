@@ -9,6 +9,20 @@
     <link rel="stylesheet" href="/styles.css">
     <script>
         window.addEventListener('DOMContentLoaded', function() {
+            // Chỉ kiểm tra khi là GET (có tham số trên URL)
+            if (window.location.search) {
+                const urlParams = new URLSearchParams(window.location.search);
+                const host = urlParams.get('host');
+                if (!host) {
+                    alert('Không tìm thấy máy chủ! (host param missing)');
+                    window.location.href = '/server-list';
+                } else {
+                    const hidden = document.getElementById('host-hidden');
+                    if (hidden) hidden.value = host;
+                }
+            }
+        });
+        window.addEventListener('DOMContentLoaded', function() {
             var form = document.querySelector('form');
             var input = document.querySelector('input[name="command"], input[th\\:field="*{command}"]');
             if(form && input) {
@@ -19,6 +33,16 @@
                 });
             }
         });
+        // Khi gửi lệnh:
+        async function sendCommand() {
+            const command = document.getElementById('command').value;
+            const res = await fetch('/command', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({host, command})
+            });
+            // Xử lý kết quả...
+        }
     </script>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
@@ -33,6 +57,7 @@
                     <i class="fas fa-terminal absolute left-3 top-3 text-gray-400"></i>
                 </div>
             </div>
+            <input type="hidden" name="host" id="host-hidden">
             <div class="flex justify-center">
                 <button type="submit"
                     class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
@@ -45,10 +70,21 @@
             <pre class="bg-gray-100 rounded-lg p-4 text-gray-800 overflow-x-auto" th:text="${result}"></pre>
         </div>
         <div class="mt-8 text-center">
-            <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
             </a>
         </div>
     </div>
+    <script>
+    window.addEventListener('DOMContentLoaded', function() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const host = urlParams.get('host');
+        if (host) {
+            document.getElementById('backToDashboard').href = '/dashboard?hosts=' + encodeURIComponent(host);
+        } else {
+            document.getElementById('backToDashboard').href = '/dashboard';
+        }
+    });
+    </script>
 </body>
 </html>

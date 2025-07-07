@@ -3,42 +3,69 @@
 <head>
     <meta charset="UTF-8">
     <title>Bảng điều khiển máy chủ</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS file -->
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-2xl">
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
         <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Bảng điều khiển máy chủ Ubuntu</h2>
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-            <a th:href="@{/execute-page}" class="block">
-                <div class="flex flex-col items-center p-6 bg-indigo-50 rounded-lg shadow hover:bg-indigo-100 transition">
-                    <i class="fas fa-terminal text-3xl text-indigo-600 mb-3"></i>
-                    <span class="text-lg font-semibold text-indigo-700">Thực thi lệnh</span>
+        <div id="dashboard-actions" class="grid grid-cols-1 md:grid-cols-2 gap-8 mb-8">
+            <button onclick="openMultiTab('command')" class="block focus:outline-none w-full">
+                <div class="flex flex-col items-center p-8 bg-indigo-50 rounded-lg shadow hover:bg-indigo-100 transition">
+                    <i class="fas fa-terminal text-4xl text-indigo-600 mb-4"></i>
+                    <span class="text-xl font-semibold text-indigo-700">Thực thi lệnh</span>
                 </div>
-            </a>
-            <a th:href="@{/list-services}" class="block">
-                <div class="flex flex-col items-center p-6 bg-green-50 rounded-lg shadow hover:bg-green-100 transition">
-                    <i class="fas fa-list text-3xl text-green-600 mb-3"></i>
-                    <span class="text-lg font-semibold text-green-700">Liệt kê dịch vụ</span>
+            </button>
+            <button onclick="openMultiTab('service')" class="block focus:outline-none w-full">
+                <div class="flex flex-col items-center p-8 bg-green-50 rounded-lg shadow hover:bg-green-100 transition">
+                    <i class="fas fa-list text-4xl text-green-600 mb-4"></i>
+                    <span class="text-xl font-semibold text-green-700">Liệt kê dịch vụ</span>
                 </div>
-            </a>
-            <a th:href="@{/select-config}" class="block">
-                <div class="flex flex-col items-center p-6 bg-yellow-50 rounded-lg shadow hover:bg-yellow-100 transition">
-                    <i class="fas fa-file-alt text-3xl text-yellow-600 mb-3"></i>
-                    <span class="text-lg font-semibold text-yellow-700">Sửa file cấu hình</span>
+            </button>
+            <button onclick="openMultiTab('config')" class="block focus:outline-none w-full">
+                <div class="flex flex-col items-center p-8 bg-yellow-50 rounded-lg shadow hover:bg-yellow-100 transition">
+                    <i class="fas fa-file-alt text-4xl text-yellow-600 mb-4"></i>
+                    <span class="text-xl font-semibold text-yellow-700">Sửa file cấu hình</span>
                 </div>
-            </a>
-            <a th:href="@{/control-service}" class="block">
-                <div class="flex flex-col items-center p-6 bg-red-50 rounded-lg shadow hover:bg-red-100 transition">
-                    <i class="fas fa-cogs text-3xl text-red-600 mb-3"></i>
-                    <span class="text-lg font-semibold text-red-700">Điều khiển dịch vụ</span>
+            </button>
+            <button onclick="openMultiTab('control')" class="block focus:outline-none w-full">
+                <div class="flex flex-col items-center p-8 bg-red-50 rounded-lg shadow hover:bg-red-100 transition">
+                    <i class="fas fa-cogs text-4xl text-red-600 mb-4"></i>
+                    <span class="text-xl font-semibold text-red-700">Điều khiển dịch vụ</span>
                 </div>
+            </button>
+        </div>
+        <div class="text-center mt-8">
+            <a th:href="@{/server-list}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i> Quay lại danh sách máy chủ
             </a>
         </div>
     </div>
+    <script>
+        const urlParams = new URLSearchParams(window.location.search);
+        const hosts = urlParams.get('hosts') ? urlParams.get('hosts').split(',') : [];
+        function openMultiTab(type) {
+            if (hosts.length === 0) {
+                alert('Vui lòng chọn máy chủ ở trang trước!');
+                return;
+            }
+            let url = '';
+            if (hosts.length === 1) {
+                // Trang đơn cho 1 máy chủ
+                if (type === 'command') url = '/execute-page?host=' + encodeURIComponent(hosts[0]);
+                if (type === 'service') url = '/list-services?host=' + encodeURIComponent(hosts[0]);
+                if (type === 'config') url = '/select-config?host=' + encodeURIComponent(hosts[0]);
+                if (type === 'control') url = '/control-service?host=' + encodeURIComponent(hosts[0]);
+            } else {
+                // Trang multi cho nhiều máy chủ
+                if (type === 'command') url = '/multi-command?hosts=' + encodeURIComponent(hosts.join(','));
+                if (type === 'service') url = '/multi-services?hosts=' + encodeURIComponent(hosts.join(','));
+                if (type === 'config') url = '/multi-config?hosts=' + encodeURIComponent(hosts.join(','));
+                if (type === 'control') url = '/multi-control?hosts=' + encodeURIComponent(hosts.join(','));
+            }
+            window.open(url, '_blank');
+        }
+    </script>
 </body>
 </html>

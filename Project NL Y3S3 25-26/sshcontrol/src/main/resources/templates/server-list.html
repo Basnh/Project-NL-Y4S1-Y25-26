@@ -14,7 +14,7 @@
             <a th:href="@{/add-server}" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
                 <i class="fas fa-plus mr-2"></i> Thêm máy chủ
             </a>
-            <button onclick="openMultiControlModal()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 ease-in-out font-semibold flex items-center">
+            <button type="button" onclick="goToDashboardWithSelectedServers()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 ease-in-out font-semibold flex items-center">
                 <i class="fas fa-terminal mr-2"></i> Điều khiển nhiều máy chủ
             </button>
         </div>
@@ -63,7 +63,7 @@
         </div>
         </form>
         <div class="mt-8 text-center">
-            <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
             </a>
         </div>
@@ -254,6 +254,25 @@
             const data = await res.json();
             resultDiv.innerHTML = "<b>Kết quả:</b><br>" + data.map((r, i) => `<div class="mb-2"><b>${hosts[i]}</b>:<br><pre class="bg-gray-100 p-2 rounded">${r}</pre></div>`).join('');
         };
+
+        function goToDashboardWithSelectedServers() {
+            const checked = Array.from(document.querySelectorAll('input[name="selectedServers"]:checked'));
+            const ips = checked.map(cb => cb.value);
+            if (ips.length === 0) {
+                alert("Vui lòng chọn ít nhất một máy chủ!");
+                return;
+            }
+            window.location.href = '/dashboard?hosts=' + encodeURIComponent(ips.join(','));
+        }
+
+        // Nếu đang có hosts trên URL, thêm vào link quay lại
+        const urlParams = new URLSearchParams(window.location.search);
+        const hosts = urlParams.get('hosts');
+        if (hosts) {
+            document.getElementById('backToDashboard').href = '/dashboard?hosts=' + encodeURIComponent(hosts);
+        } else {
+            document.getElementById('backToDashboard').href = '/dashboard';
+        }
     </script>
 </body>
 </html>

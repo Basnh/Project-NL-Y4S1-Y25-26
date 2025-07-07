@@ -1,8 +1,13 @@
 package com.example.sshcontrol.model;
 
+import jakarta.persistence.Entity;
+import jakarta.persistence.Id;
+
+@Entity
 public class ServerInfo {
-    private String name;
+    @Id
     private String ip;
+    private String name;
     private String sshUsername;
     private String sshPassword;
 
