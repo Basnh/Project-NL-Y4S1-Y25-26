@@ -39,4 +39,3 @@ public class SSHRequest {
         this.command = command;
     }
 }
-

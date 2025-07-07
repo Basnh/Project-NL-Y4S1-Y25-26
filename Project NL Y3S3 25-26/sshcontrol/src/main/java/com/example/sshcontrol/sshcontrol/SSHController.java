@@ -1,7 +1,10 @@
 package com.example.sshcontrol.sshcontrol;
 
+import com.example.sshcontrol.model.MultiSSHRequest;
 import com.example.sshcontrol.model.SSHRequest;
 import com.example.sshcontrol.service.SSHService;
+import com.example.sshcontrol.model.MultiServiceRequest;
+import com.example.sshcontrol.model.MultiConfigRequest;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -9,6 +12,8 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
+
+import java.util.List;
 
 
 @Controller
@@ -368,11 +373,36 @@ public class SSHController {
         return (result == null || result.trim().isEmpty()) ? "Không có kết quả trả về!" : result;
     }
 
+    @PostMapping("/execute-multi")
+    @ResponseBody
+    public List<String> executeMulti(@RequestBody MultiSSHRequest request) throws InterruptedException {
+        return sshService.executeCommandOnMultipleHosts(
+            request.getHosts(), request.getUser(), request.getPassword(), request.getCommand()
+        );
+    }
+
+    @PostMapping("/multi-control-service")
+    @ResponseBody
+    public List<String> multiControlService(@RequestBody MultiServiceRequest request) throws InterruptedException {
+        // MultiServiceRequest: hosts, user, password, serviceName, action
+        return sshService.controlServiceOnMultipleHosts(
+            request.getHosts(), request.getUser(), request.getPassword(), request.getServiceName(), request.getAction()
+        );
+    }
+
+    @PostMapping("/multi-save-config")
+    @ResponseBody
+    public List<String> multiSaveConfig(@RequestBody MultiConfigRequest request) throws InterruptedException {
+        // MultiConfigRequest: hosts, user, password, configPath, content
+        return sshService.saveConfigOnMultipleHosts(
+            request.getHosts(), request.getUser(), request.getPassword(), request.getConfigPath(), request.getContent()
+        );
+    }
+
     @GetMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
     }
 }
-
 
