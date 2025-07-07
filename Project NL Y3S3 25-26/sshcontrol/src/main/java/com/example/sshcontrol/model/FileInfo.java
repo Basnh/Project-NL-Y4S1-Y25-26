@@ -8,12 +8,12 @@ public class FileInfo {
     private long creationTime;
     private long lastModified;
 
-    public FileInfo(String name, String absolutePath, boolean directory, long creationTime, long lastModified) {
+    public FileInfo(String name, String path, boolean isDirectory, long created, long modified) {
         this.name = name;
-        this.absolutePath = absolutePath;
-        this.directory = directory;
-        this.creationTime = creationTime;
-        this.lastModified = lastModified;
+        this.absolutePath = path;
+        this.directory = isDirectory;
+        this.creationTime = created;
+        this.lastModified = modified;
     }
 
 public String getName() {

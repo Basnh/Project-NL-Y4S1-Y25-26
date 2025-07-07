@@ -9,83 +9,19 @@
     <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-2xl">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Chọn file hoặc thư mục cấu hình</h2>
-        <div th:if="${showPathInput}">
-            <form method="get" th:action="@{/select-config}">
-                <label for="path" class="block mb-2 font-semibold">Nhập đường dẫn thư mục cấu hình:</label>
-                <input type="text" id="path" name="path"
-                    class="border rounded px-3 py-2 w-full mb-4"
-                    placeholder="/etc/ssh/" required />
-                <button type="submit"
-                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
-                    Xem danh sách file
-                </button>
-            </form>
-        </div>
-        <form id="pathForm" class="flex gap-2 mb-6" th:if="${not showPathInput}">
-            <input type="hidden" name="host" id="host-hidden">
-            <input type="text" id="pathInput" name="path" placeholder="/etc/ssh/"
-                class="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out"
-                th:value="${currentPath}">
-            <button type="submit"
-                class="px-4 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
-                <i class="fas fa-folder-open mr-2"></i> Mở
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-xl">
+        <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Nhập đường dẫn file cấu hình muốn sửa</h2>
+        <form id="goEditForm" class="flex flex-row gap-2 justify-center items-center" action="/edit-config" method="get">
+            <input type="text" name="configFile" id="configFileInput" placeholder="/etc/ssh/sshd_config"
+                class="flex-1 min-w-0 text-lg pl-4 pr-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out" required>
+            <button type="submit" class="px-5 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center gap-2 text-lg">
+                <i class="fas fa-edit"></i> Sửa file
             </button>
         </form>
-        <div class="flex justify-between items-center mb-4">
-            <input type="text" id="searchInput" placeholder="Tìm kiếm file/thư mục..."
-                class="w-1/2 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
-            <select id="sortSelect" class="pl-2 pr-2 py-2 border border-gray-300 rounded-lg ml-2">
-                <option value="created">Sắp xếp theo ngày tạo</option>
-                <option value="modified">Sắp xếp theo ngày sửa</option>
-                <option value="name">Sắp xếp theo tên</option>
-            </select>
-            <button id="createFileBtn" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 ml-2">
-                <i class="fas fa-plus mr-1"></i> Tạo file mới
-            </button>
-        </div>
-        <!-- Danh sách file/folder -->
-        <div id="fileList" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <div th:if="${files == null or #lists.isEmpty(files)}" class="col-span-2 text-center text-gray-500 py-8">
-                <i class="fas fa-folder-open text-4xl mb-2"></i>
-                <div>Thư mục này đang rỗng</div>
-            </div>
-            <div th:each="f : ${files}" class="bg-gray-50 rounded-lg p-4 shadow flex flex-col justify-between">
-                <div class="flex items-center gap-2 mb-2">
-                    <i th:classappend="${f.isDirectory} ? 'fa-folder text-yellow-500' : 'fa-file-alt text-blue-500'" class="fas text-2xl"></i>
-                    <span class="font-semibold" th:text="${f.name}"></span>
-                </div>
-                <div class="text-xs text-gray-500 mb-1">Ngày tạo: <span th:text="${f.created}"></span></div>
-                <div class="text-xs text-gray-500 mb-2">Ngày sửa: <span th:text="${f.modified}"></span></div>
-                <div class="flex gap-2 mt-auto">
-                    <a th:if="${f.isDirectory}" th:href="@{/select-config(path=${f.path},host=${host})}"
-                        class="px-3 py-1 bg-indigo-100 text-indigo-700 rounded hover:bg-indigo-200 text-xs flex items-center">
-                        <i class="fas fa-folder-open mr-1"></i> Mở thư mục
-                    </a>
-                    <a th:if="${!f.isDirectory}" th:href="@{/edit-config(configFile=${f.path},host=${host})}"
-                        class="px-3 py-1 bg-green-100 text-green-700 rounded hover:bg-green-200 text-xs flex items-center">
-                        <i class="fas fa-edit mr-1"></i> Sửa file
-                    </a>
-                </div>
-            </div>
-        </div>
         <div class="mt-8 text-center">
             <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
             </a>
-        </div>
-    </div>
-    <!-- Modal tạo file mới -->
-    <div id="createFileModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-md w-full">
-            <h3 class="text-xl font-bold mb-4 text-center">Tạo file mới</h3>
-            <input type="text" id="newFileName" placeholder="Nhập tên file mới (vd: my.conf)"
-                class="w-full mb-4 pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            <div class="flex justify-center gap-4">
-                <button onclick="closeCreateFileModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Hủy</button>
-                <button onclick="createFile()" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Tạo file</button>
-            </div>
         </div>
     </div>
     <script>
@@ -94,53 +30,20 @@
             const urlParams = new URLSearchParams(window.location.search);
             const host = urlParams.get('host');
             if (host) {
-                document.getElementById('host-hidden').value = host;
                 document.getElementById('backToDashboard').href = '/dashboard?hosts=' + encodeURIComponent(host);
             } else {
                 document.getElementById('backToDashboard').href = '/dashboard';
             }
-        });
-
-        // Modal tạo file mới
-        document.getElementById('createFileBtn').onclick = function() {
-            document.getElementById('createFileModal').classList.remove('hidden');
-        };
-        function closeCreateFileModal() {
-            document.getElementById('createFileModal').classList.add('hidden');
-        }
-        function createFile() {
-            const fileName = document.getElementById('newFileName').value.trim();
-            const path = document.getElementById('pathInput').value.trim();
-            const host = document.getElementById('host-hidden').value;
-            if (!fileName) {
-                alert("Vui lòng nhập tên file!");
-                return;
-            }
-            // Gửi request tạo file mới (bạn cần xử lý backend cho API này)
-            fetch(`/api/create-file?host=${encodeURIComponent(host)}&path=${encodeURIComponent(path)}&fileName=${encodeURIComponent(fileName)}`, {
-                method: 'POST'
-            })
-            .then(res => res.json())
-            .then(data => {
-                if (data.success) {
-                    location.reload(); // Reload lại để hiển thị file mới
-                } else {
-                    alert(data.message || "Tạo file thất bại!");
+            // Nếu có host, thêm vào form khi submit
+            document.getElementById('goEditForm').addEventListener('submit', function(e) {
+                if (host) {
+                    let input = document.createElement('input');
+                    input.type = 'hidden';
+                    input.name = 'host';
+                    input.value = host;
+                    this.appendChild(input);
                 }
             });
-        }
-
-        // Search và sort (áp dụng cho frontend nếu dữ liệu trả về là Thymeleaf, nếu trả về JSON thì cần JS render lại)
-        document.getElementById('searchInput').addEventListener('input', function() {
-            const search = this.value.toLowerCase();
-            document.querySelectorAll('#fileList > div[th\\:each]').forEach(card => {
-                const name = card.querySelector('.font-semibold').textContent.toLowerCase();
-                card.style.display = name.includes(search) ? '' : 'none';
-            });
-        });
-        document.getElementById('sortSelect').addEventListener('change', function() {
-            // Nếu render bằng Thymeleaf thì sort ở backend, nếu render bằng JS thì sort lại các card ở đây
-            // Gợi ý: nên sort ở backend để đảm bảo đúng dữ liệu
         });
     </script>
 </body>

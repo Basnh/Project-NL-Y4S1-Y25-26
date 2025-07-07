@@ -14,7 +14,8 @@
 </head>
 <body class="bg-gray-100 font-sans antialiased">
     <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Sửa file cấu hình</h2>
+        <h2 class="text-3xl font-bold text-gray-800 mb-2 text-center">Sửa file cấu hình</h2>
+        <p class="text-center text-gray-600 mb-4 text-base">Hãy cẩn thận khi chỉnh sửa file cấu hình. Nếu không chắc chắn, hãy hỏi quản trị viên hoặc sao lưu trước khi lưu thay đổi.</p>
         <form th:action="@{/save-config}" method="post" onsubmit="return saveEditorContent();">
             <input type="hidden" name="configFile" th:value="${configFile}" />
             <input type="hidden" name="host" th:value="${sshRequest.host}" id="host-hidden" />
@@ -25,29 +26,30 @@
             <!-- Nhóm cấu hình -->
             <div id="groupButtons" class="flex flex-wrap gap-2 mb-4"></div>
 
-            <div class="flex justify-between items-center mb-2">
-                <div class="flex flex-wrap gap-2">
-                    <button type="button" onclick="pasteFromClipboard()" class="px-3 py-1 bg-green-200 rounded hover:bg-green-300"><i class="fas fa-paste"></i> Dán</button>
-                    <button type="button" onclick="editor.undo()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-undo"></i> Hoàn tác</button>
-                    <button type="button" onclick="editor.redo()" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-redo"></i> Làm lại</button>
-                    <button type="button" onclick="editor.execCommand('find')" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300"><i class="fas fa-search"></i> Tìm kiếm</button>
-                    <button type="button" onclick="showPreview()" class="px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600"><i class="fas fa-eye"></i> Xem trước</button>
-                </div>
-                <span id="saveStatus" class="text-sm text-gray-500"></span>
+            <div class="flex flex-wrap gap-3 mb-2 justify-center">
+                <button type="button" onclick="pasteFromClipboard()" class="flex-1 min-w-[120px] px-3 py-1 bg-green-200 text-green-900 rounded hover:bg-green-300 flex items-center gap-2 justify-center font-semibold shadow" title="Chèn nội dung từ clipboard"><i class="fas fa-paste"></i> Dán</button>
+                <button type="button" onclick="editor.undo()" class="flex-1 min-w-[120px] px-3 py-1 bg-blue-200 text-blue-900 rounded hover:bg-blue-300 flex items-center gap-2 justify-center font-semibold shadow" title="Quay lại bước trước"><i class="fas fa-undo"></i> Hoàn tác</button>
+                <button type="button" onclick="editor.redo()" class="flex-1 min-w-[120px] px-3 py-1 bg-orange-200 text-orange-900 rounded hover:bg-orange-300 flex items-center gap-2 justify-center font-semibold shadow" title="Làm lại thao tác vừa hoàn tác"><i class="fas fa-redo"></i> Làm lại</button>
+                <button type="button" onclick="editor.execCommand('find')" class="flex-1 min-w-[120px] px-3 py-1 bg-cyan-200 text-cyan-900 rounded hover:bg-cyan-300 flex items-center gap-2 justify-center font-semibold shadow" title="Tìm kiếm từ khoá trong file"><i class="fas fa-search"></i> Tìm kiếm</button>
+                <button type="button" onclick="showPreview()" class="flex-1 min-w-[120px] px-3 py-1 bg-yellow-500 text-white rounded hover:bg-yellow-600 flex items-center gap-2 justify-center font-semibold shadow" title="Xem trước nội dung"><i class="fas fa-eye"></i> Xem trước</button>
             </div>
+            <span id="saveStatus" class="block text-sm text-gray-500 text-center mb-2"></span>
             <div id="editor" class="w-full h-[600px] border border-gray-300 rounded-lg"></div>
-            <div class="flex justify-center mt-6 gap-4">
-                <button type="submit"
-                    class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
-                    <i class="fas fa-save mr-2"></i> Lưu lại
+            <div class="flex justify-center mt-8 gap-6">
+                <button type="button" onclick="resetEditorContent()"
+                    class="flex items-center gap-2 px-7 py-3 bg-gray-200 text-gray-700 rounded-xl font-semibold text-lg shadow hover:bg-gray-300 transition"
+                    title="Khôi phục lại nội dung ban đầu">
+                    <i class="fas fa-times"></i> Huỷ
                 </button>
-                <button type="button" onclick="showConfirm()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 ease-in-out font-semibold flex items-center">
-                    <i class="fas fa-check mr-2"></i> Xác nhận
+                <button type="submit"
+                    class="flex items-center gap-2 px-7 py-3 bg-green-600 text-white rounded-xl font-semibold text-lg shadow hover:bg-green-700 transition"
+                    title="Lưu lại các thay đổi">
+                    <i class="fas fa-save"></i> Lưu lại
                 </button>
             </div>
         </form>
         <div class="mt-8 text-center">
-            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out" title="Quay lại trang dashboard">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại trang dashboard
             </a>
         </div>
@@ -88,6 +90,12 @@
             enableLiveAutocompletion: true,
             highlightActiveLine: true,
         });
+        // Đặt màu chữ trong editor thành trắng
+        editor.container.style.color = '#fff';
+        editor.container.style.fontWeight = 'bold';
+        // Đặt màu nền editor thành đen
+        editor.container.style.background = '#000';
+
         var fileContent = /*[[${content}]]*/ "";
         var originalContent = fileContent; // Đảm bảo luôn là bản gốc
 
@@ -124,13 +132,12 @@
 
         // Xác nhận lưu
         function showConfirm() {
-            document.getElementById('confirmModal').classList.remove('hidden');
+            // Đã bỏ nút xác nhận, không dùng nữa
         }
         function closeConfirm() {
-            document.getElementById('confirmModal').classList.add('hidden');
+            // Đã bỏ nút xác nhận, không dùng nữa
         }
         function submitForm() {
-            closeConfirm();
             saveEditorContent();
             document.querySelector('form').submit();
         }
@@ -151,6 +158,7 @@
             allBtn.textContent = 'Tất cả';
             allBtn.type = 'button';
             allBtn.className = 'px-3 py-1 bg-gray-200 rounded hover:bg-gray-300';
+            allBtn.title = 'Hiển thị tất cả cấu hình';
             allBtn.onclick = () => filterGroup('all');
             groupButtons.appendChild(allBtn);
 
@@ -160,6 +168,7 @@
                 btn.textContent = group.name;
                 btn.type = 'button';
                 btn.className = 'px-3 py-1 bg-blue-200 rounded hover:bg-blue-300';
+                btn.title = `Chỉ hiển thị nhóm ${group.name}`;
                 btn.onclick = () => filterGroup(group.name);
                 groupButtons.appendChild(btn);
             });
@@ -169,6 +178,7 @@
             otherBtn.textContent = 'Khác';
             otherBtn.type = 'button';
             otherBtn.className = 'px-3 py-1 bg-purple-200 rounded hover:bg-purple-300';
+            otherBtn.title = 'Hiển thị các cấu hình khác';
             otherBtn.onclick = () => filterGroup('other');
             groupButtons.appendChild(otherBtn);
         }
@@ -212,9 +222,9 @@
             editor.session.getMarkers(false);
             let lines = editor.getValue().split('\n');
             lines.forEach((line, idx) => {
-                // Ví dụ: đánh dấu dòng có từ 'error' hoặc dòng trống
-                if (/error/i.test(line) || line.trim() === "") {
-                    editor.session.setBreakpoint(idx, "ace_breakpoint"); // sẽ có dấu chấm tròn bên trái
+                // Đánh dấu dòng có từ 'error', 'fail', hoặc dòng trống bất thường
+                if (/error|fail|cảnh báo|warning/i.test(line)) {
+                    editor.session.setBreakpoint(idx, "ace_breakpoint");
                 }
             });
         }

@@ -20,6 +20,8 @@ import java.io.File;
 import java.nio.file.Files;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
+import java.util.Map;
+import java.util.HashMap;
 
 
 @Controller
@@ -444,6 +446,46 @@ public class SSHController {
     public String logout(HttpSession session) {
         session.invalidate();
         return "redirect:/";
+    }
+
+    @GetMapping("/api/list-files")
+    @ResponseBody
+    public Map<String, Object> listFilesApi(
+            @RequestParam String host,
+            @RequestParam String path,
+            HttpSession session) {
+        String username = (String) session.getAttribute("username");
+        String password = (String) session.getAttribute("password");
+        Map<String, Object> result = new HashMap<>();
+        List<FileInfo> files = new ArrayList<>();
+        try {
+            // Lệnh lấy file/folder, hiển thị: quyền, user, group, size, thời gian sửa, tên
+            String command = "ls -l --time-style=+%s " + path;
+            String output = sshService.executeCommand(host, username, password, command);
+            for (String line : output.split("\\n")) {
+                if (line.startsWith("total")) continue;
+                String[] parts = line.trim().split("\\s+", 8);
+                if (parts.length < 8) continue;
+                boolean isDirectory = parts[0].startsWith("d");
+                String name = parts[7];
+                long modified = 0;
+                try { modified = Long.parseLong(parts[5]) * 1000L; } catch (Exception e) {}
+                files.add(new FileInfo(
+                    name,
+                    path.endsWith("/") ? path + name : path + "/" + name,
+                    isDirectory,
+                    modified, // dùng modified cho cả created và modified (nếu muốn lấy created cần lệnh khác)
+                    modified
+                ));
+            }
+            result.put("files", files);
+            result.put("success", true);
+        } catch (Exception e) {
+            result.put("files", new ArrayList<>());
+            result.put("success", false);
+            result.put("message", "Không thể lấy danh sách file: " + e.getMessage());
+        }
+        return result;
     }
 }
 
