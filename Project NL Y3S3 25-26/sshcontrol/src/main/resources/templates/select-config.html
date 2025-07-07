@@ -11,7 +11,19 @@
 <body class="bg-gray-100 font-sans antialiased">
     <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-2xl">
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Chọn file hoặc thư mục cấu hình</h2>
-        <form id="pathForm" class="flex gap-2 mb-6">
+        <div th:if="${showPathInput}">
+            <form method="get" th:action="@{/select-config}">
+                <label for="path" class="block mb-2 font-semibold">Nhập đường dẫn thư mục cấu hình:</label>
+                <input type="text" id="path" name="path"
+                    class="border rounded px-3 py-2 w-full mb-4"
+                    placeholder="/etc/ssh/" required />
+                <button type="submit"
+                    class="px-4 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">
+                    Xem danh sách file
+                </button>
+            </form>
+        </div>
+        <form id="pathForm" class="flex gap-2 mb-6" th:if="${not showPathInput}">
             <input type="hidden" name="host" id="host-hidden">
             <input type="text" id="pathInput" name="path" placeholder="/etc/ssh/"
                 class="w-full pl-4 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out"

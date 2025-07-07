@@ -6,6 +6,7 @@ import com.example.sshcontrol.service.SSHService;
 import com.example.sshcontrol.model.MultiServiceRequest;
 import com.example.sshcontrol.model.MultiConfigRequest;
 import com.example.sshcontrol.model.FileInfo;
+import com.example.sshcontrol.model.ServiceInfo;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -98,7 +99,6 @@ public class SSHController {
             return "redirect:/login";
         }
 
-        // Lấy danh sách tất cả dịch vụ (đầy đủ thông tin)
         String result = sshService.executeCommand(
             host,
             username,
@@ -106,10 +106,15 @@ public class SSHController {
             "systemctl list-units --type=service --all --no-pager --no-legend"
         );
         System.out.println("Kết quả lấy dịch vụ:\n" + result);
-        // Tách từng dòng thành mảng
         String[] services = result.split("\\r?\\n");
-        model.addAttribute("services", services);
-
+        List<ServiceInfo> serviceList = new ArrayList<>();
+        for (String line : services) {
+            String[] parts = line.trim().split("\\s+", 5); // name, load, status, sub, description
+            if (parts.length >= 5) {
+                serviceList.add(new ServiceInfo(parts[0], parts[2], parts[4]));
+            }
+        }
+        model.addAttribute("services", serviceList);
         return "list-services";
     }
 
@@ -134,13 +139,24 @@ public class SSHController {
             "systemctl list-units --type=service --all --no-pager --no-legend"
         );
         String[] services = result.split("\\r?\\n");
-        model.addAttribute("services", services);
+        List<ServiceInfo> serviceList = new ArrayList<>();
+        for (String line : services) {
+            String[] parts = line.trim().split("\\s+", 5);
+            if (parts.length >= 5) {
+                serviceList.add(new ServiceInfo(parts[0], parts[2], parts[4]));
+            }
+        }
+        model.addAttribute("services", serviceList);
         model.addAttribute("sshRequest", sshRequest);
         return "list-services";
     }
 
     @GetMapping("/select-config")
-    public String selectConfig(@RequestParam String path, Model model) {
+    public String selectConfig(@RequestParam(required = false) String path, Model model) {
+        if (path == null || path.isEmpty()) {
+            model.addAttribute("showPathInput", true);
+            return "select-config";
+        }
         File folder = new File(path);
         File[] fileArr = folder.listFiles();
         List<FileInfo> files = new ArrayList<>();
@@ -161,7 +177,6 @@ public class SSHController {
         }
         model.addAttribute("files", files);
         model.addAttribute("currentPath", path);
-        // ... các thuộc tính khác ...
         return "select-config";
     }
 
