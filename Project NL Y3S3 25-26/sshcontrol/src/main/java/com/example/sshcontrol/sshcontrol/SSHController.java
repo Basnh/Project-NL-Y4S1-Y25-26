@@ -593,5 +593,54 @@ public class SSHController {
     public String showMultiExecutePage() {
         return "multi-execute-page";
     }
+
+    @GetMapping("/multi-list-services")
+    public String showMultiListServicesPage() {
+        return "multi-list-services";
+    }
+
+    @PostMapping("/multi-list-services")
+    @ResponseBody
+    public Map<String, String> multiListServices(@RequestBody Map<String, Object> request, HttpSession session) {
+        // Lấy danh sách hosts
+        List<?> rawHosts = (List<?>) request.get("hosts");
+        List<String> hosts = new ArrayList<>();
+        if (rawHosts != null) {
+            for (Object o : rawHosts) {
+                if (o != null) hosts.add(o.toString());
+            }
+        }
+        Map<String, String> result = new HashMap<>();
+        User sessionUser = (User) session.getAttribute("user");
+        for (String host : hosts) {
+            String ip = host;
+            String user = null;
+            String pass = null;
+            if (host.contains("@")) {
+                String[] parts = host.split("@", 2);
+                user = parts[0];
+                ip = parts[1];
+            }
+            final String ipFinal = ip;
+            if (sessionUser != null) {
+                ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+                if (s != null) {
+                    if (user == null) user = s.getSshUsername();
+                    pass = s.getSshPassword();
+                }
+            }
+            if (user == null) user = "ubuntu";
+            if (pass == null) pass = "123456";
+            try {
+                // Luôn lấy toàn bộ danh sách dịch vụ
+                String cmd = "systemctl list-units --type=service --all --no-pager --no-legend";
+                String output = sshService.executeCommand(ip, user, pass, cmd);
+                result.put(host, output);
+            } catch (Exception e) {
+                result.put(host, "Lỗi: " + e.getMessage());
+            }
+        }
+        return result;
+    }
 }
 
