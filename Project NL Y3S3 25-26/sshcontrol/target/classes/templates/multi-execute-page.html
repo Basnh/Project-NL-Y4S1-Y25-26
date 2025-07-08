@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Thực thi lệnh nhiều máy chủ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-2xl">
+        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Thực thi lệnh trên nhiều máy chủ Ubuntu</h2>
+        <form id="multiCommandForm" th:action="@{/multi-execute-page}" method="post" class="space-y-6">
+            <!-- Đã bỏ ô nhập danh sách máy chủ, chỉ còn ô nhập lệnh -->
+            <div>
+                <label for="command" class="block text-sm font-medium text-gray-700 mb-2">Lệnh cần thực thi</label>
+                <div class="relative">
+                    <input type="text" id="command" name="command" placeholder="vd: systemctl status apache2" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out" required>
+                    <i class="fas fa-terminal absolute left-3 top-3 text-gray-400"></i>
+                </div>
+            </div>
+            <div class="flex justify-center">
+                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
+                    <i class="fas fa-play mr-2"></i> Thực thi trên tất cả
+                </button>
+            </div>
+        </form>
+        <div id="results" class="mt-8"></div>
+        <div class="mt-8 text-center">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
+            </a>
+        </div>
+    </div>
+    <script>
+    // Lấy danh sách hosts từ URL (?hosts=ip1,ip2,...)
+    function getHostsFromUrl() {
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostsParam = urlParams.get('hosts');
+        if (hostsParam) {
+            return hostsParam.split(',').map(h => h.trim()).filter(Boolean);
+        }
+        return [];
+    }
+    document.getElementById('multiCommandForm').addEventListener('submit', async function(e) {
+        e.preventDefault();
+        // Lấy danh sách hosts object từ sessionStorage
+        const hostsObj = JSON.parse(sessionStorage.getItem('selectedHostsObj') || '[]');
+        // Lấy danh sách hosts string (user@ip) từ URL như cũ
+        const hosts = getHostsFromUrl();
+        const command = document.getElementById('command').value;
+        const resultsDiv = document.getElementById('results');
+        // Lấy danh sách servers từ sessionStorage
+        const servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
+        if (hosts.length === 0) {
+            resultsDiv.innerHTML = '<div class="text-center text-red-500">Không tìm thấy danh sách máy chủ trên URL!</div>';
+            return;
+        }
+        resultsDiv.innerHTML = '<div class="text-center text-gray-500">Đang thực thi lệnh trên các máy chủ...</div>';
+        // Gửi lệnh tới backend, log debug
+        console.log('Gửi tới backend:', {hosts, command});
+        const res = await fetch('/multi-command', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify({hosts, command})
+        });
+        const data = await res.json();
+        console.log('Kết quả trả về:', data);
+        // Hiển thị kết quả từng máy chủ
+        let html = '<h3 class="text-xl font-semibold text-gray-700 mb-2">Kết quả:</h3>';
+        html += '<div class="space-y-4">';
+        for(const host of hosts) {
+            let username = '';
+            let iphost = host;
+            if (host.includes('@')) {
+                [username, iphost] = host.split('@');
+            }
+            // Tìm server theo ip (và user nếu có)
+            let server = servers.find(s => s.ip === iphost && (!username || s.sshUsername === username));
+            let displayName = server ? server.name : iphost;
+            let displayUser = server ? server.sshUsername : (username || '-');
+            let displayIp = server ? server.ip : iphost;
+            // Tìm key trả về từ backend (có thể là user@ip hoặc chỉ ip)
+            let key = host;
+            if (!(key in data)) {
+                // Thử với chỉ ip nếu không có user@ip
+                key = iphost;
+            }
+            // Format: Tên máy chủ - tài khoản SSH - ip
+            html += `<div class="bg-gray-100 rounded-lg p-4">
+                        <div class="mb-2">
+                            <span class='text-indigo-700 font-bold'>${displayName}</span>
+                            <span class='text-gray-500'> - <b>${displayUser}</b> - ${displayIp}</span>
+                        </div>
+                        <pre class="text-gray-800 overflow-x-auto">${data[key] || 'Không nhận được phản hồi.'}</pre>
+                    </div>`;
+        }
+        html += '</div>';
+        resultsDiv.innerHTML = html;
+    });
+    document.getElementById('backToDashboard').href = '/dashboard';
+    </script>
+</body>
+</html>

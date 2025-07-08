@@ -262,7 +262,17 @@
                 alert("Vui lòng chọn ít nhất một máy chủ!");
                 return;
             }
-            window.location.href = '/dashboard?hosts=' + encodeURIComponent(ips.join(','));
+            // Lấy danh sách server từ sessionStorage (hoặc biến toàn cục nếu có)
+            var servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
+            // Ghép user@ip nếu có user, ngược lại chỉ lấy ip
+            const hostsUserAtIp = ips.map(ip => {
+                const s = servers.find(sv => sv.ip === ip || (sv.ip && ip && sv.ip.trim() === ip.trim()));
+                if (s && s.sshUsername) return s.sshUsername + '@' + ip;
+                return ip;
+            });
+            // Lưu danh sách user@ip vào sessionStorage
+            sessionStorage.setItem('selectedHosts', JSON.stringify(hostsUserAtIp));
+            window.location.href = '/dashboard?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
         }
 
         // Nếu đang có hosts trên URL, thêm vào link quay lại

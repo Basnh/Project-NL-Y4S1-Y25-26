@@ -25,7 +25,14 @@ public class SSHService {
             session.connect(30000);
 
             ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand(command);
+            // Nếu là lệnh sudo thì wrap lại thành echo 'password' | sudo -S ...
+            String realCommand = command;
+            if (command.trim().startsWith("sudo") || command.contains("sudo ")) {
+                // Escape single quote in password if needed
+                String safePassword = password.replace("'", "'\\''");
+                realCommand = "echo '" + safePassword + "' | " + command.replaceFirst("sudo", "sudo -S");
+            }
+            channel.setCommand(realCommand);
             channel.setErrStream(System.err);
 
             InputStream in = channel.getInputStream();
@@ -44,7 +51,7 @@ public class SSHService {
             channel.disconnect();
             session.disconnect();
         } catch (Exception e) {
-            output.append(e.getMessage());
+            output.append("[Lỗi kết nối/SSH] ").append(e.getMessage());
         }
         return output.toString();
     }
@@ -91,6 +98,28 @@ public class SSHService {
         List<Future<String>> futures = new ArrayList<>();
         for (String host : hosts) {
             futures.add(executor.submit(() -> executeCommand(host, user, password, command)));
+        }
+        List<String> results = new ArrayList<>();
+        for (Future<String> future : futures) {
+            try {
+                results.add(future.get());
+            } catch (Exception e) {
+                results.add("Error: " + e.getMessage());
+            }
+        }
+        executor.shutdown();
+        return results;
+    }
+
+    // Thực thi lệnh trên nhiều hosts, mỗi host có user và password riêng
+    public List<String> executeCommandOnMultipleHosts(List<String> hosts, String command, List<String> users, List<String> passwords) throws InterruptedException {
+        ExecutorService executor = Executors.newFixedThreadPool(Math.min(hosts.size(), 10));
+        List<Future<String>> futures = new ArrayList<>();
+        for (int i = 0; i < hosts.size(); i++) {
+            final String hostFinal = hosts.get(i);
+            final String userFinal = users.get(i);
+            final String passwordFinal = passwords.get(i);
+            futures.add(executor.submit(() -> executeCommand(hostFinal, userFinal, passwordFinal, command)));
         }
         List<String> results = new ArrayList<>();
         for (Future<String> future : futures) {

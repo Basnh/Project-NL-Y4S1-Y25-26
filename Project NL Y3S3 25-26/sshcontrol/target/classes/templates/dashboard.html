@@ -43,8 +43,15 @@
         </div>
     </div>
     <script>
-        const urlParams = new URLSearchParams(window.location.search);
-        const hosts = urlParams.get('hosts') ? urlParams.get('hosts').split(',') : [];
+        var servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
+        // Lấy danh sách hosts đã chọn từ sessionStorage (không lấy từ URL)
+        const hosts = JSON.parse(sessionStorage.getItem('selectedHosts') || '[]');
+        function getUserAtIp(ip) {
+            // Tìm server theo ip, trả về user@ip nếu có user, ngược lại trả về ip
+            const s = servers.find(sv => sv.ip === ip || (sv.ip && ip && sv.ip.trim() === ip.trim()));
+            if (s && s.sshUsername) return s.sshUsername + '@' + ip;
+            return ip;
+        }
         function openMultiTab(type) {
             if (hosts.length === 0) {
                 alert('Vui lòng chọn máy chủ ở trang trước!');
@@ -53,19 +60,45 @@
             let url = '';
             if (hosts.length === 1) {
                 // Trang đơn cho 1 máy chủ
-                if (type === 'command') url = '/execute-page?host=' + encodeURIComponent(hosts[0]);
-                if (type === 'service') url = '/list-services?host=' + encodeURIComponent(hosts[0]);
-                if (type === 'config') url = '/select-config?host=' + encodeURIComponent(hosts[0]);
-                if (type === 'control') url = '/control-service?host=' + encodeURIComponent(hosts[0]);
+                if (type === 'command') url = '/execute-page?host=' + encodeURIComponent(getUserAtIp(hosts[0]));
+                if (type === 'service') url = '/list-services?host=' + encodeURIComponent(getUserAtIp(hosts[0]));
+                if (type === 'config') url = '/select-config?host=' + encodeURIComponent(getUserAtIp(hosts[0]));
+                if (type === 'control') url = '/control-service?host=' + encodeURIComponent(getUserAtIp(hosts[0]));
             } else {
                 // Trang multi cho nhiều máy chủ
-                if (type === 'command') url = '/multi-command?hosts=' + encodeURIComponent(hosts.join(','));
-                if (type === 'service') url = '/multi-services?hosts=' + encodeURIComponent(hosts.join(','));
-                if (type === 'config') url = '/multi-config?hosts=' + encodeURIComponent(hosts.join(','));
-                if (type === 'control') url = '/multi-control?hosts=' + encodeURIComponent(hosts.join(','));
+                // Build lại danh sách hosts dạng user@ip
+                const hostsUserAtIp = hosts.map(getUserAtIp);
+                if (type === 'command') url = '/multi-execute-page?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
+                if (type === 'service') url = '/multi-services?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
+                if (type === 'config') url = '/multi-config?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
+                if (type === 'control') url = '/multi-control?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
             }
             window.open(url, '_blank');
         }
+        let html = '<h3 class="text-xl font-semibold text-gray-700 mb-2">Kết quả:</h3>';
+        html += '<div class="space-y-4">';
+        for(const host of hosts) {
+            let username = '';
+            let iphost = host;
+            if (host.includes('@')) {
+                [username, iphost] = host.split('@');
+            }
+            // Tìm server theo ip (và user nếu có)
+            let server = servers.find(s => s.ip === iphost && (!username || s.sshUsername === username));
+            let displayName = server ? server.name : iphost;
+            let displayUser = server ? server.sshUsername : (username || '-');
+            let displayIp = server ? server.ip : iphost;
+            // Format: Tên máy chủ - tài khoản SSH - ip
+            html += `<div class="bg-gray-100 rounded-lg p-4">
+                        <div class="mb-2">
+                            <span class='text-indigo-700 font-bold'>${displayName}</span>
+                            <span class='text-gray-500'> - <b>${displayUser}</b> - ${displayIp}</span>
+                        </div>
+                        <pre class="text-gray-800 overflow-x-auto">${data[host] || 'Không nhận được phản hồi.'}</pre>
+                    </div>`;
+        }
+        html += '</div>';
+        resultsDiv.innerHTML = html;
     </script>
 </body>
 </html>

@@ -7,6 +7,8 @@ import com.example.sshcontrol.model.MultiServiceRequest;
 import com.example.sshcontrol.model.MultiConfigRequest;
 import com.example.sshcontrol.model.FileInfo;
 import com.example.sshcontrol.model.ServiceInfo;
+import com.example.sshcontrol.model.User;
+import com.example.sshcontrol.model.ServerInfo;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -42,10 +44,41 @@ public class SSHController {
     }
 
     @GetMapping("/execute-page")
-    public String showExecutePage(Model model, HttpSession session) {
+    public String showExecutePage(@RequestParam(value = "host", required = false) String hostParam, Model model, HttpSession session) {
         String host = (String) session.getAttribute("host");
         String username = (String) session.getAttribute("username");
         String password = (String) session.getAttribute("password");
+
+        // Nếu có host trên URL, ưu tiên lấy user/ip từ đó và tìm password từ session user
+        if (hostParam != null && !hostParam.isEmpty()) {
+            String ip = hostParam;
+            String user = null;
+            if (hostParam.contains("@")) {
+                String[] parts = hostParam.split("@", 2);
+                user = parts[0];
+                ip = parts[1];
+            }
+            User sessionUser = (User) session.getAttribute("user");
+            String pass = null;
+            if (sessionUser != null) {
+                final String ipFinal = ip;
+                ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+                if (s != null) {
+                    if (user == null) user = s.getSshUsername();
+                    pass = s.getSshPassword();
+                }
+            }
+            // Nếu không tìm thấy user/pass thì dùng mặc định
+            if (user == null) user = "ubuntu";
+            if (pass == null) pass = "123456";
+            // Lưu lại vào session để các thao tác sau dùng
+            session.setAttribute("host", ip);
+            session.setAttribute("username", user);
+            session.setAttribute("password", pass);
+            host = ip;
+            username = user;
+            password = pass;
+        }
 
         if (host == null || username == null || password == null) {
             return "redirect:/login";
@@ -418,10 +451,33 @@ public class SSHController {
 
     @PostMapping("/execute-multi")
     @ResponseBody
-    public List<String> executeMulti(@RequestBody MultiSSHRequest request) throws InterruptedException {
-        return sshService.executeCommandOnMultipleHosts(
-            request.getHosts(), request.getUser(), request.getPassword(), request.getCommand()
-        );
+    public List<String> executeMulti(@RequestBody MultiSSHRequest request, HttpSession session) throws InterruptedException {
+        // Build users and passwords lists for each host, similar to /multi-command
+        List<String> hosts = request.getHosts();
+        List<String> users = new ArrayList<>();
+        List<String> passwords = new ArrayList<>();
+        User sessionUser = (User) session.getAttribute("user");
+        for (String host : hosts) {
+            String ip = host;
+            String user = null;
+            String pass = null;
+            if (host.contains("@")) {
+                String[] parts = host.split("@", 2);
+                user = parts[0];
+                ip = parts[1];
+            }
+            final String ipFinal = ip;
+            if (sessionUser != null) {
+                ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+                if (s != null) {
+                    if (user == null) user = s.getSshUsername();
+                    pass = s.getSshPassword();
+                }
+            }
+            users.add(user != null ? user : "ubuntu");
+            passwords.add(pass != null ? pass : "123456");
+        }
+        return sshService.executeCommandOnMultipleHosts(hosts, request.getCommand(), users, passwords);
     }
 
     @PostMapping("/multi-control-service")
@@ -486,6 +542,56 @@ public class SSHController {
             result.put("message", "Không thể lấy danh sách file: " + e.getMessage());
         }
         return result;
+    }
+
+    @PostMapping("/multi-command")
+    @ResponseBody
+    public Map<String, String> multiCommand(@RequestBody MultiSSHRequest request, HttpSession session) {
+        List<String> hosts = request.getHosts();
+        List<String> ipList = new ArrayList<>();
+        List<String> users = new ArrayList<>();
+        List<String> passwords = new ArrayList<>();
+        // Lấy user/pass từng host từ session user (nếu có), hoặc parse từ user@host
+        User sessionUser = (User) session.getAttribute("user");
+        for (String host : hosts) {
+            String ip = host;
+            String user = null;
+            String pass = null;
+            if (host.contains("@")) {
+                String[] parts = host.split("@", 2);
+                user = parts[0];
+                ip = parts[1];
+            }
+            final String ipFinal = ip;
+            if (sessionUser != null) {
+                ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+                if (s != null) {
+                    if (user == null) user = s.getSshUsername();
+                    pass = s.getSshPassword();
+                }
+            }
+            ipList.add(ip); // chỉ IP
+            users.add(user != null ? user : "ubuntu");
+            passwords.add(pass != null ? pass : "123456");
+        }
+        String command = request.getCommand();
+        Map<String, String> result = new HashMap<>();
+        try {
+            List<String> outputs = sshService.executeCommandOnMultipleHosts(ipList, command, users, passwords);
+            for (int i = 0; i < hosts.size(); i++) {
+                result.put(hosts.get(i), outputs.size() > i ? outputs.get(i) : "Không nhận được phản hồi.");
+            }
+        } catch (Exception e) {
+            for (String host : hosts) {
+                result.put(host, "Lỗi: " + e.getMessage());
+            }
+        }
+        return result;
+    }
+
+    @GetMapping("/multi-execute-page")
+    public String showMultiExecutePage() {
+        return "multi-execute-page";
     }
 }
 

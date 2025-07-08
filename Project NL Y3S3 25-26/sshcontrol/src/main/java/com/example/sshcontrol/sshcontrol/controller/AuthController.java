@@ -12,14 +12,14 @@ import java.util.*;
 @Controller
 public class AuthController {
 
-    // Giả lập danh sách user (nên thay bằng DB thực tế)
+    // Giả lập danh sách user
     private static List<User> users = new ArrayList<>();
     static {
         List<ServerInfo> servers = new ArrayList<>();
         servers.add(new ServerInfo("Server 1", "192.168.1.10", "ubuntu", "123456"));
         servers.add(new ServerInfo("Server 2", "192.168.1.20", "ubuntu", "123456"));
-        servers.add(new ServerInfo("Live server 1", "172.16.6.128", "b2204914", "123456"));
-        servers.add(new ServerInfo("Live server 2", "172.16.6.130", "dinosaur", "123456"));
+        servers.add(new ServerInfo("Live server 1", "10.13.137.234", "b2204914", "123456"));
+        servers.add(new ServerInfo("Live server 2", "10.13.137.235", "dinosaur", "123456"));
         users.add(new User("admin", "admin", servers));
     }
 
