@@ -76,25 +76,19 @@
             if (host.includes('@')) {
                 [username, iphost] = host.split('@');
             }
-            // Tìm server theo ip (và user nếu có)
-            let server = servers.find(s => s.ip === iphost && (!username || s.sshUsername === username));
-            let displayName = server ? server.name : iphost;
-            let displayUser = server ? server.sshUsername : (username || '-');
-            let displayIp = server ? server.ip : iphost;
-            // Tìm key trả về từ backend (có thể là user@ip hoặc chỉ ip)
-            let key = host;
-            if (!(key in data)) {
-                // Thử với chỉ ip nếu không có user@ip
-                key = iphost;
-            }
-            // Format: Tên máy chủ - tài khoản SSH - ip
-            html += `<div class="bg-gray-100 rounded-lg p-4">
-                        <div class="mb-2">
-                            <span class='text-indigo-700 font-bold'>${displayName}</span>
-                            <span class='text-gray-500'> - <b>${displayUser}</b> - ${displayIp}</span>
-                        </div>
-                        <pre class="text-gray-800 overflow-x-auto">${data[key] || 'Không nhận được phản hồi.'}</pre>
-                    </div>`;
+            // Tìm server theo ip (và user nếu có, so sánh không phân biệt hoa thường)
+            let server = servers.find(s => s.ip && s.ip.toLowerCase() === iphost.toLowerCase() && (!username || (s.sshUsername && s.sshUsername.toLowerCase() === username.toLowerCase())));
+            let displayName = server && server.name ? server.name : 'Máy chủ không rõ tên';
+let displayUser = server && server.sshUsername ? server.sshUsername : (username || '-');
+let displayIp = server && server.ip ? server.ip : iphost;
+
+html += `<div class="bg-gray-100 rounded-lg p-4">
+    <div class="mb-2 font-semibold text-gray-800">
+        ${displayName} – ${displayUser} – ${displayIp}
+    </div>
+    <pre class="text-gray-800 overflow-x-auto">${data[host] || data[displayIp] || 'Không nhận được phản hồi.'}</pre>
+</div>`;
+
         }
         html += '</div>';
         resultsDiv.innerHTML = html;

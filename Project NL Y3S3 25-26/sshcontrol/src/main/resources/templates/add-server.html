@@ -15,9 +15,9 @@
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Thêm máy chủ mới</h2>
         <form th:action="@{/add-server}" method="post" th:object="${server}" class="space-y-6">
             <div>
-                <label class="block text-sm font-medium text-gray-700 mb-2">Tên máy chủ:</label>
-                <input type="text" th:field="*{name}" required
-                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out"/>
+                <label class="block text-sm font-medium text-gray-700 mb-2" for="serverName">Tên máy chủ:</label>
+                <input type="text" th:field="*{name}" id="serverName" name="name" required
+                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out" placeholder="Nhập tên máy chủ, ví dụ: Test server 1"/>
             </div>
             <div>
                 <label class="block text-sm font-medium text-gray-700 mb-2">Địa chỉ IP:</label>
@@ -46,6 +46,40 @@
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại danh sách máy chủ
             </a>
         </div>
+        <!-- Script lưu server vào sessionStorage và hiển thị xác nhận -->
+        <script>
+            document.querySelector('form').addEventListener('submit', function(e) {
+                e.preventDefault(); // Ngăn reload trang
+                // Lấy giá trị các trường
+                const name = document.getElementById('serverName').value.trim();
+                const ip = document.querySelector('input[name="ip"]').value.trim();
+                const sshUsername = document.querySelector('input[name="sshUsername"]').value.trim();
+                // Lấy danh sách servers từ sessionStorage
+                let servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
+                // Kiểm tra trùng ip + username (không phân biệt hoa thường)
+                const idx = servers.findIndex(s => s.ip && s.ip.toLowerCase() === ip.toLowerCase() && s.sshUsername && s.sshUsername.toLowerCase() === sshUsername.toLowerCase());
+                const newServer = { name, ip, sshUsername };
+                if(idx !== -1) {
+                    servers[idx] = { ...servers[idx], ...newServer };
+                } else {
+                    servers.push(newServer);
+                }
+                sessionStorage.setItem('servers', JSON.stringify(servers));
+                // Hiển thị xác nhận đúng định dạng
+                let confirmDiv = document.getElementById('serverConfirmDiv');
+                if (!confirmDiv) {
+                    confirmDiv = document.createElement('div');
+                    confirmDiv.id = 'serverConfirmDiv';
+                    confirmDiv.className = 'mt-4 text-green-600 text-center font-semibold';
+                    document.querySelector('.container').appendChild(confirmDiv);
+                }
+                confirmDiv.innerText = `Đã lưu: ${name} – ${sshUsername} – ${ip}`;
+                // Sau khi xác nhận, submit form về backend (nếu muốn)
+                setTimeout(() => {
+                    e.target.submit();
+                }, 800); // Đợi 0.8s để user thấy xác nhận
+            });
+        </script>
     </div>
 </body>
 </html>
