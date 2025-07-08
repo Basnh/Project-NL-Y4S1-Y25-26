@@ -69,7 +69,7 @@
                 // Build lại danh sách hosts dạng user@ip
                 const hostsUserAtIp = hosts.map(getUserAtIp);
                 if (type === 'command') url = '/multi-execute-page?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
-                if (type === 'service') url = '/multi-services?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
+                if (type === 'service') url = '/multi-list-services?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
                 if (type === 'config') url = '/multi-config?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
                 if (type === 'control') url = '/multi-control?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
             }
