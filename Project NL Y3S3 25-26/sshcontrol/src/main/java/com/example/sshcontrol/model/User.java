@@ -6,6 +6,7 @@ public class User {
     private String username;
     private String password;
     private List<ServerInfo> servers;
+    private String email;
 
     public User() {}
 
@@ -13,6 +14,14 @@ public class User {
         this.username = username;
         this.password = password;
         this.servers = servers;
+    }
+
+    public String getEmail() {
+        return email;
+    }
+
+    public void setEmail(String email) {
+        this.email = email;
     }
 
     public String getUsername() { return username; }
@@ -24,3 +33,9 @@ public class User {
     public List<ServerInfo> getServers() { return servers; }
     public void setServers(List<ServerInfo> servers) { this.servers = servers; }
 }
+
+
+
+
+
+

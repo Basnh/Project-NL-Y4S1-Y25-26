@@ -10,6 +10,7 @@ public class ServerInfo {
     private String name;
     private String sshUsername;
     private String sshPassword;
+    private boolean online;
 
     public ServerInfo() {}
 
@@ -31,4 +32,11 @@ public class ServerInfo {
 
     public String getSshPassword() { return sshPassword; }
     public void setSshPassword(String sshPassword) { this.sshPassword = sshPassword; }
+
+    public boolean isOnline() {
+        return online;
+    }
+    public void setOnline(boolean online) {
+        this.online = online;
+    }
 }

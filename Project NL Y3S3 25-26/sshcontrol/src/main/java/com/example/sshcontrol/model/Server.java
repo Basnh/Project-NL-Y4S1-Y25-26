@@ -4,15 +4,16 @@ public class Server {
     private String name;
     private String ip;
     private String sshUsername;
-    private boolean online;
+    private String sshPassword;
+    private boolean isOnline;
 
     public Server() {}
 
-    public Server(String name, String ip, String sshUsername, boolean online) {
+    public Server(String name, String ip, String sshUsername, boolean isOnline) {
         this.name = name;
         this.ip = ip;
         this.sshUsername = sshUsername;
-        this.online = online;
+        this.isOnline = isOnline;
     }
 
     // Getter và Setter
@@ -41,10 +42,19 @@ public class Server {
     }
 
     public boolean isOnline() {
-        return online;
+        return isOnline;
     }
 
-    public void setOnline(boolean online) {
-        this.online = online;
+    public void setOnline(boolean isOnline) {
+        this.isOnline = isOnline;
     }
+
+    public String getSshPassword() {
+        return sshPassword;
+    }
+
+    public void setSshPassword(String sshPassword) {
+        this.sshPassword = sshPassword;
+}
+
 }

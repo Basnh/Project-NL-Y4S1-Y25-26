@@ -54,16 +54,22 @@
                 const name = document.getElementById('serverName').value.trim();
                 const ip = document.querySelector('input[name="ip"]').value.trim();
                 const sshUsername = document.querySelector('input[name="sshUsername"]').value.trim();
+                const sshPassword = document.querySelector('input[name="sshPassword"]').value.trim();
                 // Lấy danh sách servers từ sessionStorage
                 let servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
-                // Kiểm tra trùng ip + username (không phân biệt hoa thường)
-                const idx = servers.findIndex(s => s.ip && s.ip.toLowerCase() === ip.toLowerCase() && s.sshUsername && s.sshUsername.toLowerCase() === sshUsername.toLowerCase());
-                const newServer = { name, ip, sshUsername };
-                if(idx !== -1) {
-                    servers[idx] = { ...servers[idx], ...newServer };
-                } else {
-                    servers.push(newServer);
+                // Kiểm tra trùng ip + username + password (không phân biệt hoa thường)
+                const isDuplicate = servers.some(s =>
+                    s.ip && s.ip.toLowerCase() === ip.toLowerCase() &&
+                    s.sshUsername && s.sshUsername.toLowerCase() === sshUsername.toLowerCase() &&
+                    s.sshPassword && s.sshPassword === sshPassword
+                );
+                if (isDuplicate) {
+                    alert('Máy chủ với IP, SSH Username và Password này đã tồn tại!');
+                    return; // Không lưu server nếu trùng
                 }
+                // Nếu không trùng thì lưu
+                const newServer = { name, ip, sshUsername, sshPassword };
+                servers.push(newServer);
                 sessionStorage.setItem('servers', JSON.stringify(servers));
                 // Hiển thị xác nhận đúng định dạng
                 let confirmDiv = document.getElementById('serverConfirmDiv');

@@ -37,21 +37,43 @@ public class SSHController {
     public String index(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
         if (user != null) {
+            // Kiểm tra trạng thái online cho từng server
+            for (ServerInfo server : user.getServers()) {
+                boolean isOnline = checkServerOnline(server); // Hàm này bạn tự cài, ví dụ ping hoặc SSH thử
+                server.setOnline(isOnline);
+            }
             model.addAttribute("remoteUser", user.getUsername());
+            model.addAttribute("studentName", user.getUsername());
+            model.addAttribute("studentEmail", user.getEmail() != null ? user.getEmail() : "");
+            model.addAttribute("serverList", user.getServers());
+        } else {
+            model.addAttribute("serverList", new ArrayList<>());
         }
-        // Nếu có danh sách server, truyền vào model (nếu cần)
-        // model.addAttribute("serverList", ...);
         return "index";
     }
 
-    @GetMapping("/dashboard")
-    public String showDashboard(Model model) {
-        List<Server> serverList = new ArrayList<>();
-        serverList.add(new Server("Server 1", "192.168.1.10", "ubuntu", true));
-        serverList.add(new Server("Live Server", "10.13.137.234", "root", false));
+    // Ví dụ hàm kiểm tra online (ping hoặc SSH)
+    private boolean checkServerOnline(ServerInfo server) {
+        // Cách đơn giản: ping IP (chỉ kiểm tra mạng, không kiểm tra SSH)
+        try {
+            return java.net.InetAddress.getByName(server.getIp()).isReachable(1000);
+        } catch (Exception e) {
+            return false;
+        }
+        // Hoặc: thử kết nối SSH, trả về true nếu thành công
+    }
 
-    model.addAttribute("serverList", serverList);
-    return "dashboard";
+    @GetMapping("/dashboard")
+    public String showDashboard(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
+        if (user != null) {
+            model.addAttribute("user", user);
+            model.addAttribute("serverList", user.getServers());
+        } else {
+            model.addAttribute("user", null);
+            model.addAttribute("serverList", new ArrayList<>());
+        }
+        return "dashboard";
     }
 
 
