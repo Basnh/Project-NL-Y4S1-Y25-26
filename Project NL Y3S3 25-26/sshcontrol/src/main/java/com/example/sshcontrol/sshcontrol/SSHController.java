@@ -9,6 +9,7 @@ import com.example.sshcontrol.model.FileInfo;
 import com.example.sshcontrol.model.ServiceInfo;
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -39,9 +40,15 @@ public class SSHController {
     }
 
     @GetMapping("/dashboard")
-    public String dashboard() {
-        return "dashboard";
+    public String showDashboard(Model model) {
+        List<Server> serverList = new ArrayList<>();
+        serverList.add(new Server("Server 1", "192.168.1.10", "ubuntu", true));
+        serverList.add(new Server("Live Server", "10.13.137.234", "root", false));
+
+    model.addAttribute("serverList", serverList);
+    return "dashboard";
     }
+
 
     @GetMapping("/execute-page")
     public String showExecutePage(@RequestParam(value = "host", required = false) String hostParam, Model model, HttpSession session) {
