@@ -12,7 +12,7 @@
         <!-- Header with user info or login/register -->
         <div class="flex justify-between items-center mb-6">
             <h1 class="text-3xl font-bold text-gray-800">🔧 Điều khiển máy chủ Ubuntu từ xa</h1>
-            <div th:if="${#httpServletRequest.remoteUser != null}" class="flex items-center space-x-4">
+            <div th:if="${remoteUser != null}" class="flex items-center space-x-4">
                 <div class="text-right">
                     <p class="text-sm text-gray-700 font-medium" th:text="${studentName}">Tên Sinh Viên</p>
                     <p class="text-xs text-gray-500" th:text="${studentEmail}">email@sinhvien.edu.vn</p>
@@ -22,7 +22,7 @@
                     <button class="text-sm text-red-600 font-semibold hover:underline">Đăng xuất</button>
                 </form>
             </div>
-            <div th:if="${#httpServletRequest.remoteUser == null}" class="space-x-4">
+            <div th:if="${remoteUser == null}" class="space-x-4">
                 <a href="/login" class="text-blue-600 hover:underline">Đăng nhập</a>
                 <a href="/register" class="text-blue-600 hover:underline">Đăng ký</a>
             </div>

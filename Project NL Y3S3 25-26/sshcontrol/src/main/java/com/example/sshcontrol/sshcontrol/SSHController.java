@@ -34,8 +34,13 @@ public class SSHController {
     private SSHService sshService;
 
     @GetMapping("/")
-    public String index(Model model) {
-        model.addAttribute("sshRequest", new SSHRequest());
+    public String index(HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
+        if (user != null) {
+            model.addAttribute("remoteUser", user.getUsername());
+        }
+        // Nếu có danh sách server, truyền vào model (nếu cần)
+        // model.addAttribute("serverList", ...);
         return "index";
     }
 

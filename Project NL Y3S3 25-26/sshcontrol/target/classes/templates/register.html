@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Đăng ký tài khoản</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 font-sans">
+<div class="min-h-screen flex items-center justify-center">
+    <div class="bg-white p-8 rounded-xl shadow-lg w-full max-w-md">
+        <h2 class="text-2xl font-bold mb-6 text-center text-gray-800">Đăng ký tài khoản</h2>
+        <form th:action="@{/register}" method="post" th:object="${user}">
+            <div class="mb-4">
+                <label class="block mb-1 text-sm text-gray-600" for="fullName">Họ tên</label>
+                <input th:field="*{fullName}" type="text" id="fullName" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring" required />
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1 text-sm text-gray-600" for="email">Email</label>
+                <input th:field="*{email}" type="email" id="email" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring" required />
+            </div>
+            <div class="mb-4">
+                <label class="block mb-1 text-sm text-gray-600" for="username">Tên đăng nhập</label>
+                <input th:field="*{username}" type="text" id="username" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring" required />
+            </div>
+            <div class="mb-6">
+                <label class="block mb-1 text-sm text-gray-600" for="password">Mật khẩu</label>
+                <input th:field="*{password}" type="password" id="password" class="w-full px-4 py-2 border rounded-md focus:outline-none focus:ring" required />
+            </div>
+            <button type="submit" class="w-full py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition">Đăng ký</button>
+        </form>
+        <p class="text-center text-sm text-gray-600 mt-4">Đã có tài khoản? <a href="/login" class="text-indigo-600 hover:underline">Đăng nhập</a></p>
+    </div>
+</div>
+</body>
+</html>

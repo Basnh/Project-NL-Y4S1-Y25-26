@@ -31,15 +31,15 @@ public class AuthController {
     }
 
     @PostMapping("/login")
-    public String login(@ModelAttribute User user, Model model, HttpSession session) {
+    public String login(@RequestParam String username, @RequestParam String password, HttpSession session, Model model) {
         Optional<User> found = users.stream()
-            .filter(u -> u.getUsername().equals(user.getUsername()) && u.getPassword().equals(user.getPassword()))
+            .filter(u -> u.getUsername().equals(username) && u.getPassword().equals(password))
             .findFirst();
         if (found.isPresent()) {
             session.setAttribute("user", found.get());
-            return "redirect:/server-list";
+            return "redirect:/";
         } else {
-            model.addAttribute("error", "Sai tài khoản hoặc mật khẩu!");
+            model.addAttribute("error", "Sai tên đăng nhập hoặc mật khẩu");
             model.addAttribute("user", new User());
             return "login";
         }
