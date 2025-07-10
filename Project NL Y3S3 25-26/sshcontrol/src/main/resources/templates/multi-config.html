@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Chỉnh sửa cấu hình nhiều máy chủ</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="/multi-config.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-xl">
+        <div class="flex justify-between items-center mb-2">
+            <h2 class="w-full text-3xl font-bold text-gray-800 mb-2 text-center">Nhập đường dẫn file cấu hình muốn sửa</h2>
+        </div>
+        <!-- Tabs chuyển đổi máy chủ ngay dưới tiêu đề -->
+        <div class="mb-4 flex justify-center">
+            <div id="tabHostList" class="flex gap-2"></div>
+        </div>
+        <!-- Ô nhập đường dẫn file cấu hình và nút sửa -->
+        <div class="flex flex-row items-center gap-4 mb-6 justify-center max-w-md mx-auto">
+            <input id="customConfigPath" type="text" placeholder="/etc/ssh/sshd_config"
+                class="flex-1 px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 text-lg"
+            />
+            <button id="editCustomConfigBtn"
+                class="px-6 py-3 bg-indigo-600 text-white rounded-lg font-semibold text-lg hover:bg-indigo-700 flex items-center gap-2 whitespace-nowrap">
+                <i class="fa-regular fa-pen-to-square"></i> Sửa file
+            </button>
+        </div>
+        <div class="mt-8 text-center">
+            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
+            </a>
+        </div>
+    </div>
+    <script>
+function getHostsFromUrl() {
+    const urlParams = new URLSearchParams(window.location.search);
+    const hostsParam = urlParams.get('hosts');
+    if (hostsParam) {
+        return hostsParam.split(',').map(h => h.trim()).filter(Boolean);
+    }
+    return [];
+}
+function createTabs(hosts, servers, onTabClick) {
+    const tabList = document.getElementById('tabHostList');
+    if (!tabList) return;
+    tabList.innerHTML = '';
+    hosts.forEach((host, idx) => {
+        let username = '';
+        let iphost = host;
+        if (host.includes('@')) {
+            [username, iphost] = host.split('@');
+        }
+        // Tìm server theo ip (và user nếu có)
+        let server = servers.find(s => s.ip === iphost && (!username || s.sshUsername === username));
+        let displayName = server && server.name ? server.name : '';
+        const btn = document.createElement('button');
+        btn.className = 'px-6 py-2 rounded bg-gray-200 hover:bg-indigo-200 font-semibold text-base';
+        btn.innerText = displayName;
+        btn.onclick = () => onTabClick(idx);
+        btn.id = 'tab-btn-' + idx;
+        tabList.appendChild(btn);
+    });
+}
+function setActiveTab(idx) {
+    document.querySelectorAll('[id^="tab-btn-"]').forEach((el, i) => {
+        if (i === idx) {
+            el.classList.add('bg-indigo-600', 'text-white');
+            el.classList.remove('bg-gray-200');
+        } else {
+            el.classList.remove('bg-indigo-600', 'text-white');
+            el.classList.add('bg-gray-200');
+        }
+    });
+}
+function showEditConfigModal(host, filePath, configContent, onSave) {
+    let modal = document.getElementById('editConfigModal');
+    if (modal) modal.remove();
+    modal = document.createElement('div');
+    modal.id = 'editConfigModal';
+    modal.className = 'fixed inset-0 z-50 flex items-center justify-center bg-black bg-opacity-40';
+    modal.innerHTML = `
+        <div class="bg-white rounded-lg shadow-lg w-full max-w-2xl p-6 relative">
+            <h3 class="text-xl font-bold mb-4">Chỉnh sửa cấu hình: <span class="text-indigo-600">${filePath}</span></h3>
+            <textarea id="configContent" class="w-full h-64 border border-gray-300 rounded p-3 font-mono text-sm mb-4">${configContent || ''}</textarea>
+            <div class="flex justify-end gap-2">
+                <button id="saveConfigBtn" class="px-5 py-2 bg-indigo-600 text-white rounded hover:bg-indigo-700">Lưu</button>
+                <button id="cancelConfigBtn" class="px-5 py-2 bg-gray-300 text-gray-800 rounded hover:bg-gray-400">Hủy</button>
+            </div>
+            <button class="absolute top-2 right-2 text-gray-400 hover:text-gray-700 text-xl" id="closeModalBtn">&times;</button>
+        </div>
+    `;
+    document.body.appendChild(modal);
+    document.getElementById('cancelConfigBtn').onclick =
+    document.getElementById('closeModalBtn').onclick = () => modal.remove();
+    document.getElementById('saveConfigBtn').onclick = () => {
+        const newContent = document.getElementById('configContent').value;
+        onSave(newContent);
+        modal.remove();
+    };
+}
+window.addEventListener('DOMContentLoaded', function() {
+    const hosts = getHostsFromUrl();
+    const servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
+    if (hosts.length === 0) {
+        alert('Không tìm thấy danh sách máy chủ trên URL!');
+        return;
+    }
+    createTabs(hosts, servers, showTabContent);
+    let currentTab = 0;
+    function showTabContent(idx) {
+        currentTab = idx;
+        setActiveTab(idx);
+    }
+    showTabContent(0);
+    document.getElementById('tabHostList').addEventListener('click', function(e) {
+        if (e.target.tagName === 'BUTTON') {
+            const idx = Array.from(document.getElementById('tabHostList').children).indexOf(e.target);
+            setActiveTab(idx);
+            showTabContent(idx);
+        }
+    });
+    document.getElementById('backToDashboard').onclick = function() {
+        window.location.href = '/dashboard';
+    };
+    document.getElementById('editCustomConfigBtn').onclick = function() {
+        const path = document.getElementById('customConfigPath').value.trim();
+        if (!path) {
+            alert('Vui lòng nhập đường dẫn file!');
+            return;
+        }
+        const hosts = getHostsFromUrl();
+        const servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
+        const currentTab = Array.from(document.querySelectorAll('[id^="tab-btn-"]')).findIndex(btn => btn.classList.contains('bg-indigo-600'));
+        let username = '';
+        let iphost = hosts[currentTab];
+        if (iphost.includes('@')) {
+            [username, iphost] = iphost.split('@');
+        }
+        const server = servers.find(s => s.ip === iphost && (!username || s.sshUsername === username));
+        const name = server && server.name ? server.name : '';
+        // Chuyển hướng sang multi-edit-config.html với các tham số
+        const url = `/multi-edit-config?hosts=${encodeURIComponent(hosts.join(','))}&path=${encodeURIComponent(path)}`;
+        window.location.href = url;
+    };
+});
+    </script>
+</body>
+</html>

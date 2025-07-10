@@ -73,6 +73,8 @@
                 if (type === 'config') url = '/multi-config?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
                 if (type === 'control') url = '/multi-control?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
             }
+            // Đảm bảo luôn lưu lại servers vào sessionStorage trước khi mở tab mới
+            sessionStorage.setItem('servers', JSON.stringify(servers));
             window.open(url, '_blank');
         }
         let html = '<h3 class="text-xl font-semibold text-gray-700 mb-2">Kết quả:</h3>';

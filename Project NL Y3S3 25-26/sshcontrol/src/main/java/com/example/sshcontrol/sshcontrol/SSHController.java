@@ -642,5 +642,210 @@ public class SSHController {
         }
         return result;
     }
+
+    // Trang giao diện chỉnh sửa cấu hình nhiều máy chủ
+    @GetMapping("/multi-config")
+    public String showMultiConfigPage() {
+        return "multi-config";
+    }
+
+    // API lấy nội dung file cấu hình dịch vụ trên từng máy chủ
+    @PostMapping("/get-service-config")
+    @ResponseBody
+    public Map<String, Object> getServiceConfig(@RequestBody Map<String, String> req, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        String host = req.get("host");
+        String serviceName = req.get("serviceName");
+        String configPath = req.get("configPath"); // Ưu tiên đường dẫn người dùng nhập
+        String username = null;
+        String password = null;
+        User sessionUser = (User) session.getAttribute("user");
+        String ip = host;
+        if (host != null && host.contains("@")) {
+            String[] parts = host.split("@", 2);
+            username = parts[0];
+            ip = parts[1];
+        }
+        final String ipFinalLocal = ip;
+        if (sessionUser != null) {
+            ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinalLocal)).findFirst().orElse(null);
+            if (s != null) {
+                if (username == null) username = s.getSshUsername();
+                password = s.getSshPassword();
+            }
+        }
+        if (username == null) username = "ubuntu";
+        if (password == null) password = "123456";
+        String content = "";
+        // Nếu người dùng nhập configPath thì lấy đúng file đó
+        if (configPath != null && !configPath.trim().isEmpty()) {
+            content = sshService.executeCommand(ip, username, password, "cat " + configPath);
+            result.put("configPath", configPath);
+        } else {
+            // Đường dẫn file cấu hình phổ biến cho dịch vụ
+            configPath = "/etc/" + serviceName.replace(".service", "") + "/" + serviceName.replace(".service", "") + ".conf";
+            content = sshService.executeCommand(ip, username, password, "cat " + configPath);
+            if (content == null || content.toLowerCase().contains("no such file") || content.toLowerCase().contains("không tìm thấy")) {
+                configPath = "/etc/default/" + serviceName.replace(".service", "");
+                content = sshService.executeCommand(ip, username, password, "cat " + configPath);
+            }
+            result.put("configPath", configPath);
+        }
+        result.put("content", content == null ? "" : content);
+        return result;
+    }
+
+    // API lưu nội dung file cấu hình dịch vụ trên từng máy chủ
+    @PostMapping("/save-service-config")
+    @ResponseBody
+    public Map<String, Object> saveServiceConfig(@RequestBody Map<String, String> req, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        String host = req.get("host");
+        String serviceName = req.get("serviceName");
+        String configPath = req.get("configPath"); // Ưu tiên đường dẫn người dùng nhập
+        String content = req.get("content");
+        String username = null;
+        String password = null;
+        User sessionUser = (User) session.getAttribute("user");
+        String ip = host;
+        if (host != null && host.contains("@")) {
+            String[] parts = host.split("@", 2);
+            username = parts[0];
+            ip = parts[1];
+        }
+        final String ipFinal = ip;
+        if (sessionUser != null) {
+            ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+            if (s != null) {
+                if (username == null) username = s.getSshUsername();
+                password = s.getSshPassword();
+            }
+        }
+        if (username == null) username = "ubuntu";
+        if (password == null) password = "123456";
+        // Nếu người dùng nhập configPath thì lưu đúng file đó
+        if (configPath == null || configPath.trim().isEmpty()) {
+            // Nếu không có configPath, tự động dò như cũ
+            configPath = "/etc/" + serviceName.replace(".service", "") + "/" + serviceName.replace(".service", "") + ".conf";
+            String check = sshService.executeCommand(ip, username, password, "ls " + configPath);
+            if (check == null || check.toLowerCase().contains("no such file") || check.toLowerCase().contains("không tìm thấy")) {
+                configPath = "/etc/default/" + serviceName.replace(".service", "");
+            }
+        }
+        // Ghi file cấu hình (cần quyền sudo)
+        String cmd = "echo '" + password + "' | sudo -S tee " + configPath;
+        String saveResult = sshService.executeCommandWithInput(ip, username, password, cmd, content);
+        if (saveResult != null && saveResult.toLowerCase().contains("permission denied")) {
+            result.put("success", false);
+            result.put("message", "Không đủ quyền ghi file.");
+        } else {
+            result.put("success", true);
+            result.put("message", "Lưu cấu hình thành công.");
+        }
+        return result;
+    }
+
+    @GetMapping("/multi-edit-config")
+    public String showMultiEditConfig(
+            @RequestParam("path") String path,
+            @RequestParam("hosts") String hostsParam,
+            Model model,
+            HttpSession session
+    ) {
+        User sessionUser = (User) session.getAttribute("user");
+        List<Map<String, String>> serverInfos = new ArrayList<>();
+        if (hostsParam != null && !hostsParam.isEmpty()) {
+            String[] hostArr = hostsParam.split(",");
+            for (String hostStr : hostArr) {
+                String ip = hostStr;
+                String username = null;
+                if (hostStr.contains("@")) {
+                    String[] parts = hostStr.split("@", 2);
+                    username = parts[0];
+                    ip = parts[1];
+                }
+                final String ipFinal = ip;
+                String password = null;
+                String name = ip;
+                if (sessionUser != null) {
+                    ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+                    if (s != null) {
+                        if (username == null) username = s.getSshUsername();
+                        password = s.getSshPassword();
+                        name = s.getName();
+                    }
+                }
+                if (username == null) username = "ubuntu";
+                if (password == null) password = "123456";
+                // Đọc nội dung file cấu hình
+                String content = "";
+                try {
+                    content = sshService.executeCommand(ip, username, password, "cat " + path);
+                } catch (Exception e) {
+                    content = "Không thể đọc file: " + e.getMessage();
+                }
+                Map<String, String> info = new HashMap<>();
+                info.put("name", name);
+                info.put("ip", ip);
+                info.put("username", username);
+                info.put("content", content);
+                serverInfos.add(info);
+            }
+        }
+        model.addAttribute("servers", serverInfos);
+        model.addAttribute("path", path);
+        return "multi-edit-config";
+    }
+
+    @PostMapping("/multi-edit-config")
+    public String saveMultiEditConfig(
+            @RequestParam("path") String path,
+            @RequestParam("ips") List<String> ips,
+            @RequestParam("usernames") List<String> usernames,
+            @RequestParam("contents") List<String> contents,
+            Model model,
+            HttpSession session
+    ) {
+        User sessionUser = (User) session.getAttribute("user");
+        List<Map<String, String>> results = new ArrayList<>();
+        for (int i = 0; i < ips.size(); i++) {
+            String ip = ips.get(i);
+            String username = usernames.get(i);
+            String content = contents.get(i);
+            String password = null;
+            String name = ip;
+            if (sessionUser != null) {
+                ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ip)).findFirst().orElse(null);
+                if (s != null) {
+                    if (username == null || username.isEmpty()) username = s.getSshUsername();
+                    password = s.getSshPassword();
+                    name = s.getName();
+                }
+            }
+            if (username == null || username.isEmpty()) username = "ubuntu";
+            if (password == null) password = "123456";
+            String result;
+            try {
+                String cmd = "echo '" + password + "' | sudo -S tee " + path;
+                String saveResult = sshService.executeCommandWithInput(ip, username, password, cmd, content);
+                if (saveResult != null && saveResult.toLowerCase().contains("permission denied")) {
+                    result = "Không đủ quyền ghi file.";
+                } else {
+                    result = "Lưu thành công!";
+                }
+            } catch (Exception e) {
+                result = "Lỗi: " + e.getMessage();
+            }
+            Map<String, String> info = new HashMap<>();
+            info.put("name", name);
+            info.put("ip", ip);
+            info.put("username", username);
+            info.put("result", result);
+            results.add(info);
+        }
+        model.addAttribute("results", results);
+        model.addAttribute("path", path);
+        return "multi-edit-config";
+    }
 }
 
