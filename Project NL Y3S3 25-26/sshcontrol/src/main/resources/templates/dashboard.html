@@ -2,73 +2,118 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Dashboard</title>
+    <title>Bảng điều khiển - Điều khiển máy chủ Ubuntu</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-<div class="min-h-screen py-10 px-6">
+<div class="min-h-screen bg-gray-100 py-10 px-6">
     <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
-        <!-- Header -->
+        <!-- Header with user info -->
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">🔧 Bảng điều khiển máy chủ</h1>
-            <form th:action="@{/logout}" method="post">
-                <button class="text-sm text-red-600 hover:underline">Đăng xuất</button>
-            </form>
-        </div>
-
-        <!-- Greeting -->
-        <div class="mb-6">
-            <p class="text-gray-700 text-lg">Chào mừng, <span th:text="${user.username}">Tên người dùng</span>!</p>
+            <h1 class="text-3xl font-bold text-gray-800">🔧 Điều khiển máy chủ Ubuntu từ xa</h1>
+            <div class="flex items-center space-x-4">
+                <div class="text-right">
+                    <p class="text-sm text-gray-700 font-medium" th:text="${user.username}">admin</p>
+                    <p class="text-xs text-gray-500">Đã đăng nhập</p>
+                </div>
+                <img src="/images/avatar-default.png" alt="avatar" class="w-10 h-10 rounded-full border border-gray-300" />
+                <form th:action="@{/logout}" method="post">
+                    <button class="text-sm text-red-600 font-semibold hover:underline">Đăng xuất</button>
+                </form>
+            </div>
         </div>
 
         <!-- Navigation Grid -->
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            <a th:href="@{/add-server}" class="p-6 bg-indigo-100 rounded-lg hover:bg-indigo-200 flex items-center gap-4 shadow">
-                <i class="fas fa-plus-circle text-indigo-600 text-2xl"></i>
+            <!-- Kết nối máy chủ -->
+            <a th:href="@{/add-server}" class="p-6 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-plug text-indigo-600 text-2xl"></i>
                 <div>
-                    <h2 class="text-lg font-semibold text-indigo-800">Thêm máy chủ</h2>
-                    <p class="text-sm text-gray-600">Đăng ký một máy chủ mới để điều khiển.</p>
+                    <h2 class="text-lg font-semibold text-indigo-800">Kết nối máy chủ</h2>
+                    <p class="text-sm text-gray-600">Thêm máy chủ mới để điều khiển.</p>
                 </div>
             </a>
 
-            <a th:href="@{/server-list}" class="p-6 bg-green-100 rounded-lg hover:bg-green-200 flex items-center gap-4 shadow">
+            <!-- Danh sách máy chủ -->
+            <a th:href="@{/server-list}" class="p-6 bg-green-100 rounded-lg hover:bg-green-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-server text-green-600 text-2xl"></i>
                 <div>
                     <h2 class="text-lg font-semibold text-green-800">Danh sách máy chủ</h2>
-                    <p class="text-sm text-gray-600">Xem và quản lý các máy chủ đã đăng ký.</p>
+                    <p class="text-sm text-gray-600">Xem, xóa, kiểm tra trạng thái máy.</p>
                 </div>
             </a>
 
-            <a th:href="@{/execute-page}" class="p-6 bg-yellow-100 rounded-lg hover:bg-yellow-200 flex items-center gap-4 shadow">
+            <!-- Thực thi lệnh -->
+            <a th:href="@{/execute-page}" class="p-6 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-terminal text-yellow-600 text-2xl"></i>
                 <div>
                     <h2 class="text-lg font-semibold text-yellow-800">Thực thi lệnh</h2>
-                    <p class="text-sm text-gray-600">Chạy lệnh từ xa trên máy chủ.</p>
+                    <p class="text-sm text-gray-600">Gửi lệnh nhanh tới máy chủ đơn.</p>
                 </div>
             </a>
 
-            <a th:href="@{/multi-execute-page}" class="p-6 bg-red-100 rounded-lg hover:bg-red-200 flex items-center gap-4 shadow">
+            <!-- Thực thi nhiều máy -->
+            <a th:href="@{/multi-execute-page}" class="p-6 bg-red-100 rounded-lg hover:bg-red-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-network-wired text-red-600 text-2xl"></i>
                 <div>
-                    <h2 class="text-lg font-semibold text-red-800">Nhiều máy chủ</h2>
-                    <p class="text-sm text-gray-600">Thực thi lệnh đồng thời trên nhiều máy.</p>
+                    <h2 class="text-lg font-semibold text-red-800">Thực thi nhiều máy</h2>
+                    <p class="text-sm text-gray-600">Chạy đồng thời trên nhiều IP.</p>
                 </div>
             </a>
 
-            <a th:href="@{/edit-config-page}" class="p-6 bg-purple-100 rounded-lg hover:bg-purple-200 flex items-center gap-4 shadow">
+            <!-- Cấu hình dịch vụ -->
+            <a th:href="@{/edit-config-page}" class="p-6 bg-purple-100 rounded-lg hover:bg-purple-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-cogs text-purple-600 text-2xl"></i>
                 <div>
                     <h2 class="text-lg font-semibold text-purple-800">Cấu hình dịch vụ</h2>
-                    <p class="text-sm text-gray-600">Chỉnh sửa file cấu hình dịch vụ.</p>
+                    <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
                 </div>
             </a>
 
-            
+            <!-- Điều khiển máy ảo -->
+            <a th:href="@{/vm-control}" class="p-6 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-power-off text-gray-800 text-2xl"></i>
+                <div>
+                    <h2 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h2>
+                    <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Trạng thái máy chủ -->
+        <div class="mt-10">
+            <h3 class="text-xl font-bold mb-4 text-gray-800">📡 Trạng thái máy chủ</h3>
+            <div th:if="${#lists.isEmpty(user.servers)}" class="text-center text-gray-500 py-8">
+                <i class="fas fa-server text-4xl mb-4"></i>
+                <p class="text-lg">Chưa có máy chủ nào được thêm</p>
+                <p class="text-sm">Hãy thêm máy chủ đầu tiên để bắt đầu!</p>
+            </div>
+            <div th:if="${!#lists.isEmpty(user.servers)}" class="overflow-x-auto">
+                <table class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200 text-left">
+                            <th class="p-3 text-sm font-medium text-gray-700">Tên máy chủ</th>
+                            <th class="p-3 text-sm font-medium text-gray-700">IP</th>
+                            <th class="p-3 text-sm font-medium text-gray-700">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr th:each="server : ${user.servers}" class="border-b hover:bg-gray-50">
+                            <td class="p-3 text-sm" th:text="${server.name}">Server 1</td>
+                            <td class="p-3 text-sm" th:text="${server.ip}">192.168.1.10</td>
+                            <td class="p-3 text-sm">
+                                <span th:if="${server.online}" class="text-green-600 font-semibold">Online</span>
+                                <span th:if="${!server.online}" class="text-red-600 font-semibold">Offline</span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
 
         <!-- Footer -->
-        <p class="text-center text-sm text-gray-500 mt-10">© 2025 Niên luận – Điều khiển máy chủ Ubuntu</p>
+        <p class="text-center text-sm text-gray-500 mt-8">© 2025 Điều khiển máy chủ từ xa – Niên luận</p>
     </div>
 </div>
 </body>
