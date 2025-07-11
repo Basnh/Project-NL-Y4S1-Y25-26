@@ -83,12 +83,28 @@
 
         <!-- Trạng thái máy chủ -->
         <div class="mt-10">
-            <h3 class="text-xl font-bold mb-4 text-gray-800">📡 Trạng thái máy chủ</h3>
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">📡 Trạng thái máy chủ</h3>
+                <div class="flex items-center space-x-2">
+                    <button id="refreshButton" onclick="refreshServerStatus()" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                    </button>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()" class="rounded">
+                        <span class="text-sm text-gray-600">Tự động làm mới</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="lastUpdate" class="text-sm text-gray-500 mb-4"></div>
+            
             <div th:if="${#lists.isEmpty(user.servers)}" class="text-center text-gray-500 py-8">
                 <i class="fas fa-server text-4xl mb-4"></i>
                 <p class="text-lg">Chưa có máy chủ nào được thêm</p>
                 <p class="text-sm">Hãy thêm máy chủ đầu tiên để bắt đầu!</p>
             </div>
+            
             <div th:if="${!#lists.isEmpty(user.servers)}" class="overflow-x-auto">
                 <table class="w-full table-auto border-collapse">
                     <thead>
@@ -98,13 +114,19 @@
                             <th class="p-3 text-sm font-medium text-gray-700">Trạng thái</th>
                         </tr>
                     </thead>
-                    <tbody>
+                    <tbody id="serverTableBody">
                         <tr th:each="server : ${user.servers}" class="border-b hover:bg-gray-50">
                             <td class="p-3 text-sm" th:text="${server.name}">Server 1</td>
                             <td class="p-3 text-sm" th:text="${server.ip}">192.168.1.10</td>
                             <td class="p-3 text-sm">
-                                <span th:if="${server.online}" class="text-green-600 font-semibold">Online</span>
-                                <span th:if="${!server.online}" class="text-red-600 font-semibold">Offline</span>
+                                <span th:data-ip="${server.ip}" class="server-status">
+                                    <span th:if="${server.online}" class="text-green-600 font-semibold">
+                                        <i class="fas fa-circle mr-1"></i>Online
+                                    </span>
+                                    <span th:if="${!server.online}" class="text-red-600 font-semibold">
+                                        <i class="fas fa-circle mr-1"></i>Offline
+                                    </span>
+                                </span>
                             </td>
                         </tr>
                     </tbody>
@@ -116,5 +138,67 @@
         <p class="text-center text-sm text-gray-500 mt-8">© 2025 Điều khiển máy chủ từ xa – Niên luận</p>
     </div>
 </div>
+
+<script>
+    let autoRefreshInterval;
+    let isAutoRefreshEnabled = false;
+
+    // Làm mới trạng thái máy chủ
+    async function refreshServerStatus() {
+        const refreshButton = document.getElementById('refreshButton');
+        const lastUpdateDiv = document.getElementById('lastUpdate');
+        
+        // Disable button và hiển thị loading
+        refreshButton.disabled = true;
+        refreshButton.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang kiểm tra...';
+        
+        try {
+            const response = await fetch('/api/server-status');
+            const result = await response.json();
+            
+            if (response.ok && result.statuses) {
+                // Cập nhật trạng thái trên UI
+                for (const [ip, isOnline] of Object.entries(result.statuses)) {
+                    const statusElement = document.querySelector(`[data-ip="${ip}"]`);
+                    if (statusElement) {
+                        statusElement.innerHTML = isOnline ? 
+                            '<span class="text-green-600 font-semibold"><i class="fas fa-circle mr-1"></i>Online</span>' :
+                            '<span class="text-red-600 font-semibold"><i class="fas fa-circle mr-1"></i>Offline</span>';
+                    }
+                }
+                
+                // Cập nhật thời gian làm mới
+                const now = new Date();
+                lastUpdateDiv.textContent = `Cập nhật lần cuối: ${now.toLocaleString('vi-VN')}`;
+            } else {
+                console.error('Error fetching server status:', result.error);
+            }
+        } catch (error) {
+            console.error('Error:', error);
+        } finally {
+            // Khôi phục button
+            refreshButton.disabled = false;
+            refreshButton.innerHTML = '<i class="fas fa-sync-alt mr-2"></i>Làm mới';
+        }
+    }
+
+    // Bật/tắt tự động làm mới
+    function toggleAutoRefresh() {
+        const checkbox = document.getElementById('autoRefresh');
+        isAutoRefreshEnabled = checkbox.checked;
+        
+        if (isAutoRefreshEnabled) {
+            // Làm mới mỗi 30 giây
+            autoRefreshInterval = setInterval(refreshServerStatus, 30000);
+        } else {
+            clearInterval(autoRefreshInterval);
+        }
+    }
+
+    // Làm mới ngay khi trang load
+    window.onload = function() {
+        refreshServerStatus();
+    };
+</script>
 </body>
 </html>

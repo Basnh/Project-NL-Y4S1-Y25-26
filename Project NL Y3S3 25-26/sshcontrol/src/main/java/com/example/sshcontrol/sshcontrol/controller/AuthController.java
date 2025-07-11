@@ -7,6 +7,10 @@ import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
 import java.util.*;
 
 @Controller
@@ -152,5 +156,47 @@ public class AuthController {
             user.getServers().removeIf(server -> server.getIp().equals(ip));
         }
         return "redirect:/server-list";
+    }
+
+    // Hiển thị trang dashboard
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        
+        // Kiểm tra trạng thái máy chủ khi load dashboard
+        if (user.getServers() != null) {
+            for (ServerInfo server : user.getServers()) {
+                boolean isOnline = checkServerStatus(server.getIp());
+                server.setOnline(isOnline);
+            }
+        }
+        
+        model.addAttribute("user", user);
+        return "dashboard";
+    }
+
+    private boolean checkServerStatus(String ip) {
+        try {
+            // Ping test
+            InetAddress address = InetAddress.getByName(ip);
+            boolean reachable = address.isReachable(3000); // 3 seconds timeout
+            
+            if (!reachable) {
+                return false;
+            }
+            
+            // SSH port test (port 22)
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(ip, 22), 3000);
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
     }
 }

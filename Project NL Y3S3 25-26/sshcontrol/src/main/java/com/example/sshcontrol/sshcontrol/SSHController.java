@@ -83,21 +83,6 @@ public class SSHController {
     }
 }
 
-
-    @GetMapping("/dashboard")
-    public String showDashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
-        if (user != null) {
-            model.addAttribute("user", user);
-            model.addAttribute("serverList", user.getServers());
-        } else {
-            model.addAttribute("user", null);
-            model.addAttribute("serverList", new ArrayList<>());
-        }
-        return "dashboard";
-    }
-
-
     @GetMapping("/execute-page")
     public String showExecutePage(@RequestParam(value = "host", required = false) String hostParam, Model model, HttpSession session) {
         String host = (String) session.getAttribute("host");
