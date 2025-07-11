@@ -5,284 +5,65 @@
     <title>Danh sách máy chủ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/styles.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-3xl">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Danh sách máy chủ của bạn</h2>
-        <div class="flex justify-between mb-4">
-            <a th:href="@{/add-server}" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
-                <i class="fas fa-plus mr-2"></i> Thêm máy chủ
-            </a>
-            <button type="button" onclick="goToDashboardWithSelectedServers()" class="px-6 py-2 bg-green-600 text-white rounded-md hover:bg-green-700 transition duration-200 ease-in-out font-semibold flex items-center">
-                <i class="fas fa-terminal mr-2"></i> Điều khiển nhiều máy chủ
-            </button>
-        </div>
-        <form id="multiServerForm">
-        <div class="overflow-x-auto rounded-lg border border-gray-200">
-            <table class="min-w-full divide-y divide-gray-200">
-                <thead class="bg-gray-50">
-                    <tr>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                            <input type="checkbox" id="selectAll" onclick="toggleAllServers(this)">
-                        </th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên máy chủ</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Địa chỉ IP</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Đăng nhập SSH</th>
-                        <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Xóa</th>
-                    </tr>
-                </thead>
-                <tbody class="bg-white divide-y divide-gray-200">
-                    <tr th:each="server : ${servers}">
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <input type="checkbox" name="selectedServers" th:value="${server.ip}">
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900" th:text="${server.name}"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm text-gray-700" th:text="${server.ip}"></td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <a th:href="@{/server-login(ip=${server.ip})}" class="text-indigo-600 hover:text-indigo-900 font-semibold flex items-center">
-                                <i class="fas fa-sign-in-alt mr-2"></i> Đăng nhập SSH
-                            </a>
-                        </td>
-                        <td class="px-6 py-4 whitespace-nowrap text-sm">
-                            <form th:action="@{/delete-server}" method="post" style="display:inline;">
-                                <input type="hidden" name="ip" th:value="${server.ip}" />
-                                <button type="submit"
-                                    onclick="return confirm('Bạn có chắc muốn xóa máy chủ này?')"
-                                    class="text-red-600 hover:text-red-900 font-semibold flex items-center">
-                                    <i class="fas fa-trash-alt mr-2"></i> Xóa
-                                </button>
-                            </form>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(servers)}">
-                        <td colspan="5" class="px-6 py-4 text-center text-gray-500">Chưa có máy chủ nào.</td>
-                    </tr>
-                </tbody>
-            </table>
-        </div>
-        </form>
-        <div class="mt-8 text-center">
-            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
-                <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
-            </a>
+<div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
+    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Danh sách máy chủ</h2>
+    <div class="overflow-x-auto">
+        <table class="min-w-full divide-y divide-gray-200">
+            <thead class="bg-gray-50">
+                <tr>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên máy chủ</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Địa chỉ IP</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Xem thông tin</th>
+                </tr>
+            </thead>
+            <tbody class="bg-white divide-y divide-gray-200" th:each="server : ${servers}">
+                <tr>
+                    <td class="px-6 py-4 font-semibold text-gray-800" th:text="${server.name}">Server</td>
+                    <td class="px-6 py-4 text-gray-600" th:text="${server.ip}">192.168.1.10</td>
+                    <td class="px-6 py-4">
+                        <button type="button" 
+                            class="text-blue-600 hover:underline font-semibold"
+                            onclick="showServerInfoModal('[[${server.ip}]]')">
+                            <i class="fas fa-info-circle mr-1"></i> Xem thông tin
+                        </button>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Modal -->
+<div id="serverInfoModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
+    <div class="bg-white p-6 rounded shadow-lg max-w-lg w-full">
+        <h3 class="text-xl font-bold mb-4">Thông tin máy chủ</h3>
+        <div id="serverInfoContent" class="text-sm text-gray-700 whitespace-pre-wrap font-mono"></div>
+        <div class="mt-6 text-right">
+            <button onclick="closeServerInfoModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Đóng</button>
         </div>
     </div>
+</div>
 
-    <!-- Modal điều khiển nhiều máy chủ -->
-    <div id="multiControlModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-        <div class="bg-white rounded-lg shadow-lg p-6 max-w-2xl w-full">
-            <h3 class="text-xl font-bold mb-4">Điều khiển nhiều máy chủ</h3>
-            <div class="mb-4">
-                <span class="font-semibold">Máy chủ đã chọn:</span>
-                <span id="selectedServerList" class="text-sm text-gray-700"></span>
-            </div>
-            <div class="flex flex-wrap gap-2 mb-4">
-                <button type="button" onclick="showTab('command')" id="tab-command" class="px-3 py-1 bg-blue-200 rounded hover:bg-blue-300 font-semibold">Thực thi lệnh</button>
-                <button type="button" onclick="showTab('service')" id="tab-service" class="px-3 py-1 bg-green-200 rounded hover:bg-green-300 font-semibold">Điều khiển dịch vụ</button>
-                <button type="button" onclick="showTab('config')" id="tab-config" class="px-3 py-1 bg-yellow-200 rounded hover:bg-yellow-300 font-semibold">Chỉnh sửa cấu hình</button>
-            </div>
-            <!-- Tab thực thi lệnh -->
-            <form id="multiCommandForm" class="space-y-4 tab-content">
-                <div>
-                    <label class="block font-semibold mb-1">Tài khoản SSH:</label>
-                    <input id="multiUser" type="text" class="w-full border rounded p-2" placeholder="User" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Mật khẩu:</label>
-                    <input id="multiPassword" type="password" class="w-full border rounded p-2" placeholder="Password" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Lệnh thực thi:</label>
-                    <input id="multiCommand" type="text" class="w-full border rounded p-2" placeholder="Lệnh (vd: uptime)" required>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeMultiControlModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Đóng</button>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Thực thi</button>
-                </div>
-            </form>
-            <!-- Tab điều khiển dịch vụ -->
-            <form id="multiServiceForm" class="space-y-4 tab-content hidden">
-                <div>
-                    <label class="block font-semibold mb-1">Tài khoản SSH:</label>
-                    <input id="serviceUser" type="text" class="w-full border rounded p-2" placeholder="User" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Mật khẩu:</label>
-                    <input id="servicePassword" type="password" class="w-full border rounded p-2" placeholder="Password" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Tên dịch vụ:</label>
-                    <input id="serviceName" type="text" class="w-full border rounded p-2" placeholder="vd: sshd" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Hành động:</label>
-                    <select id="serviceAction" class="w-full border rounded p-2">
-                        <option value="status">Kiểm tra trạng thái</option>
-                        <option value="start">Khởi động</option>
-                        <option value="stop">Dừng</option>
-                        <option value="restart">Khởi động lại</option>
-                    </select>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeMultiControlModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Đóng</button>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Thực thi</button>
-                </div>
-            </form>
-            <!-- Tab chỉnh sửa cấu hình -->
-            <form id="multiConfigForm" class="space-y-4 tab-content hidden">
-                <div>
-                    <label class="block font-semibold mb-1">Tài khoản SSH:</label>
-                    <input id="configUser" type="text" class="w-full border rounded p-2" placeholder="User" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Mật khẩu:</label>
-                    <input id="configPassword" type="password" class="w-full border rounded p-2" placeholder="Password" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Đường dẫn file cấu hình:</label>
-                    <input id="configPath" type="text" class="w-full border rounded p-2" placeholder="/etc/ssh/sshd_config" required>
-                </div>
-                <div>
-                    <label class="block font-semibold mb-1">Nội dung mới:</label>
-                    <textarea id="configContent" rows="4" class="w-full border rounded p-2" placeholder="Nội dung file mới" required></textarea>
-                </div>
-                <div class="flex justify-end gap-2">
-                    <button type="button" onclick="closeMultiControlModal()" class="px-4 py-2 bg-gray-300 rounded hover:bg-gray-400">Đóng</button>
-                    <button type="submit" class="px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700">Lưu cấu hình</button>
-                </div>
-            </form>
-            <div id="multiResult" class="mt-4 text-sm"></div>
-        </div>
-    </div>
-
-    <script>
-        // Tab switching logic
-        function showTab(tab) {
-            document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
-            ['command', 'service', 'config'].forEach(t => {
-                document.getElementById('tab-' + t).classList.remove('bg-blue-600', 'text-white');
+<script>
+    function showServerInfoModal(ip) {
+        fetch(`/server-info-detail?ip=${encodeURIComponent(ip)}`)
+            .then(response => response.text())
+            .then(info => {
+                document.getElementById('serverInfoContent').innerText = info;
+                document.getElementById('serverInfoModal').classList.remove('hidden');
+            })
+            .catch(err => {
+                document.getElementById('serverInfoContent').innerText = 'Không thể lấy thông tin máy chủ.';
+                document.getElementById('serverInfoModal').classList.remove('hidden');
             });
-            document.getElementById('tab-' + tab).classList.add('bg-blue-600', 'text-white');
-            document.getElementById('multi' + capitalize(tab) + 'Form').classList.remove('hidden');
-        }
-        function capitalize(str) { return str.charAt(0).toUpperCase() + str.slice(1); }
+    }
 
-        // Chọn tất cả máy chủ
-        function toggleAllServers(source) {
-            const checkboxes = document.querySelectorAll('input[name="selectedServers"]');
-            checkboxes.forEach(cb => cb.checked = source.checked);
-        }
-
-        // Mở modal điều khiển nhiều máy chủ
-        function openMultiControlModal() {
-            const checked = Array.from(document.querySelectorAll('input[name="selectedServers"]:checked'));
-            const ips = checked.map(cb => cb.value);
-            if (ips.length === 0) {
-                alert("Vui lòng chọn ít nhất một máy chủ để điều khiển!");
-                return;
-            }
-            document.getElementById('selectedServerList').innerText = ips.join(', ');
-            document.getElementById('multiControlModal').classList.remove('hidden');
-            showTab('command');
-            document.getElementById('multiResult').innerHTML = '';
-        }
-
-        function closeMultiControlModal() {
-            document.getElementById('multiControlModal').classList.add('hidden');
-            document.getElementById('multiResult').innerHTML = '';
-        }
-
-        // Thực thi lệnh trên nhiều máy chủ
-        document.getElementById('multiCommandForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const checked = Array.from(document.querySelectorAll('input[name="selectedServers"]:checked'));
-            const hosts = checked.map(cb => cb.value);
-            const user = document.getElementById('multiUser').value;
-            const password = document.getElementById('multiPassword').value;
-            const command = document.getElementById('multiCommand').value;
-            const resultDiv = document.getElementById('multiResult');
-            resultDiv.innerHTML = "Đang thực thi...";
-
-            const res = await fetch('/execute-multi', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({hosts, user, password, command})
-            });
-            const data = await res.json();
-            resultDiv.innerHTML = "<b>Kết quả:</b><br>" + data.map((r, i) => `<div class="mb-2"><b>${hosts[i]}</b>:<br><pre class="bg-gray-100 p-2 rounded">${r}</pre></div>`).join('');
-        };
-
-        // Điều khiển dịch vụ trên nhiều máy chủ
-        document.getElementById('multiServiceForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const checked = Array.from(document.querySelectorAll('input[name="selectedServers"]:checked'));
-            const hosts = checked.map(cb => cb.value);
-            const user = document.getElementById('serviceUser').value;
-            const password = document.getElementById('servicePassword').value;
-            const serviceName = document.getElementById('serviceName').value;
-            const action = document.getElementById('serviceAction').value;
-            const resultDiv = document.getElementById('multiResult');
-            resultDiv.innerHTML = "Đang thực thi...";
-
-            const res = await fetch('/multi-control-service', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({hosts, user, password, serviceName, action})
-            });
-            const data = await res.json();
-            resultDiv.innerHTML = "<b>Kết quả:</b><br>" + data.map((r, i) => `<div class="mb-2"><b>${hosts[i]}</b>:<br><pre class="bg-gray-100 p-2 rounded">${r}</pre></div>`).join('');
-        };
-
-        // Chỉnh sửa cấu hình trên nhiều máy chủ
-        document.getElementById('multiConfigForm').onsubmit = async function(e) {
-            e.preventDefault();
-            const checked = Array.from(document.querySelectorAll('input[name="selectedServers"]:checked'));
-            const hosts = checked.map(cb => cb.value);
-            const user = document.getElementById('configUser').value;
-            const password = document.getElementById('configPassword').value;
-            const configPath = document.getElementById('configPath').value;
-            const content = document.getElementById('configContent').value;
-            const resultDiv = document.getElementById('multiResult');
-            resultDiv.innerHTML = "Đang lưu...";
-
-            const res = await fetch('/multi-save-config', {
-                method: 'POST',
-                headers: {'Content-Type': 'application/json'},
-                body: JSON.stringify({hosts, user, password, configPath, content})
-            });
-            const data = await res.json();
-            resultDiv.innerHTML = "<b>Kết quả:</b><br>" + data.map((r, i) => `<div class="mb-2"><b>${hosts[i]}</b>:<br><pre class="bg-gray-100 p-2 rounded">${r}</pre></div>`).join('');
-        };
-
-        function goToDashboardWithSelectedServers() {
-            const checked = Array.from(document.querySelectorAll('input[name="selectedServers"]:checked'));
-            const ips = checked.map(cb => cb.value);
-            if (ips.length === 0) {
-                alert("Vui lòng chọn ít nhất một máy chủ!");
-                return;
-            }
-            // Lấy danh sách server từ sessionStorage (hoặc biến toàn cục nếu có)
-            var servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
-            // Ghép user@ip nếu có user, ngược lại chỉ lấy ip
-            const hostsUserAtIp = ips.map(ip => {
-                const s = servers.find(sv => sv.ip === ip || (sv.ip && ip && sv.ip.trim() === ip.trim()));
-                if (s && s.sshUsername) return s.sshUsername + '@' + ip;
-                return ip;
-            });
-            // Lưu danh sách user@ip vào sessionStorage
-            sessionStorage.setItem('selectedHosts', JSON.stringify(hostsUserAtIp));
-            window.location.href = '/dashboard?hosts=' + encodeURIComponent(hostsUserAtIp.join(','));
-        }
-
-        // Nếu đang có hosts trên URL, thêm vào link quay lại
-        const urlParams = new URLSearchParams(window.location.search);
-        const hosts = urlParams.get('hosts');
-        if (hosts) {
-            document.getElementById('backToDashboard').href = '/dashboard?hosts=' + encodeURIComponent(hosts);
-        } else {
-            document.getElementById('backToDashboard').href = '/dashboard';
-        }
-    </script>
+    function closeServerInfoModal() {
+        document.getElementById('serverInfoModal').classList.add('hidden');
+        document.getElementById('serverInfoContent').innerText = '';
+    }
+</script>
 </body>
 </html>

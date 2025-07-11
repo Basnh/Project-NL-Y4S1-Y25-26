@@ -63,6 +63,29 @@ public class SSHController {
         // Hoặc: thử kết nối SSH, trả về true nếu thành công
     }
 
+        @GetMapping("/server-info-detail")
+        @ResponseBody
+        public String getServerInfo(@RequestParam String ip, HttpSession session) {
+            String username = (String) session.getAttribute("username");
+            String password = (String) session.getAttribute("password");
+
+        if (username == null || password == null) {
+            return "Chưa đăng nhập SSH.";
+        }
+
+    try {
+        return sshService.executeCommand(ip, username, password, """
+                echo "OS: $(lsb_release -d | cut -f2)"
+                echo "CPU: $(lscpu | grep 'Model name' | cut -d ':' -f2)"
+                echo "RAM: $(free -h | grep Mem | awk '{print $2}')"
+                echo "Disk: $(df -h / | tail -1 | awk '{print $2}')"
+                """);
+    } catch (Exception e) {
+        return "Lỗi khi lấy thông tin máy chủ: " + e.getMessage();
+    }
+}
+
+
     @GetMapping("/dashboard")
     public String showDashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
