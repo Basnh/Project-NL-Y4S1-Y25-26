@@ -6,6 +6,7 @@ import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -149,12 +150,65 @@ public class AuthController {
 
     // Xóa máy chủ
     @PostMapping("/delete-server")
-    public String deleteServer(@RequestParam String ip, HttpSession session) {
+    public String deleteServer(@RequestParam String ip, HttpSession session, RedirectAttributes redirectAttributes) {
         User user = (User) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
-        if (user.getServers() != null) {
-            user.getServers().removeIf(server -> server.getIp().equals(ip));
+        if (user == null) {
+            return "redirect:/login";
         }
+        
+        if (user.getServers() != null) {
+            boolean removed = user.getServers().removeIf(server -> server.getIp().equals(ip));
+            
+            if (removed) {
+                // Cập nhật lại user trong session
+                session.setAttribute("user", user);
+                
+                // Cập nhật trong danh sách users toàn cục
+                for (User u : users) {
+                    if (u.getUsername().equals(user.getUsername())) {
+                        u.setServers(user.getServers());
+                        break;
+                    }
+                }
+                
+                redirectAttributes.addFlashAttribute("message", "Xóa máy chủ thành công!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy máy chủ để xóa!");
+            }
+        }
+        
+        return "redirect:/server-list";
+    }
+
+    // Thêm method GET này vào AuthController (giữ nguyên method POST hiện tại)
+    @GetMapping("/delete-server")
+    public String deleteServerGet(@RequestParam String ip, HttpSession session, RedirectAttributes redirectAttributes) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+        
+        if (user.getServers() != null) {
+            boolean removed = user.getServers().removeIf(server -> server.getIp().equals(ip));
+            
+            if (removed) {
+                // Cập nhật lại user trong session
+                session.setAttribute("user", user);
+                
+                // Cập nhật trong danh sách users toàn cục
+                for (User u : users) {
+                    if (u.getUsername().equals(user.getUsername())) {
+                        u.setServers(user.getServers());
+                        break;
+                    }
+                }
+                
+                redirectAttributes.addFlashAttribute("message", "Xóa máy chủ thành công!");
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy máy chủ để xóa!");
+            }
+        }
+        
         return "redirect:/server-list";
     }
 

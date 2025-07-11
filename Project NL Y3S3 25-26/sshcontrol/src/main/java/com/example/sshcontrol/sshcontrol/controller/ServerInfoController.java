@@ -7,12 +7,14 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
-// ✅ Thay đổi import này:
-import jakarta.servlet.http.HttpSession;  // ✅ Dùng jakarta thay vì javax
+
+import jakarta.servlet.http.HttpSession;  
 
 
 import java.util.HashMap;
 import java.util.Map;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 
 @RestController
 public class ServerInfoController {
@@ -45,22 +47,37 @@ public class ServerInfoController {
         }
     }
 
+    
+    private String executeCommand(Session session, String command) throws Exception {
+        com.jcraft.jsch.ChannelExec channel = (com.jcraft.jsch.ChannelExec) session.openChannel("exec");
+        channel.setCommand(command);
+        channel.setInputStream(null);
+        java.io.InputStream in = channel.getInputStream();
+        channel.connect();
+
+        StringBuilder output = new StringBuilder();
+        byte[] tmp = new byte[1024];
+        while (true) {
+            while (in.available() > 0) {
+                int i = in.read(tmp, 0, 1024);
+                if (i < 0) break;
+                output.append(new String(tmp, 0, i));
+            }
+            if (channel.isClosed()) {
+                break;
+            }
+            try {
+                Thread.sleep(100);
+            } catch (Exception ee) {
+                // Ignore
+            }
+        }
+        channel.disconnect();
+        return output.toString().trim();
+    }
+
     private Map<String, String> getServerInfoViaSSH(ServerInfo server) throws Exception {
         Map<String, String> info = new HashMap<>();
-        
-        // Tạm thời trả về dữ liệu giả lập để test
-        info.put("os", "Ubuntu 22.04.3 LTS");
-        info.put("arch", "x86_64");
-        info.put("memory", "Total: 4GB, Available: 2.1GB");
-        info.put("disk", "Total: 100GB, Used: 45GB, Available: 55GB");
-        info.put("cpu", "Intel(R) Core(TM) i5-8265U CPU @ 1.60GHz");
-        info.put("processes", "127");
-        info.put("uptime", "3 days, 2 hours, 15 minutes");
-        
-        return info;
-        
-        // Uncomment phần này khi muốn dùng SSH thật
-        /*
         JSch jsch = new JSch();
         Session sshSession = jsch.getSession(server.getSshUsername(), server.getIp(), 22);
         sshSession.setPassword(server.getSshPassword());
@@ -68,7 +85,7 @@ public class ServerInfoController {
         sshSession.connect();
 
         try {
-            info.put("os", executeCommand(sshSession, "lsb_release -d | cut -f2"));
+            info.put("os", executeCommand(sshSession, "lsb_release -d | cut -f2- | xargs"));
             info.put("arch", executeCommand(sshSession, "uname -m"));
             info.put("memory", executeCommand(sshSession, "free -h | grep Mem | awk '{print \"Total: \"$2\", Available: \"$7}'"));
             info.put("disk", executeCommand(sshSession, "df -h / | tail -1 | awk '{print \"Total: \"$2\", Used: \"$3\", Available: \"$4}'"));
@@ -80,7 +97,6 @@ public class ServerInfoController {
         }
         
         return info;
-        */
     }
 
 }
