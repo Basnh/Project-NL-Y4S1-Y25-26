@@ -80,9 +80,12 @@ public class AuthController {
     @GetMapping("/server-list")
     public String serverList(Model model, HttpSession session) {
         User user = (User) session.getAttribute("user");
-        if (user == null) return "redirect:/login";
-        model.addAttribute("servers", user.getServers());
-        return "server-list";
+        if (user == null) {
+            return "redirect:/login";
+        }
+    
+    model.addAttribute("servers", user.getServers());
+    return "server-list";
     }
 
     // Form đăng nhập SSH vào máy chủ

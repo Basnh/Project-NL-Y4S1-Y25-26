@@ -9,37 +9,65 @@
 <body class="bg-gray-100 font-sans antialiased">
 <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
     <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Danh sách máy chủ</h2>
+    
+    <!-- Thêm nút về dashboard -->
+    <div class="mb-4">
+        <a th:href="@{/dashboard}" class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200">
+            <i class="fas fa-arrow-left mr-2"></i>
+            Về Dashboard
+        </a>
+    </div>
+    
     <div class="overflow-x-auto">
         <table class="min-w-full divide-y divide-gray-200">
             <thead class="bg-gray-50">
                 <tr>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên máy chủ</th>
                     <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Địa chỉ IP</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Xem thông tin</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
+                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
                 </tr>
             </thead>
-            <tbody class="bg-white divide-y divide-gray-200" th:each="server : ${servers}">
-                <tr>
+            <tbody class="bg-white divide-y divide-gray-200">
+                <tr th:each="server : ${servers}">
                     <td class="px-6 py-4 font-semibold text-gray-800" th:text="${server.name}">Server</td>
                     <td class="px-6 py-4 text-gray-600" th:text="${server.ip}">192.168.1.10</td>
                     <td class="px-6 py-4">
+                        <span th:if="${server.online}" class="text-green-600 font-semibold">Online</span>
+                        <span th:if="${!server.online}" class="text-red-600 font-semibold">Offline</span>
+                    </td>
+                    <td class="px-6 py-4">
                         <button type="button" 
-                            class="text-blue-600 hover:underline font-semibold"
-                            onclick="showServerInfoModal('[[${server.ip}]]')">
+                            class="btn-server-info text-blue-600 hover:underline font-semibold mr-4"
+                            th:data-ip="${server.ip}">
                             <i class="fas fa-info-circle mr-1"></i> Xem thông tin
                         </button>
+                        <button type="button" 
+                            class="btn-server-delete text-red-600 hover:underline font-semibold"
+                            th:data-ip="${server.ip}">
+                            <i class="fas fa-trash mr-1"></i> Xóa
+                        </button>
                     </td>
+                </tr>
+                <tr th:if="${#lists.isEmpty(servers)}">
+                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">Chưa có máy chủ nào.</td>
                 </tr>
             </tbody>
         </table>
     </div>
 </div>
 
-<!-- Modal -->
+<!-- Modal xem thông tin -->
 <div id="serverInfoModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded shadow-lg max-w-lg w-full">
+    <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full mx-4">
         <h3 class="text-xl font-bold mb-4">Thông tin máy chủ</h3>
-        <div id="serverInfoContent" class="text-sm text-gray-700 whitespace-pre-wrap font-mono"></div>
+        <div id="serverInfoContent" class="text-sm text-gray-700">
+            <!-- Loading indicator -->
+            <div id="loadingIndicator" class="text-center">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i>
+                <p class="mt-2">Đang tải thông tin...</p>
+            </div>
+        </div>
         <div class="mt-6 text-right">
             <button onclick="closeServerInfoModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Đóng</button>
         </div>
@@ -47,22 +75,103 @@
 </div>
 
 <script>
-    function showServerInfoModal(ip) {
-        fetch(`/server-info-detail?ip=${encodeURIComponent(ip)}`)
-            .then(response => response.text())
-            .then(info => {
-                document.getElementById('serverInfoContent').innerText = info;
-                document.getElementById('serverInfoModal').classList.remove('hidden');
-            })
-            .catch(err => {
-                document.getElementById('serverInfoContent').innerText = 'Không thể lấy thông tin máy chủ.';
-                document.getElementById('serverInfoModal').classList.remove('hidden');
+    // Event delegation cho các nút
+    document.addEventListener('DOMContentLoaded', function() {
+        // Xử lý nút "Xem thông tin"
+        document.querySelectorAll('.btn-server-info').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const ip = this.getAttribute('data-ip');
+                showServerInfoModal(ip);
             });
+        });
+
+        // Xử lý nút "Xóa"
+        document.querySelectorAll('.btn-server-delete').forEach(function(button) {
+            button.addEventListener('click', function() {
+                const ip = this.getAttribute('data-ip');
+                deleteServer(ip);
+            });
+        });
+    });
+
+    async function showServerInfoModal(ip) {
+        console.log('Requesting server info for IP:', ip); // Debug log
+        
+        // Hiển thị modal với loading indicator
+        document.getElementById('serverInfoModal').classList.remove('hidden');
+        document.getElementById('loadingIndicator').style.display = 'block';
+        
+        try {
+            const response = await fetch(`/api/server-info?ip=${encodeURIComponent(ip)}`);
+            console.log('Response status:', response.status); // Debug log
+            
+            const result = await response.json();
+            console.log('Response data:', result); // Debug log
+            
+            document.getElementById('loadingIndicator').style.display = 'none';
+            
+            if (response.ok && result.data) {
+                const data = result.data;
+                const content = `
+                    <div class="space-y-3">
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>🖥️ Hệ điều hành:</strong> <span class="text-blue-600">${data.os}</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>⚙️ Kiến trúc:</strong> <span class="text-blue-600">${data.arch}</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>🧠 RAM:</strong> <span class="text-green-600">${data.memory}</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>💾 Ổ đĩa:</strong> <span class="text-yellow-600">${data.disk}</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>🔧 CPU:</strong> <span class="text-purple-600">${data.cpu}</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>📊 Tiến trình:</strong> <span class="text-indigo-600">${data.processes}</span>
+                        </div>
+                        <div class="bg-gray-50 p-3 rounded">
+                            <strong>⏰ Uptime:</strong> <span class="text-red-600">${data.uptime}</span>
+                        </div>
+                    </div>
+                `;
+                document.getElementById('serverInfoContent').innerHTML = content;
+            } else {
+                document.getElementById('serverInfoContent').innerHTML = `
+                    <div class="text-red-600 bg-red-50 p-4 rounded">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>
+                        ${result.error || 'Không thể lấy thông tin máy chủ'}
+                    </div>
+                `;
+            }
+        } catch (error) {
+            console.error('Fetch error:', error); // Debug log
+            document.getElementById('loadingIndicator').style.display = 'none';
+            document.getElementById('serverInfoContent').innerHTML = `
+                <div class="text-red-600 bg-red-50 p-4 rounded">
+                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                    Lỗi kết nối: ${error.message}
+                </div>
+            `;
+        }
     }
 
     function closeServerInfoModal() {
         document.getElementById('serverInfoModal').classList.add('hidden');
-        document.getElementById('serverInfoContent').innerText = '';
+        document.getElementById('serverInfoContent').innerHTML = `
+            <div id="loadingIndicator" class="text-center">
+                <i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i>
+                <p class="mt-2">Đang tải thông tin...</p>
+            </div>
+        `;
+    }
+
+    function deleteServer(ip) {
+        if (confirm('Bạn có chắc muốn xóa máy chủ này?')) {
+            window.location.href = `/delete-server?ip=${ip}`;
+        }
     }
 </script>
 </body>

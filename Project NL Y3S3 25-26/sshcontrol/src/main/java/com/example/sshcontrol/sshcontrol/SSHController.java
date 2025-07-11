@@ -9,8 +9,6 @@ import com.example.sshcontrol.model.FileInfo;
 import com.example.sshcontrol.model.ServiceInfo;
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.ServerInfo;
-import com.example.sshcontrol.model.Server;
-
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
