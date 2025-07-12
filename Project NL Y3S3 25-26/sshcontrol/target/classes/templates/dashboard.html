@@ -24,8 +24,23 @@
             </div>
         </div>
 
-        <!-- Navigation Grid -->
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        <!-- Navigation Header with Layout Toggle -->
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">Chức năng điều khiển</h2>
+            <div class="flex items-center space-x-2 bg-gray-200 rounded-lg p-1">
+                <button id="gridViewBtn" onclick="setViewMode('grid')" 
+                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-blue-500 text-white">
+                    <i class="fas fa-th mr-2"></i>
+                </button>
+                <button id="listViewBtn" onclick="setViewMode('list')" 
+                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-list mr-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Grid View -->
+        <div id="gridView" class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
             <!-- Kết nối máy chủ -->
             <a th:href="@{/add-server}" class="p-6 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-plug text-indigo-600 text-2xl"></i>
@@ -71,7 +86,7 @@
                 </div>
             </a>
 
-            <!-- ✅ THÊM MỚI: Điều khiển dịch vụ đơn -->
+            <!-- Điều khiển dịch vụ đơn -->
             <button onclick="showServerSelectModal('service-control')" class="w-full p-6 bg-orange-100 rounded-lg hover:bg-orange-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-toggle-on text-orange-600 text-2xl"></i>
                 <div class="text-left">
@@ -80,7 +95,7 @@
                 </div>
             </button>
 
-            <!-- ✅ THÊM MỚI: Liệt kê dịch vụ đơn -->
+            <!-- Liệt kê dịch vụ đơn -->
             <button onclick="showServerSelectModal('service-list')" class="w-full p-6 bg-teal-100 rounded-lg hover:bg-teal-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-list text-teal-600 text-2xl"></i>
                 <div class="text-left">
@@ -89,7 +104,7 @@
                 </div>
             </button>
 
-            <!-- ✅ THÊM MỚI: Điều khiển dịch vụ đa máy -->
+            <!-- Điều khiển dịch vụ đa máy -->
             <button onclick="showServerSelectModal('multi-service-control')" class="w-full p-6 bg-rose-100 rounded-lg hover:bg-rose-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-layer-group text-rose-600 text-2xl"></i>
                 <div class="text-left">
@@ -98,7 +113,7 @@
                 </div>
             </button>
 
-            <!-- ✅ THÊM MỚI: Liệt kê dịch vụ đa máy -->
+            <!-- Liệt kê dịch vụ đa máy -->
             <button onclick="showServerSelectModal('multi-service-list')" class="w-full p-6 bg-cyan-100 rounded-lg hover:bg-cyan-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-server text-cyan-600 text-2xl"></i>
                 <div class="text-left">
@@ -113,6 +128,169 @@
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h2>
                     <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
+                </div>
+            </a>
+        </div>
+
+        <!-- Navigation List View -->
+        <div id="listView" class="hidden space-y-3">
+            <!-- Kết nối máy chủ -->
+            <a th:href="@{/add-server}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-plug text-indigo-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Kết nối máy chủ</h3>
+                            <p class="text-sm text-gray-600">Thêm máy chủ mới để điều khiển.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Danh sách máy chủ -->
+            <a th:href="@{/server-list}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-server text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Danh sách máy chủ</h3>
+                            <p class="text-sm text-gray-600">Xem, xóa, kiểm tra trạng thái máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Thực thi lệnh -->
+            <a th:href="@{/execute-page}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-terminal text-yellow-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Thực thi lệnh</h3>
+                            <p class="text-sm text-gray-600">Gửi lệnh nhanh tới máy chủ đơn.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Thực thi nhiều máy -->
+            <a th:href="@{/multi-execute-page}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-network-wired text-red-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Thực thi nhiều máy</h3>
+                            <p class="text-sm text-gray-600">Chạy đồng thời trên nhiều IP.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Cấu hình dịch vụ -->
+            <a th:href="@{/edit-config-page}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-cogs text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Cấu hình dịch vụ</h3>
+                            <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Điều khiển dịch vụ đơn -->
+            <button onclick="showServerSelectModal('service-control')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-toggle-on text-orange-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Điều khiển dịch vụ</h3>
+                            <p class="text-sm text-gray-600">Start/Stop/Restart dịch vụ trên 1 máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Liệt kê dịch vụ đơn -->
+            <button onclick="showServerSelectModal('service-list')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-list text-teal-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Liệt kê dịch vụ</h3>
+                            <p class="text-sm text-gray-600">Xem trạng thái dịch vụ trên 1 máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Điều khiển dịch vụ đa máy -->
+            <button onclick="showServerSelectModal('multi-service-control')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-layer-group text-rose-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Điều khiển dịch vụ đa máy</h3>
+                            <p class="text-sm text-gray-600">Control service trên nhiều máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Liệt kê dịch vụ đa máy -->
+            <button onclick="showServerSelectModal('multi-service-list')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-server text-cyan-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Liệt kê dịch vụ đa máy</h3>
+                            <p class="text-sm text-gray-600">Xem service trên nhiều máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Điều khiển máy ảo -->
+            <a th:href="@{/vm-control}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-power-off text-gray-800 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h3>
+                            <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
                 </div>
             </a>
         </div>
@@ -290,6 +468,43 @@
 <script>
     let currentServiceType = '';
     let selectedServers = [];
+    let currentViewMode = 'grid'; // Mặc định là grid view
+
+    // Chuyển đổi chế độ hiển thị
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const gridBtn = document.getElementById('gridViewBtn');
+        const listBtn = document.getElementById('listViewBtn');
+        
+        if (mode === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridBtn.classList.add('bg-blue-500', 'text-white');
+            gridBtn.classList.remove('text-gray-700', 'hover:bg-gray-300');
+            listBtn.classList.remove('bg-blue-500', 'text-white');
+            listBtn.classList.add('text-gray-700', 'hover:bg-gray-300');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listBtn.classList.add('bg-blue-500', 'text-white');
+            listBtn.classList.remove('text-gray-700', 'hover:bg-gray-300');
+            gridBtn.classList.remove('bg-blue-500', 'text-white');
+            gridBtn.classList.add('text-gray-700', 'hover:bg-gray-300');
+        }
+        
+        // Lưu preference vào localStorage
+        localStorage.setItem('viewMode', mode);
+    }
+
+    // Tải preference từ localStorage khi trang được tải
+    function loadViewMode() {
+        const savedMode = localStorage.getItem('viewMode');
+        if (savedMode) {
+            setViewMode(savedMode);
+        }
+    }
 
     // Hiển thị modal chọn máy chủ
     function showServerSelectModal(serviceType) {
@@ -408,6 +623,9 @@
         document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
             checkbox.addEventListener('change', updateMultipleServerSelection);
         });
+        
+        // Tải view mode preference
+        loadViewMode();
     });
 
     // Đóng modal khi click outside

@@ -46,7 +46,7 @@ public class AuthController {
 
         if (found.isPresent()) {
             session.setAttribute("user", found.get());
-            return "redirect:/dashboard";
+            return "redirect:/";
         } else {
             model.addAttribute("error", "Sai tên đăng nhập hoặc mật khẩu");
             model.addAttribute("user", new User());
@@ -58,7 +58,7 @@ public class AuthController {
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
-        return "redirect:/login";
+        return "redirect:/";
     }
 
     // Hiển thị form đăng ký
