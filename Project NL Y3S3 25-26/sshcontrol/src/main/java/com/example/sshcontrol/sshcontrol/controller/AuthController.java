@@ -145,7 +145,7 @@ public class AuthController {
         }
 
         user.getServers().add(server);
-        return "redirect:/";
+        return "redirect:/dashboard";
     }
 
     // Xóa máy chủ

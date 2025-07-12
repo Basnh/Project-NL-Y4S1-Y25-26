@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Điều khiển dịch vụ - SSH Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="min-h-screen py-10 px-6">
+        <div class="max-w-4xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-toggle-on text-orange-600 mr-3"></i>
+                    Điều khiển dịch vụ
+                </h1>
+                <a th:href="@{/dashboard}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    <i class="fas fa-home mr-2"></i>Dashboard
+                </a>
+            </div>
+
+            <!-- Thông báo -->
+            <div th:if="${success}" class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span th:text="${success}"></span>
+            </div>
+            
+            <div th:if="${error}" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Form -->
+            <form th:action="@{/service-control}" method="post" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Chọn máy chủ -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-server mr-2"></i>Chọn máy chủ:
+                        </label>
+                        <select name="serverIp" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                            <option value="">-- Chọn máy chủ --</option>
+                            <option th:each="server : ${servers}" 
+                                    th:value="${server.ip}" 
+                                    th:text="${server.name + ' (' + server.ip + ')'}"
+                                    th:selected="${selectedServer != null && selectedServer.ip == server.ip}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Tên dịch vụ -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-cogs mr-2"></i>Tên dịch vụ:
+                        </label>
+                        <input type="text" name="serviceName" required 
+                               placeholder="nginx, apache2, mysql, ssh..."
+                               class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-orange-500 focus:border-transparent">
+                        <div class="mt-2 flex flex-wrap gap-2">
+                            <button type="button" onclick="fillServiceName('nginx')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">nginx</button>
+                            <button type="button" onclick="fillServiceName('apache2')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">apache2</button>
+                            <button type="button" onclick="fillServiceName('mysql')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">mysql</button>
+                            <button type="button" onclick="fillServiceName('ssh')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">ssh</button>
+                            <button type="button" onclick="fillServiceName('docker')" class="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm hover:bg-blue-200">docker</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Hành động -->
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        <i class="fas fa-play mr-2"></i>Hành động:
+                    </label>
+                    <div class="grid grid-cols-2 md:grid-cols-3 gap-4">
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="action" value="start" class="mr-3 h-4 w-4 text-orange-600">
+                            <span class="text-green-600 font-medium">🚀 Start</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="action" value="stop" class="mr-3 h-4 w-4 text-orange-600">
+                            <span class="text-red-600 font-medium">⏹️ Stop</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="action" value="restart" class="mr-3 h-4 w-4 text-orange-600">
+                            <span class="text-blue-600 font-medium">🔄 Restart</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="action" value="status" checked class="mr-3 h-4 w-4 text-orange-600">
+                            <span class="text-gray-600 font-medium">📊 Status</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="action" value="enable" class="mr-3 h-4 w-4 text-orange-600">
+                            <span class="text-green-600 font-medium">✅ Enable</span>
+                        </label>
+                        <label class="flex items-center p-3 border border-gray-300 rounded-lg hover:bg-gray-50 cursor-pointer">
+                            <input type="radio" name="action" value="disable" class="mr-3 h-4 w-4 text-orange-600">
+                            <span class="text-red-600 font-medium">❌ Disable</span>
+                        </label>
+                    </div>
+                </div>
+
+                <!-- Nút thực thi -->
+                <div class="flex justify-center">
+                    <button type="submit" 
+                            class="px-8 py-3 bg-orange-600 text-white font-semibold rounded-lg hover:bg-orange-700 focus:ring-2 focus:ring-orange-500 focus:ring-offset-2 transition">
+                        <i class="fas fa-play mr-2"></i>Thực thi
+                    </button>
+                </div>
+            </form>
+
+            <!-- Kết quả -->
+            <div th:if="${result}" class="mt-8 p-6 bg-gray-100 rounded-lg">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-terminal mr-2"></i>Kết quả:
+                </h3>
+                <pre class="bg-black text-green-400 p-4 rounded-lg text-sm overflow-x-auto whitespace-pre-wrap" th:text="${result}"></pre>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function fillServiceName(serviceName) {
+            document.querySelector('input[name="serviceName"]').value = serviceName;
+        }
+    </script>
+</body>
+</html>

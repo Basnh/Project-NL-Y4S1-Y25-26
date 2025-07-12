@@ -6,6 +6,7 @@ Chức năng phần mềm cần có :
 - Chức năng liệt kê các phần mềm dịch vụ đã cài đặt trên máy chủ
 - Chức năng cấu hình lại các dịch vụ trên máy chủ
 - Chức năng điều khiển dịch vụ trên máy chủ (Start/stop/state)
+- ....
 Yêu cầu :
 - Giao diện đồ họa thân thiện.
 - Có thể cùng điều khiển 1 hoặc nhiều máy chủ

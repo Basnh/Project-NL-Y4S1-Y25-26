@@ -1,0 +1,251 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Liệt kê dịch vụ - SSH Control</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased">
+    <div class="min-h-screen py-10 px-6">
+        <div class="max-w-5xl mx-auto bg-white p-8 rounded-xl shadow-lg">
+            <div class="flex items-center justify-between mb-8">
+                <h1 class="text-3xl font-bold text-gray-800">
+                    <i class="fas fa-list text-teal-600 mr-3"></i>
+                    Liệt kê dịch vụ
+                </h1>
+                <a th:href="@{/dashboard}" class="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
+                    <i class="fas fa-home mr-2"></i>Dashboard
+                </a>
+            </div>
+
+            <!-- Thông báo -->
+            <div th:if="${success}" class="mb-6 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg">
+                <i class="fas fa-check-circle mr-2"></i>
+                <span th:text="${success}"></span>
+            </div>
+            
+            <div th:if="${error}" class="mb-6 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg">
+                <i class="fas fa-exclamation-triangle mr-2"></i>
+                <span th:text="${error}"></span>
+            </div>
+
+            <!-- Form -->
+            <form th:action="@{/service-list}" method="post" class="space-y-6">
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <!-- Chọn máy chủ -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-server mr-2"></i>Chọn máy chủ:
+                        </label>
+                        <select name="serverIp" required class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="">-- Chọn máy chủ --</option>
+                            <option th:each="server : ${servers}" 
+                                    th:value="${server.ip}" 
+                                    th:text="${server.name + ' (' + server.ip + ')'}"
+                                    th:selected="${selectedServer != null && selectedServer.ip == server.ip}">
+                            </option>
+                        </select>
+                    </div>
+
+                    <!-- Bộ lọc -->
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            <i class="fas fa-filter mr-2"></i>Bộ lọc:
+                        </label>
+                        <select name="filter" class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                            <option value="all">Tất cả dịch vụ</option>
+                            <option value="active">Đang hoạt động</option>
+                            <option value="inactive">Không hoạt động</option>
+                            <option value="failed">Lỗi</option>
+                            <option value="enabled">Đã kích hoạt</option>
+                            <option value="disabled">Đã vô hiệu hóa</option>
+                        </select>
+                    </div>
+                </div>
+
+                <!-- Nút thực thi -->
+                <div class="flex justify-center">
+                    <button type="submit" 
+                            class="px-8 py-3 bg-teal-600 text-white font-semibold rounded-lg hover:bg-teal-700 focus:ring-2 focus:ring-teal-500 focus:ring-offset-2 transition">
+                        <i class="fas fa-search mr-2"></i>Liệt kê
+                    </button>
+                </div>
+            </form>
+
+            <!-- Kết quả -->
+            <div th:if="${result}" class="mt-8">
+                <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                    <i class="fas fa-server mr-2"></i>Danh sách dịch vụ - <span th:text="${serverName}"></span>:
+                </h3>
+                
+                <!-- Tìm kiếm -->
+                <div class="mb-4">
+                    <div class="relative">
+                        <input type="text" id="serviceSearch" placeholder="Tìm kiếm dịch vụ..."
+                               class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-teal-500 focus:border-transparent">
+                        <i class="fas fa-search absolute left-3 top-3 text-gray-400"></i>
+                    </div>
+                </div>
+
+                <!-- Bảng dịch vụ -->
+                <div class="overflow-x-auto rounded-lg border border-gray-200">
+                    <table class="min-w-full divide-y divide-gray-200">
+                        <thead class="bg-gray-50">
+                            <tr>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên dịch vụ</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Mô tả</th>
+                            </tr>
+                        </thead>
+                        <tbody class="bg-white divide-y divide-gray-200" id="serviceTableBody">
+                            <!-- Services will be populated by JavaScript -->
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- Pagination -->
+                <div class="mt-6 flex justify-center items-center space-x-2">
+                    <button id="prevPage" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Trước</button>
+                    <span id="pageInfo" class="text-sm text-gray-700">Trang 1/1</span>
+                    <button id="nextPage" class="px-4 py-2 border border-gray-300 rounded-lg text-gray-700 hover:bg-gray-200 disabled:opacity-50 disabled:cursor-not-allowed">Sau</button>
+                </div>
+
+                <!-- Raw output (hidden by default) -->
+                <div class="mt-4">
+                    <button id="toggleRawOutput" class="px-4 py-2 bg-gray-200 text-gray-700 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-code mr-2"></i>Hiển thị dữ liệu thô
+                    </button>
+                    <div id="rawOutput" class="hidden mt-4 p-4 bg-black text-green-400 rounded-lg text-sm overflow-x-auto">
+                        <pre th:text="${result}"></pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const rawResult = document.querySelector('#rawOutput pre');
+            if (rawResult) {
+                parseAndDisplayServices(rawResult.textContent);
+            }
+            
+            // Toggle raw output
+            document.getElementById('toggleRawOutput')?.addEventListener('click', function() {
+                const rawOutput = document.getElementById('rawOutput');
+                const isHidden = rawOutput.classList.contains('hidden');
+                rawOutput.classList.toggle('hidden');
+                this.innerHTML = isHidden ? 
+                    '<i class="fas fa-code mr-2"></i>Ẩn dữ liệu thô' : 
+                    '<i class="fas fa-code mr-2"></i>Hiển thị dữ liệu thô';
+            });
+        });
+
+        function parseAndDisplayServices(rawOutput) {
+            const lines = rawOutput.split('\n').filter(line => line.trim());
+            const services = [];
+            
+            lines.forEach(line => {
+                const parts = line.trim().split(/\s+/);
+                if (parts.length >= 4) {
+                    const serviceName = parts[0];
+                    const status = parts[2];
+                    const description = parts.slice(4).join(' ');
+                    
+                    services.push({
+                        name: serviceName,
+                        status: status,
+                        description: description
+                    });
+                }
+            });
+            
+            displayServicesTable(services);
+        }
+
+        function displayServicesTable(services) {
+            const tableBody = document.getElementById('serviceTableBody');
+            const searchInput = document.getElementById('serviceSearch');
+            
+            let filteredServices = services;
+            const rowsPerPage = 10;
+            let currentPage = 1;
+
+            function renderTable() {
+                tableBody.innerHTML = '';
+                
+                const start = (currentPage - 1) * rowsPerPage;
+                const end = start + rowsPerPage;
+                const paginatedServices = filteredServices.slice(start, end);
+
+                if (paginatedServices.length === 0) {
+                    tableBody.innerHTML = '<tr><td colspan="3" class="px-6 py-4 whitespace-nowrap text-center text-sm text-gray-500">Không tìm thấy dịch vụ nào.</td></tr>';
+                    return;
+                }
+
+                paginatedServices.forEach(service => {
+                    const row = document.createElement('tr');
+                    row.className = 'hover:bg-gray-50';
+                    
+                    const statusClass = service.status === 'active' ? 'bg-green-100 text-green-800' : 
+                                       service.status === 'inactive' ? 'bg-red-100 text-red-800' : 
+                                       'bg-gray-100 text-gray-800';
+                    
+                    row.innerHTML = `
+                        <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-gray-900">${service.name}</td>
+                        <td class="px-6 py-4 whitespace-nowrap text-sm">
+                            <span class="px-2 inline-flex text-xs leading-5 font-semibold rounded-full ${statusClass}">
+                                ${service.status}
+                            </span>
+                        </td>
+                        <td class="px-6 py-4 text-sm text-gray-500">${service.description}</td>
+                    `;
+                    
+                    tableBody.appendChild(row);
+                });
+
+                updatePagination();
+            }
+
+            function updatePagination() {
+                const totalPages = Math.ceil(filteredServices.length / rowsPerPage);
+                document.getElementById('pageInfo').textContent = `Trang ${currentPage}/${totalPages || 1}`;
+                document.getElementById('prevPage').disabled = currentPage === 1;
+                document.getElementById('nextPage').disabled = currentPage === totalPages || totalPages === 0;
+            }
+
+            function filterServices() {
+                const searchTerm = searchInput.value.toLowerCase();
+                filteredServices = services.filter(service => 
+                    service.name.toLowerCase().includes(searchTerm) ||
+                    service.description.toLowerCase().includes(searchTerm)
+                );
+                currentPage = 1;
+                renderTable();
+            }
+
+            // Event listeners
+            searchInput.addEventListener('input', filterServices);
+            
+            document.getElementById('prevPage').addEventListener('click', function() {
+                if (currentPage > 1) {
+                    currentPage--;
+                    renderTable();
+                }
+            });
+
+            document.getElementById('nextPage').addEventListener('click', function() {
+                const totalPages = Math.ceil(filteredServices.length / rowsPerPage);
+                if (currentPage < totalPages) {
+                    currentPage++;
+                    renderTable();
+                }
+            });
+
+            // Initial render
+            renderTable();
+        }
+    </script>
+</body>
+</html>

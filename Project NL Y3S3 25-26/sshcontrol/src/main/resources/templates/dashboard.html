@@ -71,6 +71,42 @@
                 </div>
             </a>
 
+            <!-- ✅ THÊM MỚI: Điều khiển dịch vụ đơn -->
+            <button onclick="showServerSelectModal('service-control')" class="w-full p-6 bg-orange-100 rounded-lg hover:bg-orange-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-toggle-on text-orange-600 text-2xl"></i>
+                <div class="text-left">
+                    <h2 class="text-lg font-semibold text-orange-800">Điều khiển dịch vụ</h2>
+                    <p class="text-sm text-gray-600">Start/Stop/Restart dịch vụ trên 1 máy.</p>
+                </div>
+            </button>
+
+            <!-- ✅ THÊM MỚI: Liệt kê dịch vụ đơn -->
+            <button onclick="showServerSelectModal('service-list')" class="w-full p-6 bg-teal-100 rounded-lg hover:bg-teal-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-list text-teal-600 text-2xl"></i>
+                <div class="text-left">
+                    <h2 class="text-lg font-semibold text-teal-800">Liệt kê dịch vụ</h2>
+                    <p class="text-sm text-gray-600">Xem trạng thái dịch vụ trên 1 máy.</p>
+                </div>
+            </button>
+
+            <!-- ✅ THÊM MỚI: Điều khiển dịch vụ đa máy -->
+            <button onclick="showServerSelectModal('multi-service-control')" class="w-full p-6 bg-rose-100 rounded-lg hover:bg-rose-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-layer-group text-rose-600 text-2xl"></i>
+                <div class="text-left">
+                    <h2 class="text-lg font-semibold text-rose-800">Điều khiển dịch vụ đa máy</h2>
+                    <p class="text-sm text-gray-600">Control service trên nhiều máy.</p>
+                </div>
+            </button>
+
+            <!-- ✅ THÊM MỚI: Liệt kê dịch vụ đa máy -->
+            <button onclick="showServerSelectModal('multi-service-list')" class="w-full p-6 bg-cyan-100 rounded-lg hover:bg-cyan-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-server text-cyan-600 text-2xl"></i>
+                <div class="text-left">
+                    <h2 class="text-lg font-semibold text-cyan-800">Liệt kê dịch vụ đa máy</h2>
+                    <p class="text-sm text-gray-600">Xem service trên nhiều máy.</p>
+                </div>
+            </button>
+
             <!-- Điều khiển máy ảo -->
             <a th:href="@{/vm-control}" class="p-6 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex items-center gap-4 shadow">
                 <i class="fas fa-power-off text-gray-800 text-2xl"></i>
@@ -134,12 +170,254 @@
             </div>
         </div>
 
+        <!-- ✅ POPUP MODAL - ĐÃ SỬA LỖI HOÀN TOÀN -->
+        <div id="serverSelectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h2 id="modalTitle" class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-server mr-2"></i>Chọn máy chủ
+                    </h2>
+                    <button onclick="closeServerSelectModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-6">
+                    <div th:if="${#lists.isEmpty(user.servers)}" class="text-center text-gray-500 py-8">
+                        <i class="fas fa-server text-4xl mb-4"></i>
+                        <p class="text-lg">Chưa có máy chủ nào</p>
+                        <p class="text-sm">Hãy thêm máy chủ trước!</p>
+                        <a th:href="@{/add-server}" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            <i class="fas fa-plus mr-2"></i>Thêm máy chủ
+                        </a>
+                    </div>
+                    
+                    <div th:if="${!#lists.isEmpty(user.servers)}" class="space-y-4">
+                        <p class="text-gray-600 mb-4">Chọn máy chủ để thực hiện thao tác:</p>
+                        
+                        <!-- ✅ Single Server Selection - ĐÃ SỬA LỖI HOÀN TOÀN -->
+                        <div id="singleServerSelection" class="space-y-3">
+                            <div th:each="server : ${user.servers}" 
+                                 class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer server-option"
+                                 th:data-server-ip="${server.ip}" 
+                                 th:data-server-name="${server.name}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-server text-blue-600"></i>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-800" th:text="${server.name}">Server 1</h3>
+                                            <p class="text-sm text-gray-600" th:text="${server.ip}">192.168.1.10</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span th:data-ip="${server.ip}" class="server-status-modal">
+                                            <span th:if="${server.online}" class="text-green-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Online
+                                            </span>
+                                            <span th:if="${!server.online}" class="text-red-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Offline
+                                            </span>
+                                        </span>
+                                        <i class="fas fa-chevron-right text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multiple Server Selection -->
+                        <div id="multipleServerSelection" class="space-y-3 hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <p class="text-gray-600">Chọn nhiều máy chủ:</p>
+                                <div class="space-x-2">
+                                    <button onclick="selectAllServers()" class="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        Chọn tất cả
+                                    </button>
+                                    <button onclick="deselectAllServers()" class="text-sm px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                        Bỏ chọn tất cả
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div th:each="server : ${user.servers}" class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" 
+                                           th:id="'multi-' + ${server.ip}" 
+                                           th:value="${server.ip}" 
+                                           th:data-name="${server.name}"
+                                           class="h-4 w-4 text-blue-600 rounded multi-server-checkbox">
+                                    <label th:for="'multi-' + ${server.ip}" class="flex items-center justify-between w-full cursor-pointer">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-server text-blue-600"></i>
+                                            <div>
+                                                <h3 class="font-semibold text-gray-800" th:text="${server.name}">Server 1</h3>
+                                                <p class="text-sm text-gray-600" th:text="${server.ip}">192.168.1.10</p>
+                                            </div>
+                                        </div>
+                                        <span th:data-ip="${server.ip}" class="server-status-modal">
+                                            <span th:if="${server.online}" class="text-green-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Online
+                                            </span>
+                                            <span th:if="${!server.online}" class="text-red-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Offline
+                                            </span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="flex justify-end space-x-3 p-6 border-t bg-gray-50">
+                    <button onclick="closeServerSelectModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-times mr-2"></i>Hủy
+                    </button>
+                    <button id="confirmButton" onclick="confirmServerSelection()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" disabled>
+                        <i class="fas fa-check mr-2"></i>Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+
         <!-- Footer -->
         <p class="text-center text-sm text-gray-500 mt-8">© 2025 Điều khiển máy chủ từ xa – Niên luận</p>
     </div>
 </div>
 
 <script>
+    let currentServiceType = '';
+    let selectedServers = [];
+
+    // Hiển thị modal chọn máy chủ
+    function showServerSelectModal(serviceType) {
+        currentServiceType = serviceType;
+        const modal = document.getElementById('serverSelectModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const singleSelection = document.getElementById('singleServerSelection');
+        const multipleSelection = document.getElementById('multipleServerSelection');
+        const confirmButton = document.getElementById('confirmButton');
+        
+        // Reset selections
+        selectedServers = [];
+        confirmButton.disabled = true;
+        
+        // Cấu hình modal theo loại service
+        if (serviceType === 'service-control' || serviceType === 'service-list') {
+            // Single server selection
+            modalTitle.innerHTML = '<i class="fas fa-server mr-2"></i>Chọn máy chủ (đơn)';
+            singleSelection.classList.remove('hidden');
+            multipleSelection.classList.add('hidden');
+            
+            // Remove previous selections
+            document.querySelectorAll('.server-option').forEach(el => {
+                el.classList.remove('bg-blue-100', 'border-blue-500');
+            });
+        } else {
+            // Multiple server selection
+            modalTitle.innerHTML = '<i class="fas fa-layer-group mr-2"></i>Chọn máy chủ (đa máy)';
+            singleSelection.classList.add('hidden');
+            multipleSelection.classList.remove('hidden');
+            
+            // Reset checkboxes
+            document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+        
+        modal.classList.remove('hidden');
+    }
+
+    // Đóng modal
+    function closeServerSelectModal() {
+        document.getElementById('serverSelectModal').classList.add('hidden');
+    }
+
+    // Chọn máy chủ đơn
+    function selectSingleServer(element, ip, name) {
+        // Remove previous selection
+        document.querySelectorAll('.server-option').forEach(el => {
+            el.classList.remove('bg-blue-100', 'border-blue-500');
+        });
+        
+        // Add selection to current element
+        element.classList.add('bg-blue-100', 'border-blue-500');
+        
+        // Set selected server
+        selectedServers = [{ip: ip, name: name}];
+        
+        // Enable confirm button
+        document.getElementById('confirmButton').disabled = false;
+    }
+
+    // Chọn tất cả máy chủ
+    function selectAllServers() {
+        document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateMultipleServerSelection();
+    }
+
+    // Bỏ chọn tất cả máy chủ
+    function deselectAllServers() {
+        document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateMultipleServerSelection();
+    }
+
+    // Cập nhật lựa chọn nhiều máy chủ
+    function updateMultipleServerSelection() {
+        selectedServers = [];
+        document.querySelectorAll('.multi-server-checkbox:checked').forEach(checkbox => {
+            selectedServers.push({
+                ip: checkbox.value,
+                name: checkbox.getAttribute('data-name')
+            });
+        });
+        
+        document.getElementById('confirmButton').disabled = selectedServers.length === 0;
+    }
+
+    // Xác nhận lựa chọn máy chủ
+    function confirmServerSelection() {
+        if (selectedServers.length === 0) {
+            alert('Vui lòng chọn ít nhất một máy chủ!');
+            return;
+        }
+        
+        let url = '';
+        
+        if (currentServiceType === 'service-control' || currentServiceType === 'service-list') {
+            // Single server - truyền IP qua URL parameter
+            url = `/${currentServiceType}?host=${selectedServers[0].ip}`;
+        } else {
+            // Multiple servers - truyền danh sách IP qua URL parameters
+            const ips = selectedServers.map(server => server.ip);
+            url = `/${currentServiceType}?hosts=${ips.join(',')}`;
+        }
+        
+        // Chuyển hướng
+        window.location.href = url;
+    }
+
+    // Event listeners cho multiple server selection
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateMultipleServerSelection);
+        });
+    });
+
+    // Đóng modal khi click outside
+    document.getElementById('serverSelectModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeServerSelectModal();
+        }
+    });
+
+    // Existing functions...
     let autoRefreshInterval;
     let isAutoRefreshEnabled = false;
 
@@ -157,11 +435,19 @@
             const result = await response.json();
             
             if (response.ok && result.statuses) {
-                // Cập nhật trạng thái trên UI
+                // Cập nhật trạng thái trên UI chính
                 for (const [ip, isOnline] of Object.entries(result.statuses)) {
                     const statusElement = document.querySelector(`[data-ip="${ip}"]`);
                     if (statusElement) {
                         statusElement.innerHTML = isOnline ? 
+                            '<span class="text-green-600 font-semibold"><i class="fas fa-circle mr-1"></i>Online</span>' :
+                            '<span class="text-red-600 font-semibold"><i class="fas fa-circle mr-1"></i>Offline</span>';
+                    }
+                    
+                    // Cập nhật trạng thái trong modal
+                    const modalStatusElement = document.querySelector(`.server-status-modal[data-ip="${ip}"]`);
+                    if (modalStatusElement) {
+                        modalStatusElement.innerHTML = isOnline ? 
                             '<span class="text-green-600 font-semibold"><i class="fas fa-circle mr-1"></i>Online</span>' :
                             '<span class="text-red-600 font-semibold"><i class="fas fa-circle mr-1"></i>Offline</span>';
                     }
