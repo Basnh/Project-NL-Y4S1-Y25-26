@@ -36,35 +36,29 @@ public class AuthController {
 
     // Xử lý đăng nhập
     @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, 
-                   HttpSession session, Model model) {
-    
-    if (validateCredentials(username, password)) {
-        User user = getUserByUsername(username);
-        
-        // Lưu user vào session
-        session.setAttribute("user", user);
-        
-        // Đặt session timeout dài hơn (30 phút)
-        session.setMaxInactiveInterval(30 * 60);
-        
-        // Debug logs
-        System.out.println("DEBUG: User logged in successfully: " + username);
-        System.out.println("DEBUG: Session ID: " + session.getId());
-        System.out.println("DEBUG: User object: " + user);
-        
-        return "redirect:/dashboard";
-    } else {
-        model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng");
-        return "login";
+    public String login(@RequestParam String username,
+                        @RequestParam String password,
+                        HttpSession session,
+                        Model model) {
+        Optional<User> found = users.stream()
+            .filter(u -> u.getUsername().equals(username) && u.getPassword().equals(password))
+            .findFirst();
+
+        if (found.isPresent()) {
+            session.setAttribute("user", found.get());
+            return "redirect:/dashboard";
+        } else {
+            model.addAttribute("error", "Sai tên đăng nhập hoặc mật khẩu");
+            model.addAttribute("user", new User());
+            return "login";
+        }
     }
-}
 
     // Đăng xuất
     @PostMapping("/logout")
     public String logout(HttpSession session) {
         session.invalidate();
-        return "redirect:/login";
+        return "redirect:/";
     }
 
     // Hiển thị form đăng ký
@@ -258,19 +252,5 @@ public class AuthController {
         } catch (Exception e) {
             return false;
         }
-    }
-
-    // Helper method to validate credentials
-    private boolean validateCredentials(String username, String password) {
-        return users.stream()
-                .anyMatch(u -> u.getUsername().equals(username) && u.getPassword().equals(password));
-    }
-
-    // Helper method to get user by username
-    private User getUserByUsername(String username) {
-        return users.stream()
-                .filter(u -> u.getUsername().equals(username))
-                .findFirst()
-                .orElse(null);
     }
 }
