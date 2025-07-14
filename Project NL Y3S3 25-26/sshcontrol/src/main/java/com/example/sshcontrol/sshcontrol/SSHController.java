@@ -83,55 +83,55 @@ public class SSHController {
     }
 }
 
-    @GetMapping("/execute-page")
-    public String showExecutePage(@RequestParam(value = "host", required = false) String hostParam, Model model, HttpSession session) {
-        String host = (String) session.getAttribute("host");
-        String username = (String) session.getAttribute("username");
-        String password = (String) session.getAttribute("password");
+    // @GetMapping("/execute-page")
+    // public String showExecutePage(@RequestParam(value = "host", required = false) String hostParam, Model model, HttpSession session) {
+    //     String host = (String) session.getAttribute("host");
+    //     String username = (String) session.getAttribute("username");
+    //     String password = (String) session.getAttribute("password");
 
-        // Nếu có host trên URL, ưu tiên lấy user/ip từ đó và tìm password từ session user
-        if (hostParam != null && !hostParam.isEmpty()) {
-            String ip = hostParam;
-            String user = null;
-            if (hostParam.contains("@")) {
-                String[] parts = hostParam.split("@", 2);
-                user = parts[0];
-                ip = parts[1];
-            }
-            User sessionUser = (User) session.getAttribute("user");
-            String pass = null;
-            if (sessionUser != null) {
-                final String ipFinal = ip;
-                ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
-                if (s != null) {
-                    if (user == null) user = s.getSshUsername();
-                    pass = s.getSshPassword();
-                }
-            }
-            // Nếu không tìm thấy user/pass thì dùng mặc định
-            if (user == null) user = "ubuntu";
-            if (pass == null) pass = "123456";
-            // Lưu lại vào session để các thao tác sau dùng
-            session.setAttribute("host", ip);
-            session.setAttribute("username", user);
-            session.setAttribute("password", pass);
-            host = ip;
-            username = user;
-            password = pass;
-        }
+    //     // Nếu có host trên URL, ưu tiên lấy user/ip từ đó và tìm password từ session user
+    //     if (hostParam != null && !hostParam.isEmpty()) {
+    //         String ip = hostParam;
+    //         String user = null;
+    //         if (hostParam.contains("@")) {
+    //             String[] parts = hostParam.split("@", 2);
+    //             user = parts[0];
+    //             ip = parts[1];
+    //         }
+    //         User sessionUser = (User) session.getAttribute("user");
+    //         String pass = null;
+    //         if (sessionUser != null) {
+    //             final String ipFinal = ip;
+    //             ServerInfo s = sessionUser.getServers().stream().filter(server -> server.getIp().equals(ipFinal)).findFirst().orElse(null);
+    //             if (s != null) {
+    //                 if (user == null) user = s.getSshUsername();
+    //                 pass = s.getSshPassword();
+    //             }
+    //         }
+    //         // Nếu không tìm thấy user/pass thì dùng mặc định
+    //         if (user == null) user = "ubuntu";
+    //         if (pass == null) pass = "123456";
+    //         // Lưu lại vào session để các thao tác sau dùng
+    //         session.setAttribute("host", ip);
+    //         session.setAttribute("username", user);
+    //         session.setAttribute("password", pass);
+    //         host = ip;
+    //         username = user;
+    //         password = pass;
+    //     }
 
-        if (host == null || username == null || password == null) {
-            return "redirect:/login";
-        }
+    //     if (host == null || username == null || password == null) {
+    //         return "redirect:/login";
+    //     }
 
-        SSHRequest sshRequest = new SSHRequest();
-        sshRequest.setHost(host);
-        sshRequest.setUsername(username);
-        sshRequest.setPassword(password);
+    //     SSHRequest sshRequest = new SSHRequest();
+    //     sshRequest.setHost(host);
+    //     sshRequest.setUsername(username);
+    //     sshRequest.setPassword(password);
 
-        model.addAttribute("sshRequest", sshRequest);
-        return "execute-page";
-    }
+    //     model.addAttribute("sshRequest", sshRequest);
+    //     return "execute-page";
+    // }
 
     @PostMapping("/execute-page")
     public String executeCommand(@ModelAttribute SSHRequest sshRequest, Model model, HttpSession session) {

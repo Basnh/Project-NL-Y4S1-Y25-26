@@ -391,15 +391,12 @@
         let url = '';
         
         if (currentServiceType === 'service-control' || currentServiceType === 'service-list') {
-            // Single server - truyền IP qua URL parameter
             url = `/${currentServiceType}?host=${selectedServers[0].ip}`;
         } else {
-            // Multiple servers - truyền danh sách IP qua URL parameters
             const ips = selectedServers.map(server => server.ip);
-            url = `/${currentServiceType}?hosts=${ips.join(',')}`;
+            url = `/execute-command?hosts=${ips.join(',')}`; // Cập nhật URL
         }
         
-        // Chuyển hướng
         window.location.href = url;
     }
 

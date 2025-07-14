@@ -1,0 +1,140 @@
+.server-card {
+    transition: all 0.3s ease;
+    cursor: pointer;
+}
+
+.server-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+}
+
+.server-card.selected {
+    background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+    color: white;
+    transform: scale(1.02);
+    box-shadow: 0 10px 30px rgba(59, 130, 246, 0.3);
+}
+
+.server-card.selected .text-gray-800 {
+    color: white !important;
+}
+
+.server-card.selected .text-gray-600 {
+    color: rgba(255, 255, 255, 0.8) !important;
+}
+
+.server-card.selected .text-gray-500 {
+    color: rgba(255, 255, 255, 0.7) !important;
+}
+
+.server-card.selected .fas {
+    color: white !important;
+}
+
+.server-card.selected .bg-green-100 {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.server-card.selected .bg-red-100 {
+    background-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.server-card.selected .text-green-800 {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.server-card.selected .text-red-800 {
+    color: rgba(255, 255, 255, 0.9) !important;
+}
+
+.pulse-animation {
+    animation: pulse 2s infinite;
+}
+
+@keyframes pulse {
+    0%, 100% { 
+        opacity: 1; 
+    }
+    50% { 
+        opacity: 0.5; 
+    }
+}
+
+/* Custom scrollbar for results */
+#results::-webkit-scrollbar {
+    width: 8px;
+}
+
+#results::-webkit-scrollbar-track {
+    background: #374151;
+    border-radius: 4px;
+}
+
+#results::-webkit-scrollbar-thumb {
+    background: #6B7280;
+    border-radius: 4px;
+}
+
+#results::-webkit-scrollbar-thumb:hover {
+    background: #9CA3AF;
+}
+
+/* Loading spinner animation */
+.fa-spinner {
+    animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Command input focus effect */
+#commandInput:focus {
+    box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+    border-color: #3B82F6;
+}
+
+/* Button hover effects */
+.btn-primary {
+    background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-primary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(59, 130, 246, 0.3);
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #6B7280 0%, #4B5563 100%);
+    transition: all 0.3s ease;
+}
+
+.btn-secondary:hover {
+    transform: translateY(-1px);
+    box-shadow: 0 4px 15px rgba(107, 114, 128, 0.3);
+}
+
+/* Status badges */
+.status-online {
+    background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+    color: white;
+    animation: pulse-green 2s infinite;
+}
+
+.status-offline {
+    background: linear-gradient(135deg, #EF4444 0%, #DC2626 100%);
+    color: white;
+    animation: pulse-red 2s infinite;
+}
+
+@keyframes pulse-green {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(16, 185, 129, 0); }
+}
+
+@keyframes pulse-red {
+    0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.7); }
+    50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
+}
