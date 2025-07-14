@@ -2,98 +2,499 @@
 <html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
-    <title>Thực thi lệnh nhiều máy chủ</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thực thi lệnh nhiều máy chủ</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/executepage.css">
+    <style>
+        .multi-server-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .multi-server-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .multi-server-card.selected {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%);
+            color: white;
+            transform: scale(1.01);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .multi-server-card.selected .text-gray-800,
+        .multi-server-card.selected .text-gray-600,
+        .multi-server-card.selected .text-gray-500 {
+            color: white !important;
+        }
+        
+        .multi-server-card.selected .fas {
+            color: white !important;
+        }
+        
+        .multi-server-card.selected .status-online,
+        .multi-server-card.selected .status-offline {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+        }
+        
+        .selected-servers-panel {
+            max-height: 400px;
+            overflow-y: auto;
+        }
+        
+        .selected-server-item {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        @keyframes slideIn {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
+        }
+        
+        .remove-server-btn {
+            opacity: 0;
+            transition: opacity 0.2s ease;
+        }
+        
+        .selected-server-item:hover .remove-server-btn {
+            opacity: 1;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 font-sans antialiased">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-2xl">
-        <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Thực thi lệnh trên nhiều máy chủ Ubuntu</h2>
-        <form id="multiCommandForm" th:action="@{/multi-execute-page}" method="post" class="space-y-6">
-            <!-- Đã bỏ ô nhập danh sách máy chủ, chỉ còn ô nhập lệnh -->
-            <div>
-                <label for="command" class="block text-sm font-medium text-gray-700 mb-2">Lệnh cần thực thi</label>
-                <div class="relative">
-                    <input type="text" id="command" name="command" placeholder="vd: systemctl status apache2" class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out" required>
-                    <i class="fas fa-terminal absolute left-3 top-3 text-gray-400"></i>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-server mr-2"></i>Thực thi lệnh nhiều máy chủ
+                    </h1>
+                    <a href="/dashboard" class="px-4 py-2 btn-secondary text-white rounded-lg transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                    </a>
                 </div>
             </div>
-            <div class="flex justify-center">
-                <button type="submit" class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
-                    <i class="fas fa-play mr-2"></i> Thực thi trên tất cả
-                </button>
+
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Panel - Server Selection -->
+                <div class="space-y-6">
+                    <!-- Server List -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">
+                                <i class="fas fa-list mr-2"></i>Danh sách máy chủ:
+                            </h2>
+                            <div class="flex gap-2">
+                                <button onclick="selectAllServers()" 
+                                        class="px-3 py-1 bg-green-600 text-white text-sm rounded hover:bg-green-700 transition">
+                                    <i class="fas fa-check-double mr-1"></i>Chọn tất cả
+                                </button>
+                                <button onclick="clearAllServers()" 
+                                        class="px-3 py-1 bg-red-600 text-white text-sm rounded hover:bg-red-700 transition">
+                                    <i class="fas fa-times mr-1"></i>Bỏ chọn tất cả
+                                </button>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${userServers != null and !userServers.isEmpty()}" class="space-y-3">
+                            <div th:each="server : ${userServers}" 
+                                 class="multi-server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg"
+                                 th:data-server-ip="${server.ip}"
+                                 th:data-server-name="${server.name}"
+                                 th:data-server-username="${server.sshUsername}"
+                                 th:data-server-online="${server.online}"
+                                 onclick="toggleServer(this)">
+                                <div class="flex items-center flex-1">
+                                    <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-800" th:text="${server.name}"></div>
+                                        <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-3">
+                                    <span th:if="${server.online}" class="status-online px-3 py-1 text-xs rounded-full">
+                                        <i class="fas fa-circle mr-1"></i>Online
+                                    </span>
+                                    <span th:unless="${server.online}" class="status-offline px-3 py-1 text-xs rounded-full">
+                                        <i class="fas fa-circle mr-1"></i>Offline
+                                    </span>
+                                    <div class="selected-indicator hidden">
+                                        <i class="fas fa-check-circle text-white text-xl"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
+                            <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
+                            <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
+                            <a href="/add-server" class="inline-block px-6 py-2 btn-primary text-white rounded-lg transition">
+                                <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Panel - Selected Servers & Command -->
+                <div class="space-y-6">
+                    <!-- Selected Servers -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-check-circle mr-2"></i>Máy chủ đã chọn (<span id="selectedCount">0</span>):
+                        </h2>
+                        <div id="selectedServersPanel" class="selected-servers-panel">
+                            <div id="noSelectionMessage" class="text-gray-500 text-center py-8">
+                                <i class="fas fa-mouse-pointer text-gray-400 text-3xl mb-3"></i>
+                                <p>Chọn máy chủ từ danh sách bên trái</p>
+                            </div>
+                            <div id="selectedServersList" class="space-y-2 hidden"></div>
+                        </div>
+                    </div>
+
+                    <!-- Command Input -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-code mr-2"></i>Nhập lệnh:
+                        </h2>
+                        <div class="space-y-4">
+                            <div class="relative">
+                                <textarea id="commandInput" 
+                                          class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed" 
+                                          rows="4" 
+                                          placeholder="Vui lòng chọn máy chủ trước khi nhập lệnh..."
+                                          disabled></textarea>
+                                <div class="absolute top-2 right-2 text-xs text-gray-400">
+                                    Ctrl + Enter để thực thi
+                                </div>
+                            </div>
+                            <div class="flex gap-2">
+                                <button id="executeBtn" onclick="executeCommand()" 
+                                        class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                        disabled>
+                                    <i class="fas fa-play mr-2"></i>Thực thi trên <span id="executeCount">0</span> máy chủ
+                                </button>
+                                <button onclick="clearResults()" 
+                                        class="px-6 py-2 btn-secondary text-white rounded-lg transition">
+                                    <i class="fas fa-eraser mr-2"></i>Xóa kết quả
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </form>
-        <div id="results" class="mt-8"></div>
-        <div class="mt-8 text-center">
-            <a id="backToDashboard" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
-                <i class="fas fa-arrow-left mr-2"></i> Quay lại Bảng điều khiển
-            </a>
+
+            <!-- Results -->
+            <div class="bg-white rounded-lg shadow-md p-6 mt-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-terminal mr-2"></i>Kết quả:
+                </h2>
+                <div id="results" class="space-y-4">
+                    <div class="text-gray-500 text-center py-8">
+                        <i class="fas fa-info-circle text-gray-400 text-3xl mb-3"></i>
+                        <p>Chưa có kết quả...</p>
+                    </div>
+                </div>
+            </div>
         </div>
     </div>
+
     <script>
-    // Lấy danh sách hosts từ URL (?hosts=ip1,ip2,...)
-    function getHostsFromUrl() {
-        const urlParams = new URLSearchParams(window.location.search);
-        const hostsParam = urlParams.get('hosts');
-        if (hostsParam) {
-            return hostsParam.split(',').map(h => h.trim()).filter(Boolean);
-        }
-        return [];
-    }
-    document.getElementById('multiCommandForm').addEventListener('submit', async function(e) {
-        e.preventDefault();
-        // Lấy danh sách hosts object từ sessionStorage
-        const hostsObj = JSON.parse(sessionStorage.getItem('selectedHostsObj') || '[]');
-        // Lấy danh sách hosts string (user@ip) từ URL như cũ
-        const hosts = getHostsFromUrl();
-        const command = document.getElementById('command').value;
-        const resultsDiv = document.getElementById('results');
-        // Lấy danh sách servers từ sessionStorage
-        const servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
-        if (hosts.length === 0) {
-            resultsDiv.innerHTML = '<div class="text-center text-red-500">Không tìm thấy danh sách máy chủ trên URL!</div>';
-            return;
-        }
-        resultsDiv.innerHTML = '<div class="text-center text-gray-500">Đang thực thi lệnh trên các máy chủ...</div>';
-        // Gửi lệnh tới backend, log debug
-        console.log('Gửi tới backend:', {hosts, command});
-        const res = await fetch('/multi-command', {
-            method: 'POST',
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify({hosts, command})
-        });
-        const data = await res.json();
-        console.log('Kết quả trả về:', data);
-        // Hiển thị kết quả từng máy chủ
-        let html = '<h3 class="text-xl font-semibold text-gray-700 mb-2">Kết quả:</h3>';
-        html += '<div class="space-y-4">';
-        for(const host of hosts) {
-            let username = '';
-            let iphost = host;
-            if (host.includes('@')) {
-                [username, iphost] = host.split('@');
+        let selectedServers = [];
+        
+        function toggleServer(element) {
+            const serverData = {
+                ip: element.dataset.serverIp,
+                name: element.dataset.serverName,
+                username: element.dataset.serverUsername,
+                online: element.dataset.serverOnline === 'true'
+            };
+            
+            const isSelected = element.classList.contains('selected');
+            
+            if (isSelected) {
+                // Remove selection
+                element.classList.remove('selected');
+                element.querySelector('.selected-indicator').classList.add('hidden');
+                
+                // Remove from selectedServers array
+                selectedServers = selectedServers.filter(s => s.ip !== serverData.ip);
+            } else {
+                // Add selection
+                element.classList.add('selected');
+                element.querySelector('.selected-indicator').classList.remove('hidden');
+                
+                // Add to selectedServers array
+                selectedServers.push(serverData);
             }
-            // Tìm server theo ip (và user nếu có, so sánh không phân biệt hoa thường)
-            let server = servers.find(s => s.ip && s.ip.toLowerCase() === iphost.toLowerCase() && (!username || (s.sshUsername && s.sshUsername.toLowerCase() === username.toLowerCase())));
-            let displayName = server && server.name ? server.name : 'Máy chủ không rõ tên';
-let displayUser = server && server.sshUsername ? server.sshUsername : (username || '-');
-let displayIp = server && server.ip ? server.ip : iphost;
-
-html += `<div class="bg-gray-100 rounded-lg p-4">
-    <div class="mb-2 font-semibold text-gray-800">
-        ${displayName} – ${displayUser} – ${displayIp}
-    </div>
-    <pre class="text-gray-800 overflow-x-auto">${data[host] || data[displayIp] || 'Không nhận được phản hồi.'}</pre>
-</div>`;
-
+            
+            updateSelectedServersPanel();
+            updateCommandInput();
         }
-        html += '</div>';
-        resultsDiv.innerHTML = html;
-    });
-    document.getElementById('backToDashboard').href = '/dashboard';
+        
+        function selectAllServers() {
+            const serverCards = document.querySelectorAll('.multi-server-card');
+            selectedServers = [];
+            
+            serverCards.forEach(card => {
+                if (!card.classList.contains('selected')) {
+                    card.classList.add('selected');
+                    card.querySelector('.selected-indicator').classList.remove('hidden');
+                    
+                    selectedServers.push({
+                        ip: card.dataset.serverIp,
+                        name: card.dataset.serverName,
+                        username: card.dataset.serverUsername,
+                        online: card.dataset.serverOnline === 'true'
+                    });
+                }
+            });
+            
+            updateSelectedServersPanel();
+            updateCommandInput();
+        }
+        
+        function clearAllServers() {
+            const serverCards = document.querySelectorAll('.multi-server-card');
+            selectedServers = [];
+            
+            serverCards.forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.selected-indicator').classList.add('hidden');
+            });
+            
+            updateSelectedServersPanel();
+            updateCommandInput();
+        }
+        
+        function removeServer(ip) {
+            // Remove from UI
+            const serverCard = document.querySelector(`[data-server-ip="${ip}"]`);
+            if (serverCard) {
+                serverCard.classList.remove('selected');
+                serverCard.querySelector('.selected-indicator').classList.add('hidden');
+            }
+            
+            // Remove from array
+            selectedServers = selectedServers.filter(s => s.ip !== ip);
+            
+            updateSelectedServersPanel();
+            updateCommandInput();
+        }
+        
+        function updateSelectedServersPanel() {
+            const selectedCount = document.getElementById('selectedCount');
+            const noSelectionMessage = document.getElementById('noSelectionMessage');
+            const selectedServersList = document.getElementById('selectedServersList');
+            
+            selectedCount.textContent = selectedServers.length;
+            
+            if (selectedServers.length === 0) {
+                noSelectionMessage.classList.remove('hidden');
+                selectedServersList.classList.add('hidden');
+            } else {
+                noSelectionMessage.classList.add('hidden');
+                selectedServersList.classList.remove('hidden');
+                
+                let html = '';
+                selectedServers.forEach(server => {
+                    const statusClass = server.online ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800';
+                    const statusIcon = server.online ? 'text-green-500' : 'text-red-500';
+                    const statusText = server.online ? 'Online' : 'Offline';
+                    
+                    html += `
+                        <div class="selected-server-item flex items-center p-3 bg-gray-50 border border-gray-200 rounded-lg">
+                            <i class="fas fa-server text-gray-600 mr-3"></i>
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800">${server.name}</div>
+                                <div class="text-sm text-gray-600">${server.ip}</div>
+                                <div class="text-xs text-gray-500">
+                                    <i class="fas fa-user mr-1"></i>User: ${server.username}
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="${statusClass} px-2 py-1 text-xs rounded-full">
+                                    <i class="fas fa-circle ${statusIcon} mr-1"></i>${statusText}
+                                </span>
+                                <button onclick="removeServer('${server.ip}')" 
+                                        class="remove-server-btn p-1 text-red-600 hover:text-red-800 hover:bg-red-50 rounded transition">
+                                    <i class="fas fa-times"></i>
+                                </button>
+                            </div>
+                        </div>
+                    `;
+                });
+                
+                selectedServersList.innerHTML = html;
+            }
+        }
+        
+        function updateCommandInput() {
+            const commandInput = document.getElementById('commandInput');
+            const executeBtn = document.getElementById('executeBtn');
+            const executeCount = document.getElementById('executeCount');
+            
+            executeCount.textContent = selectedServers.length;
+            
+            if (selectedServers.length === 0) {
+                commandInput.disabled = true;
+                commandInput.placeholder = 'Vui lòng chọn máy chủ trước khi nhập lệnh...';
+                executeBtn.disabled = true;
+            } else {
+                commandInput.disabled = false;
+                commandInput.placeholder = `Nhập lệnh SSH cho ${selectedServers.length} máy chủ... (Ví dụ: ls -la, ps aux, df -h)`;
+                executeBtn.disabled = false;
+                commandInput.focus();
+            }
+        }
+        
+        async function executeCommand() {
+            if (selectedServers.length === 0) {
+                alert('Vui lòng chọn ít nhất một máy chủ!');
+                return;
+            }
+            
+            const command = document.getElementById('commandInput').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!command.trim()) {
+                alert('Vui lòng nhập lệnh!');
+                return;
+            }
+            
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-blue-600 text-3xl mb-3"></i>
+                    <p class="text-gray-600">Đang thực thi lệnh trên ${selectedServers.length} máy chủ...</p>
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/execute-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: command,
+                        hosts: selectedServers.map(s => s.ip)
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.results) {
+                    displayResults(result.results);
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-exclamation-triangle text-red-600 text-3xl mb-3"></i>
+                            <p class="text-red-600">Lỗi: ${result.error || 'Không có kết quả trả về'}</p>
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="text-center py-8">
+                        <i class="fas fa-exclamation-triangle text-red-600 text-3xl mb-3"></i>
+                        <p class="text-red-600">Lỗi kết nối: ${error.message}</p>
+                    </div>
+                `;
+            }
+        }
+        
+        function displayResults(results) {
+            const resultsDiv = document.getElementById('results');
+            let html = '';
+            
+            results.forEach((result, index) => {
+                const statusColor = result.success ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50';
+                const statusIcon = result.success ? 'fas fa-check-circle text-green-600' : 'fas fa-times-circle text-red-600';
+                const statusText = result.success ? 'Thành công' : 'Thất bại';
+                
+                html += `
+                    <div class="border-l-4 ${statusColor} p-4 rounded-lg">
+                        <div class="flex items-center mb-3">
+                            <i class="${statusIcon} mr-2"></i>
+                            <span class="font-semibold text-gray-800">${result.server} (${result.ip})</span>
+                            <span class="ml-2 px-2 py-1 text-xs rounded-full ${result.success ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'}">
+                                ${statusText}
+                            </span>
+                        </div>
+                        
+                        <div class="mb-2">
+                            <div class="text-sm text-gray-600 mb-1">Lệnh:</div>
+                            <code class="bg-gray-100 px-2 py-1 rounded text-sm">${result.command}</code>
+                        </div>
+                        
+                        ${result.output ? `
+                            <div class="mb-2">
+                                <div class="text-sm text-gray-600 mb-1">Kết quả:</div>
+                                <pre class="bg-gray-900 text-green-400 p-3 rounded text-sm overflow-x-auto">${result.output}</pre>
+                            </div>
+                        ` : ''}
+                        
+                        ${result.error ? `
+                            <div class="mb-2">
+                                <div class="text-sm text-gray-600 mb-1">Lỗi:</div>
+                                <pre class="bg-gray-900 text-red-400 p-3 rounded text-sm overflow-x-auto">${result.error}</pre>
+                            </div>
+                        ` : ''}
+                        
+                        <div class="text-xs text-gray-500">
+                            <i class="fas fa-info-circle mr-1"></i>Exit Status: ${result.exitStatus}
+                        </div>
+                    </div>
+                `;
+            });
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = `
+                <div class="text-gray-500 text-center py-8">
+                    <i class="fas fa-info-circle text-gray-400 text-3xl mb-3"></i>
+                    <p>Chưa có kết quả...</p>
+                </div>
+            `;
+        }
+        
+        // Keyboard shortcuts
+        document.getElementById('commandInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                executeCommand();
+            }
+        });
+        
+        // Auto-select servers from URL if available
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostsFromUrl = urlParams.get('hosts');
+        
+        if (hostsFromUrl) {
+            const hostList = hostsFromUrl.split(',');
+            hostList.forEach(host => {
+                const serverCard = document.querySelector(`[data-server-ip="${host.trim()}"]`);
+                if (serverCard) {
+                    toggleServer(serverCard);
+                }
+            });
+        }
     </script>
 </body>
 </html>

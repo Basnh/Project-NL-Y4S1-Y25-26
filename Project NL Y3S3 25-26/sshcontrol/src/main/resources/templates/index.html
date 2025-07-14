@@ -1,11 +1,17 @@
 <!DOCTYPE html>
-<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<html lang="vi" xmlns:th="http://www.thymeleaf.org" class="scroll-smooth">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>UControl - Điều khiển máy chủ Ubuntu từ xa</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="/images/logo.png" />
+  <link href="https://unpkg.com/aos@2.3.1/dist/aos.css" rel="stylesheet" />
+  <style>
+    html {
+      scroll-behavior: smooth;
+    }
+  </style>
 </head>
 <body class="bg-white text-gray-800">
 
@@ -21,140 +27,105 @@
         <a href="#faq" class="text-gray-700 hover:text-blue-600">FAQ</a>
         <a href="#contact" class="text-gray-700 hover:text-blue-600">Liên hệ</a>
 
-        <a th:if="${session.user == null}" href="/login" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Đăng nhập</a>
-        <a th:if="${session.user != null}" href="/dashboard" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600">Bảng điều khiển</a>
+        <a th:if="${session.user == null}" href="/login" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Đăng nhập</a>
+        <a th:if="${session.user != null}" href="/dashboard" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Bảng điều khiển</a>
       </nav>
     </div>
   </header>
 
-  <!-- Hero Section -->
-  <section class="pt-24 pb-16 bg-gray-100" id="hero">
+  <!-- Hero Section (chưa đăng nhập) -->
+  <section class="pt-24 pb-16 bg-gray-100" id="hero" th:if="${session.user == null}">
     <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center space-y-10 md:space-y-0 md:space-x-12">
-      <div class="flex-1">
+      <div class="flex-1" data-aos="fade-right">
         <h1 class="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-4">
           Điều khiển máy chủ Ubuntu từ xa dễ dàng
         </h1>
         <p class="text-lg text-gray-600 mb-6">Quản lý dịch vụ, thực thi lệnh, cấu hình file từ xa qua SSH từ giao diện đồ họa thân thiện.</p>
-        <a href="/register" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700">Bắt đầu ngay</a>
+        <a href="/register" class="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 transition hover:scale-105 active:scale-95">Bắt đầu ngay</a>
       </div>
-      <div class="flex-1">
+      <div class="flex-1" data-aos="fade-left">
         <img src="https://source.unsplash.com/featured/?ubuntu,server" alt="Ubuntu Server" class="rounded-xl shadow-md w-full" />
       </div>
     </div>
   </section>
 
-  <!-- Tính năng chính -->
-  <section id="features" class="py-16">
-    <div class="max-w-7xl mx-auto px-6 space-y-16">
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div>
-          <img src="https://source.unsplash.com/featured/?ssh,linux" class="rounded-xl shadow-md" />
-        </div>
-        <div>
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">Kết nối máy chủ</h2>
-          <p class="text-gray-600">Kết nối an toàn với dịch vụ SSH để bắt đầu quản lý từ xa.</p>
-        </div>
+  <!-- Hero Section (đã đăng nhập) -->
+  <section class="pt-24 pb-16 bg-gray-100" th:if="${session.user != null}">
+    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center space-y-10 md:space-y-0 md:space-x-12">
+      <div class="flex-1" data-aos="fade-right">
+        <h1 class="text-4xl md:text-5xl font-bold text-gray-800 leading-tight mb-4">
+          Chào mừng bạn đã quay lại!
+        </h1>
+        <p class="text-lg text-gray-600 mb-6">Truy cập bảng điều khiển để quản lý máy chủ của bạn.</p>
+        <a href="/dashboard" class="bg-green-600 text-white font-semibold px-6 py-3 rounded hover:bg-green-700 transition hover:scale-105">Vào bảng điều khiển</a>
       </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div class="md:order-2">
-          <img src="https://source.unsplash.com/featured/?nginx,config" class="rounded-xl shadow-md" />
-        </div>
-        <div class="md:order-1">
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">Cấu hình dịch vụ</h2>
-          <p class="text-gray-600">Chỉnh sửa trực tiếp các file cấu hình như sshd_config, nginx.conf... ngay trên giao diện web.</p>
-        </div>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-2 gap-10">
-        <div>
-          <img src="https://source.unsplash.com/featured/?cloud,devops" class="rounded-xl shadow-md" />
-        </div>
-        <div>
-          <h2 class="text-2xl font-bold text-gray-800 mb-2">Điều khiển đa máy</h2>
-          <p class="text-gray-600">Thực hiện thao tác điều khiển dịch vụ đồng thời trên nhiều máy chủ cùng lúc.</p>
-        </div>
+      <div class="flex-1" data-aos="fade-left">
+        <img src="https://source.unsplash.com/featured/?linux,terminal" class="rounded-xl shadow-md w-full" alt="Dashboard Access" />
       </div>
     </div>
   </section>
 
-  <!-- Danh sách tính năng -->
-  <section class="bg-gray-100 py-16">
-    <div class="max-w-7xl mx-auto px-6">
-      <h2 class="text-3xl font-bold text-gray-800 mb-8 text-center">Các chức năng nổi bật</h2>
-      <div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h4 class="font-semibold text-blue-600 mb-2">🔌 Kết nối SSH</h4>
-          <p class="text-sm text-gray-600">Kết nối máy chủ dễ dàng với IP, tài khoản và mật khẩu.</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h4 class="font-semibold text-green-600 mb-2">⚙️ Cấu hình file</h4>
-          <p class="text-sm text-gray-600">Sửa file cấu hình ngay trên giao diện web có kiểm tra cú pháp.</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h4 class="font-semibold text-red-500 mb-2">🔁 Điều khiển dịch vụ</h4>
-          <p class="text-sm text-gray-600">Start / Stop / Restart dịch vụ với một click.</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h4 class="font-semibold text-indigo-500 mb-2">📋 Liệt kê dịch vụ</h4>
-          <p class="text-sm text-gray-600">Kiểm tra trạng thái các dịch vụ đã cài đặt trên máy chủ.</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h4 class="font-semibold text-purple-500 mb-2">📡 Điều khiển nhiều máy</h4>
-          <p class="text-sm text-gray-600">Thực hiện lệnh hoặc kiểm tra dịch vụ trên nhiều máy.</p>
-        </div>
-        <div class="bg-white p-6 rounded-lg shadow">
-          <h4 class="font-semibold text-yellow-600 mb-2">🧠 Giao diện dễ dùng</h4>
-          <p class="text-sm text-gray-600">Thiết kế tối giản, dễ thao tác cho mọi đối tượng.</p>
+  <!-- Section: Features -->
+<section class="py-20 bg-white border-y border-gray-200" id="features">
+  <div class="max-w-7xl mx-auto px-6">
+    <h2 class="text-3xl font-bold mb-10 text-center">Các tính năng nổi bật</h2>
+    <div class="space-y-12">
+
+      <!-- Feature 1 -->
+      <div class="flex flex-col md:flex-row items-center gap-8 border border-gray-200 p-6 rounded-lg shadow-sm" data-aos="fade-up">
+        <img src="https://source.unsplash.com/150x150/?ssh,server" alt="Kết nối máy chủ" class="w-36 h-36 rounded shadow-md object-cover" />
+        <div>
+          <h3 class="text-2xl font-semibold mb-2">Kết nối máy chủ</h3>
+          <p class="text-gray-600">Thêm máy chủ mới để điều khiển qua SSH.</p>
         </div>
       </div>
+
+      <!-- Feature 2 -->
+      <div class="flex flex-col md:flex-row-reverse items-center gap-8 border border-gray-200 p-6 rounded-lg shadow-sm" data-aos="fade-up" data-aos-delay="100">
+        <img src="https://source.unsplash.com/150x150/?config,file" alt="Cấu hình dịch vụ" class="w-36 h-36 rounded shadow-md object-cover" />
+        <div>
+          <h3 class="text-2xl font-semibold mb-2">Cấu hình dịch vụ</h3>
+          <p class="text-gray-600">Sửa file cấu hình của các dịch vụ như sshd_config, nginx, v.v.</p>
+        </div>
+      </div>
+
+      <!-- Feature 3 -->
+      <div class="flex flex-col md:flex-row items-center gap-8 border border-gray-200 p-6 rounded-lg shadow-sm" data-aos="fade-up" data-aos-delay="200">
+        <img src="https://source.unsplash.com/150x150/?control,service" alt="Điều khiển dịch vụ" class="w-36 h-36 rounded shadow-md object-cover" />
+        <div>
+          <h3 class="text-2xl font-semibold mb-2">Điều khiển dịch vụ</h3>
+          <p class="text-gray-600">Start, stop, restart dịch vụ từ giao diện người dùng.</p>
+        </div>
+      </div>
+
     </div>
-  </section>
+  </div>
+</section>
 
-  <!-- Kêu gọi hành động hoặc chuyển hướng dashboard -->
-  <section class="py-16 text-center" th:if="${session.user == null}" style="background-color: #3b82f6; color: white">
-    <h2 class="text-3xl font-bold mb-4">Sẵn sàng bắt đầu?</h2>
-    <p class="mb-6">Tham gia UControl ngay hôm nay và đơn giản hóa việc điều khiển máy chủ Ubuntu.</p>
-    <a href="/register" class="bg-white text-blue-600 font-semibold px-6 py-3 rounded hover:bg-gray-100">Đăng ký miễn phí</a>
-  </section>
-
-  <section class="py-16 text-center bg-green-100" th:if="${session.user != null}">
-    <h2 class="text-3xl font-bold text-green-700 mb-4">Chào mừng bạn đã quay lại!</h2>
-    <p class="text-gray-700 mb-6">Truy cập bảng điều khiển để quản lý máy chủ của bạn.</p>
-    <a href="/dashboard" class="bg-green-600 text-white font-semibold px-6 py-3 rounded hover:bg-green-700">Đến bảng điều khiển</a>
-  </section>
-
-  <!-- FAQ -->
-  <section id="faq" class="py-16">
-    <div class="max-w-4xl mx-auto px-6">
-      <h2 class="text-3xl font-bold text-center mb-8">Câu hỏi thường gặp</h2>
+<section class="py-20 bg-gray-50" id="faq">
+    <div class="max-w-5xl mx-auto px-6">
+      <h2 class="text-3xl font-bold mb-10 text-center">Câu hỏi thường gặp</h2>
       <div class="space-y-6">
-        <div>
-          <h4 class="font-semibold text-gray-800">❓ Cần quyền gì để sử dụng UControl?</h4>
-          <p class="text-gray-600">Tài khoản cần có quyền sudo trên máy chủ Ubuntu để thực hiện một số thao tác nhất định.</p>
+        <div data-aos="fade-up">
+          <h4 class="text-lg font-semibold">Tôi cần cài gì trên máy chủ Ubuntu?</h4>
+          <p class="text-gray-600">Bạn chỉ cần cài đặt SSH server, phần mềm UControl sẽ kết nối và điều khiển từ xa.</p>
         </div>
-        <div>
-          <h4 class="font-semibold text-gray-800">🔐 UControl có hỗ trợ SSH Key không?</h4>
-          <p class="text-gray-600">Có, bạn có thể kết nối bằng SSH Key để bảo mật tốt hơn so với dùng mật khẩu.</p>
-        </div>
-        <div>
-          <h4 class="font-semibold text-gray-800">🌍 Có thể quản lý bao nhiêu máy chủ?</h4>
-          <p class="text-gray-600">Bạn có thể quản lý nhiều máy tùy nhu cầu. UControl hỗ trợ thao tác đa máy mượt mà.</p>
+        <div data-aos="fade-up" data-aos-delay="100">
+          <h4 class="text-lg font-semibold">UControl có thể điều khiển bao nhiêu máy chủ?</h4>
+          <p class="text-gray-600">Không giới hạn số lượng máy chủ, bạn có thể quản lý nhiều máy cùng lúc.</p>
         </div>
       </div>
     </div>
   </section>
 
-  <!-- Footer -->
-  <footer id="contact" class="bg-white py-8 border-t mt-10">
-    <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row justify-between items-center text-sm text-gray-500">
-      <p>© 2025 UControl. Phát triển bởi nhóm sinh viên CTU.</p>
-      <div class="space-x-4 mt-4 md:mt-0">
-        <a href="mailto:support@ucontrol.vn" class="hover:underline">support@ucontrol.vn</a>
-        <a href="/terms" class="hover:underline">Điều khoản</a>
-      </div>
+  <!-- Contact & Footer -->
+  <footer class="bg-white border-t py-10" id="contact">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-gray-600">Liên hệ: ucontrol@example.com | Bản quyền © 2025 UControl</p>
     </div>
   </footer>
 
+  <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
+  <script>AOS.init();</script>
 </body>
 </html>

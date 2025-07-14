@@ -69,11 +69,11 @@
             </a>
 
             <!-- Thực thi nhiều máy -->
-            <a th:href="@{/multi-execute-page}" class="p-6 bg-red-100 rounded-lg hover:bg-red-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-network-wired text-red-600 text-2xl"></i>
+            <a th:href="@{/multi-execute-page}" class="p-6 bg-purple-100 rounded-lg hover:bg-purple-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-server text-purple-600 text-2xl"></i>
                 <div>
-                    <h2 class="text-lg font-semibold text-red-800">Thực thi nhiều máy</h2>
-                    <p class="text-sm text-gray-600">Chạy đồng thời trên nhiều IP.</p>
+                    <h2 class="text-lg font-semibold text-purple-800">Thực thi lệnh nhiều máy chủ</h2>
+                    <p class="text-sm text-gray-600">Chạy lệnh trên nhiều máy chủ cùng lúc.</p>
                 </div>
             </a>
 
@@ -83,6 +83,15 @@
                 <div>
                     <h2 class="text-lg font-semibold text-purple-800">Cấu hình dịch vụ</h2>
                     <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
+                </div>
+            </a>
+
+            <!-- Quản lý file cấu hình -->
+            <a th:href="@{/file-manager}" class="p-6 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition flex items-center gap-4 shadow">
+                <i class="fas fa-folder-open text-yellow-600 text-2xl"></i>
+                <div>
+                    <h2 class="text-lg font-semibold text-yellow-800">Quản lý file cấu hình</h2>
+                    <p class="text-sm text-gray-600">Chỉnh sửa file cấu hình trên máy chủ từ xa.</p>
                 </div>
             </a>
 
@@ -187,11 +196,11 @@
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">
                         <div class="flex-shrink-0">
-                            <i class="fas fa-network-wired text-red-600 text-xl"></i>
+                            <i class="fas fa-server text-purple-600 text-xl"></i>
                         </div>
-                        <div>
-                            <h3 class="text-lg font-semibold text-gray-900">Thực thi nhiều máy</h3>
-                            <p class="text-sm text-gray-600">Chạy đồng thời trên nhiều IP.</p>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Thực thi lệnh nhiều máy chủ</h3>
+                            <p class="text-sm text-gray-600">Chạy lệnh trên nhiều máy chủ cùng lúc.</p>
                         </div>
                     </div>
                     <i class="fas fa-chevron-right text-gray-400"></i>
@@ -208,6 +217,22 @@
                         <div>
                             <h3 class="text-lg font-semibold text-gray-900">Cấu hình dịch vụ</h3>
                             <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Quản lý file cấu hình -->
+            <a th:href="@{/file-manager}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-folder-open text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Quản lý file cấu hình</h3>
+                            <p class="text-sm text-gray-600">Chỉnh sửa file cấu hình trên máy chủ từ xa.</p>
                         </div>
                     </div>
                     <i class="fas fa-chevron-right text-gray-400"></i>

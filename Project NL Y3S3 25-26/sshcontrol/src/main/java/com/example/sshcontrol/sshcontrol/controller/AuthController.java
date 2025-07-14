@@ -2,6 +2,8 @@ package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.ServerInfo;
+import com.jcraft.jsch.JSch;
+import com.jcraft.jsch.Session;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -232,6 +234,7 @@ public class AuthController {
         return "dashboard";
     }
 
+
     private boolean checkServerStatus(String ip) {
         try {
             // Ping test
@@ -249,6 +252,23 @@ public class AuthController {
             } catch (IOException e) {
                 return false;
             }
+        } catch (Exception e) {
+            return false;
+        }
+    }
+
+    // Thêm method helper
+    private boolean checkServerStatusViaSSH(String host) {
+        try {
+            JSch jsch = new JSch();
+            Session session = jsch.getSession("ubuntu", host, 22);
+            session.setPassword("123456");
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect(5000);
+            
+            boolean isConnected = session.isConnected();
+            session.disconnect();
+            return isConnected;
         } catch (Exception e) {
             return false;
         }

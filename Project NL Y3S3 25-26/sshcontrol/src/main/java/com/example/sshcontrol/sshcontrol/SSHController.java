@@ -629,10 +629,6 @@ public class SSHController {
         return result;
     }
 
-    @GetMapping("/multi-execute-page")
-    public String showMultiExecutePage() {
-        return "multi-execute-page";
-    }
 
     @GetMapping("/multi-list-services")
     public String showMultiListServicesPage() {
