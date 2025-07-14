@@ -48,7 +48,7 @@ public class AuthController {
 
         if (found.isPresent()) {
             session.setAttribute("user", found.get());
-            return "redirect:/dashboard";
+            return "redirect:/";
         } else {
             model.addAttribute("error", "Sai tên đăng nhập hoặc mật khẩu");
             model.addAttribute("user", new User());
