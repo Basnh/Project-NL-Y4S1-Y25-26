@@ -883,5 +883,102 @@ public class SSHController {
         model.addAttribute("path", path);
         return "multi-edit-config";
     }
-}
 
+    @GetMapping("/edit-config-page")
+    public String showEditConfigPage(Model model, HttpSession session) {
+        User sessionUser = (User) session.getAttribute("user");
+        if (sessionUser != null) {
+            model.addAttribute("userServers", sessionUser.getServers());
+        }
+        return "edit-config-page";
+    }
+
+    @PostMapping("/api/get-file-content")
+    @ResponseBody
+    public Map<String, Object> getFileContent(@RequestBody Map<String, String> request, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        String host = request.get("host");
+        String filePath = request.get("filePath");
+        
+        User sessionUser = (User) session.getAttribute("user");
+        String username = null;
+        String password = null;
+        
+        if (sessionUser != null) {
+            ServerInfo server = sessionUser.getServers().stream()
+                .filter(s -> s.getIp().equals(host))
+                .findFirst()
+                .orElse(null);
+            
+            if (server != null) {
+                username = server.getSshUsername();
+                password = server.getSshPassword();
+            }
+        }
+        
+        if (username == null) username = "ubuntu";
+        if (password == null) password = "123456";
+        
+        try {
+            String content = sshService.executeCommand(host, username, password, "cat " + filePath);
+            if (content != null && !content.toLowerCase().contains("no such file")) {
+                result.put("success", true);
+                result.put("content", content);
+            } else {
+                result.put("success", false);
+                result.put("error", "File không tồn tại hoặc không có quyền đọc");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", "Lỗi: " + e.getMessage());
+        }
+        
+        return result;
+    }
+
+    @PostMapping("/api/save-file-content")
+    @ResponseBody
+    public Map<String, Object> saveFileContent(@RequestBody Map<String, String> request, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        String host = request.get("host");
+        String filePath = request.get("filePath");
+        String content = request.get("content");
+        
+        User sessionUser = (User) session.getAttribute("user");
+        String username = null;
+        String password = null;
+        
+        if (sessionUser != null) {
+            ServerInfo server = sessionUser.getServers().stream()
+                .filter(s -> s.getIp().equals(host))
+                .findFirst()
+                .orElse(null);
+            
+            if (server != null) {
+                username = server.getSshUsername();
+                password = server.getSshPassword();
+            }
+        }
+        
+        if (username == null) username = "ubuntu";
+        if (password == null) password = "123456";
+        
+        try {
+            String cmd = "echo '" + password + "' | sudo -S tee " + filePath;
+            String saveResult = sshService.executeCommandWithInput(host, username, password, cmd, content);
+            
+            if (saveResult != null && saveResult.toLowerCase().contains("permission denied")) {
+                result.put("success", false);
+                result.put("error", "Không đủ quyền ghi file");
+            } else {
+                result.put("success", true);
+                result.put("message", "Lưu file thành công");
+            }
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", "Lỗi: " + e.getMessage());
+        }
+        
+        return result;
+    }
+}

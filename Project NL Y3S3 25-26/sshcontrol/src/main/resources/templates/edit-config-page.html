@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chỉnh sửa file cấu hình</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/executepage.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-edit mr-2"></i>Chỉnh sửa file cấu hình
+                    </h1>
+                    <a href="/dashboard" class="px-4 py-2 btn-secondary text-white rounded-lg transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
+                    </a>
+                </div>
+            </div>
+
+            <!-- Server Selection -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-server mr-2"></i>Chọn máy chủ để chỉnh sửa:
+                </h2>
+                
+                <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3 mb-4">
+                    <div th:each="server : ${userServers}" 
+                         class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg"
+                         th:data-server-ip="${server.ip}"
+                         th:data-server-name="${server.name}"
+                         th:data-server-username="${server.sshUsername}"
+                         th:data-server-online="${server.online}"
+                         onclick="selectServer(this)">
+                        <div class="flex items-center flex-1">
+                            <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800" th:text="${server.name}"></div>
+                                <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span th:if="${server.online}" class="status-online px-3 py-1 text-xs rounded-full">
+                                <i class="fas fa-circle mr-1"></i>Online
+                            </span>
+                            <span th:unless="${server.online}" class="status-offline px-3 py-1 text-xs rounded-full">
+                                <i class="fas fa-circle mr-1"></i>Offline
+                            </span>
+                            <div class="selected-indicator hidden">
+                                <i class="fas fa-check-circle text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
+                    <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
+                    <a href="/add-server" class="inline-block px-6 py-2 btn-primary text-white rounded-lg transition">
+                        <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
+                    </a>
+                </div>
+                
+                <!-- Selected Server Info -->
+                <div id="selectedServerInfo" class="hidden mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        <span class="text-blue-800 font-medium">Máy chủ được chọn:</span>
+                        <span id="selectedServerName" class="ml-2 text-blue-700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Path Input -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-file mr-2"></i>Đường dẫn file cấu hình:
+                </h2>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <input type="text" 
+                               id="configFileInput" 
+                               class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed" 
+                               placeholder="Vui lòng chọn máy chủ trước..."
+                               disabled>
+                        <div class="absolute top-2 right-2 text-xs text-gray-400">
+                            Ví dụ: /etc/nginx/nginx.conf
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="loadFileBtn" onclick="loadFile()" 
+                                class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                disabled>
+                            <i class="fas fa-download mr-2"></i>Tải file
+                        </button>
+                        <button onclick="clearEditor()" 
+                                class="px-6 py-2 btn-secondary text-white rounded-lg transition">
+                            <i class="fas fa-eraser mr-2"></i>Xóa nội dung
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- File Editor -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-code mr-2"></i>Nội dung file:
+                </h2>
+                <div class="space-y-4">
+                    <div class="relative">
+                        <textarea id="fileContent" 
+                                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 font-mono text-sm disabled:bg-gray-100 disabled:cursor-not-allowed" 
+                                  rows="20" 
+                                  placeholder="Nội dung file sẽ hiển thị ở đây..."
+                                  disabled></textarea>
+                        <div class="absolute top-2 right-2 text-xs text-gray-400">
+                            Ctrl + S để lưu
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="saveFileBtn" onclick="saveFile()" 
+                                class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                disabled>
+                            <i class="fas fa-save mr-2"></i>Lưu file
+                        </button>
+                        <button id="reloadFileBtn" onclick="reloadFile()" 
+                                class="px-6 py-2 btn-secondary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                disabled>
+                            <i class="fas fa-refresh mr-2"></i>Tải lại
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-info-circle mr-2"></i>Kết quả:
+                </h2>
+                <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm min-h-[200px] overflow-auto">
+                    <div class="text-gray-500">Chưa có kết quả...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedServer = null;
+        let currentFilePath = null;
+        
+        function selectServer(element) {
+            // Remove previous selection
+            document.querySelectorAll('.server-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.selected-indicator').classList.add('hidden');
+            });
+            
+            // Add selection to clicked server
+            element.classList.add('selected');
+            element.querySelector('.selected-indicator').classList.remove('hidden');
+            
+            // Get server info
+            selectedServer = {
+                ip: element.dataset.serverIp,
+                name: element.dataset.serverName,
+                username: element.dataset.serverUsername,
+                online: element.dataset.serverOnline === 'true'
+            };
+            
+            // Update selected server info
+            const selectedInfo = document.getElementById('selectedServerInfo');
+            const selectedName = document.getElementById('selectedServerName');
+            
+            selectedName.textContent = `${selectedServer.name} (${selectedServer.ip})`;
+            selectedInfo.classList.remove('hidden');
+            
+            // Enable file path input and load button
+            const configFileInput = document.getElementById('configFileInput');
+            const loadFileBtn = document.getElementById('loadFileBtn');
+            
+            configFileInput.disabled = false;
+            configFileInput.placeholder = 'Nhập đường dẫn file cấu hình (ví dụ: /etc/nginx/nginx.conf)';
+            loadFileBtn.disabled = false;
+            
+            // Add pulse animation to selected server
+            element.classList.add('pulse-animation');
+            setTimeout(() => {
+                element.classList.remove('pulse-animation');
+            }, 2000);
+            
+            // Focus on file path input
+            configFileInput.focus();
+        }
+        
+        async function loadFile() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ trước!');
+                return;
+            }
+            
+            const filePath = document.getElementById('configFileInput').value;
+            const resultsDiv = document.getElementById('results');
+            const fileContent = document.getElementById('fileContent');
+            
+            if (!filePath.trim()) {
+                alert('Vui lòng nhập đường dẫn file!');
+                return;
+            }
+            
+            // Check if server is online
+            if (!selectedServer.online) {
+                resultsDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: Máy chủ ${selectedServer.name} (${selectedServer.ip}) đang offline
+                    </div>
+                `;
+                return;
+            }
+            
+            currentFilePath = filePath;
+            
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="text-yellow-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải file từ ${selectedServer.name}...
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/get-file-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        filePath: filePath
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    fileContent.disabled = false;
+                    fileContent.value = result.content || '';
+                    
+                    // Enable save and reload buttons
+                    document.getElementById('saveFileBtn').disabled = false;
+                    document.getElementById('reloadFileBtn').disabled = false;
+                    
+                    resultsDiv.innerHTML = `
+                        <div class="text-green-400">
+                            <i class="fas fa-check-circle mr-2"></i>Đã tải thành công file: ${filePath}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="text-red-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: ${result.error || 'Không thể tải file'}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi kết nối: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        async function saveFile() {
+            if (!selectedServer || !currentFilePath) {
+                alert('Vui lòng tải file trước khi lưu!');
+                return;
+            }
+            
+            const content = document.getElementById('fileContent').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!content.trim()) {
+                if (!confirm('File rỗng. Bạn có chắc muốn lưu không?')) {
+                    return;
+                }
+            }
+            
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="text-yellow-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu file trên ${selectedServer.name}...
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/save-file-content', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        filePath: currentFilePath,
+                        content: content
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success) {
+                    resultsDiv.innerHTML = `
+                        <div class="text-green-400">
+                            <i class="fas fa-check-circle mr-2"></i>Đã lưu thành công file: ${currentFilePath}
+                        </div>
+                    `;
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="text-red-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: ${result.error || 'Không thể lưu file'}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi kết nối: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function reloadFile() {
+            if (!selectedServer || !currentFilePath) {
+                alert('Vui lòng tải file trước!');
+                return;
+            }
+            
+            if (confirm('Bạn có chắc muốn tải lại file? Các thay đổi chưa lưu sẽ bị mất.')) {
+                document.getElementById('configFileInput').value = currentFilePath;
+                loadFile();
+            }
+        }
+        
+        function clearEditor() {
+            document.getElementById('fileContent').value = '';
+            document.getElementById('results').innerHTML = '<div class="text-gray-500">Đã xóa nội dung editor...</div>';
+        }
+        
+        // Keyboard shortcuts
+        document.addEventListener('keydown', function(e) {
+            // Ctrl+S to save
+            if (e.ctrlKey && e.key === 's') {
+                e.preventDefault();
+                saveFile();
+            }
+            
+            // Ctrl+R to reload
+            if (e.ctrlKey && e.key === 'r') {
+                e.preventDefault();
+                reloadFile();
+            }
+        });
+        
+        // Enter key to load file
+        document.getElementById('configFileInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                loadFile();
+            }
+        });
+        
+        // Auto-select server from URL if available
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostFromUrl = urlParams.get('host');
+        
+        if (hostFromUrl) {
+            const serverCard = document.querySelector(`[data-server-ip="${hostFromUrl}"]`);
+            if (serverCard) {
+                selectServer(serverCard);
+            }
+        }
+    </script>
+</body>
+</html>
