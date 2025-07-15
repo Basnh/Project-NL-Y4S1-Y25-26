@@ -11,7 +11,12 @@
     <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
         <!-- Header with user info -->
         <div class="flex justify-between items-center mb-6">
-            <h1 class="text-3xl font-bold text-gray-800">🔧 Điều khiển máy chủ Ubuntu từ xa</h1>
+            <div class="flex items-center space-x-4">
+                <h1 class="text-3xl font-bold text-gray-800">🔧 Điều khiển máy chủ Ubuntu từ xa</h1>
+                <a href="/" class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 shadow-sm">
+                    <i class="fas fa-home mr-2"></i>Về trang chủ
+                </a>
+            </div>
             <div class="flex items-center space-x-4">
                 <div class="text-right">
                     <p class="text-sm text-gray-700 font-medium" th:text="${user.username}">admin</p>
@@ -95,41 +100,17 @@
                 </div>
             </a>
 
-            <!-- Điều khiển dịch vụ đơn -->
-            <button onclick="showServerSelectModal('service-control')" class="w-full p-6 bg-orange-100 rounded-lg hover:bg-orange-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-toggle-on text-orange-600 text-2xl"></i>
-                <div class="text-left">
-                    <h2 class="text-lg font-semibold text-orange-800">Điều khiển dịch vụ</h2>
-                    <p class="text-sm text-gray-600">Start/Stop/Restart dịch vụ trên 1 máy.</p>
+            
+            <!-- Quản lý dịch vụ trên máy ảo -->
+            <a th:href="@{/list-services}" class="p-6 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition flex items-center gap-4 shadow">
+                <i class="fa-solid fa-hard-drive text-organe-600 text-2xl"></i>
+                <div>
+                    <h2 class="text-lg font-semibold text-yellow-800">Liệt kê / Điều khiển dịch vụ </h2>
+                    <p class="text-sm text-gray-600">Liệt kê / Điều khiển các dịch vụ hiện có trên máy chủ từ xa.</p>
                 </div>
-            </button>
+            </a>
 
-            <!-- Liệt kê dịch vụ đơn -->
-            <button onclick="showServerSelectModal('list-services')" class="w-full p-6 bg-teal-100 rounded-lg hover:bg-teal-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-list text-teal-600 text-2xl"></i>
-                <div class="text-left">
-                    <h2 class="text-lg font-semibold text-teal-800">Liệt kê dịch vụ</h2>
-                    <p class="text-sm text-gray-600">Xem trạng thái dịch vụ trên 1 máy.</p>
-                </div>
-            </button>
-
-            <!-- Điều khiển dịch vụ đa máy -->
-            <button onclick="showServerSelectModal('multi-service-control')" class="w-full p-6 bg-rose-100 rounded-lg hover:bg-rose-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-layer-group text-rose-600 text-2xl"></i>
-                <div class="text-left">
-                    <h2 class="text-lg font-semibold text-rose-800">Điều khiển dịch vụ đa máy</h2>
-                    <p class="text-sm text-gray-600">Control service trên nhiều máy.</p>
-                </div>
-            </button>
-
-            <!-- Liệt kê dịch vụ đa máy -->
-            <button onclick="showServerSelectModal('multi-service-list')" class="w-full p-6 bg-cyan-100 rounded-lg hover:bg-cyan-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-server text-cyan-600 text-2xl"></i>
-                <div class="text-left">
-                    <h2 class="text-lg font-semibold text-cyan-800">Liệt kê dịch vụ đa máy</h2>
-                    <p class="text-sm text-gray-600">Xem service trên nhiều máy.</p>
-                </div>
-            </button>
+            
 
             <!-- Điều khiển máy ảo -->
             <a th:href="@{/vm-control}" class="p-6 bg-gray-100 rounded-lg hover:bg-gray-200 transition flex items-center gap-4 shadow">
@@ -137,6 +118,15 @@
                 <div>
                     <h2 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h2>
                     <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
+                </div>
+            </a>
+
+            <!-- Điều khiển tường lửa -->
+            <a th:href="@{/firewall}" class="p-6 bg-red-100 rounded-lg hover:bg-red-200 transition flex items-center gap-4 shadow">
+                <i class="fa-solid fa-fire-burner text-red-800 text-2xl"></i>
+                <div>
+                    <h2 class="text-lg font-semibold text-red-900">Điều khiển tường lửa</h2>
+                    <p class="text-sm text-red-500">Bật/tắt cổng, kiểm tra trạng thái tường lửa.</p>
                 </div>
             </a>
         </div>

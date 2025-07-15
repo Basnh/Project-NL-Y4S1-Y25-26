@@ -1,0 +1,343 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quản lý Firewall</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-6xl mx-auto">
+            <!-- Header -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-center justify-between">
+                    <h1 class="text-2xl font-bold text-gray-800">
+                        <i class="fas fa-shield-alt mr-2"></i>Quản lý Firewall
+                    </h1>
+                    <a href="/dashboard" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-arrow-left mr-2"></i>Quay lại Dashboard
+                    </a>
+                </div>
+            </div>
+
+            <!-- Server Selection -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-server mr-2"></i>Chọn máy chủ:
+                </h2>
+                
+                <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3 mb-4">
+                    <div th:each="server : ${userServers}" 
+                         class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                         th:data-server-ip="${server.ip}"
+                         th:data-server-name="${server.name}"
+                         th:data-server-username="${server.sshUsername}"
+                         th:data-server-password="${server.sshPassword}"
+                         onclick="selectServer(this)">
+                        <div class="flex items-center flex-1">
+                            <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800" th:text="${server.name}"></div>
+                                <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+                            </div>
+                        </div>
+                        <div class="selected-indicator hidden">
+                            <i class="fas fa-check-circle text-blue-500 text-xl"></i>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
+                    <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
+                    <a href="/add-server" class="inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
+                    </a>
+                </div>
+            </div>
+
+            <!-- Firewall Actions -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-cogs mr-2"></i>Hành động Firewall:
+                </h2>
+                
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                    <button onclick="getFirewallStatus()" 
+                            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-400"
+                            id="statusBtn" disabled>
+                        <i class="fas fa-info-circle mr-2"></i>Kiểm tra trạng thái
+                    </button>
+                    <button onclick="enableFirewall()" 
+                            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-gray-400"
+                            id="enableBtn" disabled>
+                        <i class="fas fa-power-off mr-2"></i>Bật Firewall
+                    </button>
+                    <button onclick="disableFirewall()" 
+                            class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:bg-gray-400"
+                            id="disableBtn" disabled>
+                        <i class="fas fa-power-off mr-2"></i>Tắt Firewall
+                    </button>
+                </div>
+
+                <!-- Add Rule Form -->
+                <div class="border-t pt-6">
+                    <h3 class="text-md font-semibold mb-4">Thêm quy tắc mới:</h3>
+                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+                        <input type="text" id="portInput" placeholder="Port (VD: 80)" 
+                               class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                        <select id="protocolSelect" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
+                            <option value="tcp">TCP</option>
+                            <option value="udp">UDP</option>
+                        </select>
+                        <button onclick="addRule()" 
+                                class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-gray-400"
+                                id="addRuleBtn" disabled>
+                            <i class="fas fa-plus mr-2"></i>Thêm quy tắc
+                        </button>
+                        <button onclick="deleteRule()" 
+                                class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:bg-gray-400"
+                                id="deleteRuleBtn" disabled>
+                            <i class="fas fa-minus mr-2"></i>Xóa quy tắc
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-terminal mr-2"></i>Kết quả:
+                </h2>
+                <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm min-h-[300px] overflow-auto">
+                    <div class="text-gray-500">Chọn máy chủ và thực hiện hành động...</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let selectedServer = null;
+        
+        function selectServer(element) {
+            // Remove previous selection
+            document.querySelectorAll('.server-card').forEach(card => {
+                card.classList.remove('border-blue-500', 'bg-blue-50');
+                card.querySelector('.selected-indicator').classList.add('hidden');
+            });
+            
+            // Add selection to clicked server
+            element.classList.add('border-blue-500', 'bg-blue-50');
+            element.querySelector('.selected-indicator').classList.remove('hidden');
+            
+            // Get server info
+            selectedServer = {
+                ip: element.dataset.serverIp,
+                name: element.dataset.serverName,
+                username: element.dataset.serverUsername,
+                password: element.dataset.serverPassword
+            };
+            
+            // Enable action buttons
+            document.querySelectorAll('#statusBtn, #enableBtn, #disableBtn, #addRuleBtn, #deleteRuleBtn').forEach(btn => {
+                btn.disabled = false;
+            });
+        }
+        
+        async function getFirewallStatus() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ!');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/firewall/status', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        username: selectedServer.username,
+                        password: selectedServer.password
+                    })
+                });
+                
+                const result = await response.text();
+                showResult(result);
+            } catch (error) {
+                showResult('Lỗi: ' + error.message);
+            }
+        }
+        
+        async function enableFirewall() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ!');
+                return;
+            }
+            
+            if (!confirm('Bạn có chắc muốn bật firewall?')) {
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/firewall/enable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        username: selectedServer.username,
+                        password: selectedServer.password
+                    })
+                });
+                
+                const result = await response.text();
+                showResult(result);
+            } catch (error) {
+                showResult('Lỗi: ' + error.message);
+            }
+        }
+        
+        async function disableFirewall() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ!');
+                return;
+            }
+            
+            if (!confirm('Bạn có chắc muốn tắt firewall?')) {
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/firewall/disable', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        username: selectedServer.username,
+                        password: selectedServer.password
+                    })
+                });
+                
+                const result = await response.text();
+                showResult(result);
+            } catch (error) {
+                showResult('Lỗi: ' + error.message);
+            }
+        }
+        
+        async function addRule() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ!');
+                return;
+            }
+            
+            const port = document.getElementById('portInput').value;
+            const protocol = document.getElementById('protocolSelect').value;
+            
+            if (!port) {
+                alert('Vui lòng nhập port!');
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/firewall/add-rule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        username: selectedServer.username,
+                        password: selectedServer.password,
+                        port: port,
+                        protocol: protocol
+                    })
+                });
+                
+                const result = await response.text();
+                showResult(result);
+                
+                // Clear input
+                document.getElementById('portInput').value = '';
+            } catch (error) {
+                showResult('Lỗi: ' + error.message);
+            }
+        }
+        
+        async function deleteRule() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ!');
+                return;
+            }
+            
+            const port = document.getElementById('portInput').value;
+            const protocol = document.getElementById('protocolSelect').value;
+            
+            if (!port) {
+                alert('Vui lòng nhập port!');
+                return;
+            }
+            
+            if (!confirm(`Bạn có chắc muốn xóa quy tắc ${port}/${protocol}?`)) {
+                return;
+            }
+            
+            showLoading();
+            
+            try {
+                const response = await fetch('/firewall/delete-rule', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        host: selectedServer.ip,
+                        username: selectedServer.username,
+                        password: selectedServer.password,
+                        port: port,
+                        protocol: protocol
+                    })
+                });
+                
+                const result = await response.text();
+                showResult(result);
+                
+                // Clear input
+                document.getElementById('portInput').value = '';
+            } catch (error) {
+                showResult('Lỗi: ' + error.message);
+            }
+        }
+        
+        function showLoading() {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `
+                <div class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-blue-500 text-2xl mb-2"></i>
+                    <p class="text-gray-400">Đang thực hiện...</p>
+                </div>
+            `;
+        }
+        
+        function showResult(result) {
+            const resultsDiv = document.getElementById('results');
+            resultsDiv.innerHTML = `<pre>${result}</pre>`;
+        }
+    </script>
+</body>
+</html>
