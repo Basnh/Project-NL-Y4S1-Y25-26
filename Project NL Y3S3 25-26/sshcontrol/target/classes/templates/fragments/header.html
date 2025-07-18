@@ -1,60 +1,111 @@
-<!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org">
-<head>
-    <meta charset="UTF-8">
-</head>
-<body>
-    <!-- Common Header Fragment -->
-    <div th:fragment="header(title, icon)" class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-2xl font-bold text-gray-800">
-                    <i th:class="${'fas ' + icon + ' mr-2'}"></i><span th:text="${title}">Page Title</span>
-                </h1>
-                <a href="/" class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 shadow-sm">
-                    <i class="fas fa-home mr-2"></i>Về trang chủ
-                </a>
-                <a href="/dashboard" class="inline-flex items-center px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition duration-200 shadow-sm">
-                    <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
-                </a>
-            </div>
-            <div class="flex items-center space-x-4" th:if="${user != null}">
-                <div class="text-right">
-                    <p class="text-sm text-gray-700 font-medium" th:text="${user.username}">admin</p>
-                    <p class="text-xs text-gray-500">Đã đăng nhập</p>
-                </div>
-                <img src="/images/avatar-default.png" alt="avatar" class="w-10 h-10 rounded-full border border-gray-300" />
-                <form th:action="@{/logout}" method="post" class="inline">
-                    <button type="submit" class="text-sm text-red-600 font-semibold hover:underline transition duration-200">
-                        <i class="fas fa-sign-out-alt mr-1"></i>Đăng xuất
-                    </button>
-                </form>
-            </div>
-        </div>
+<div th:fragment="header(title, icon)" class="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-md border border-gray-200 rounded-xl shadow-md p-6 mb-8">
+  <div class="flex justify-between items-center gap-x-6">
+    <div class="flex items-center gap-4">
+      <div class="text-4xl text-indigo-600">
+        <i th:class="${icon}" class="fas fa-circle-info"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800" th:text="${title}">Tiêu đề</h1>
+        <p class="text-sm text-gray-500">
+          <span>Chào mừng bạn quay lại!</span><br />
+          <span id="current-time">Loading...</span>
+        </p>
+      </div>
     </div>
 
-    <!-- Dashboard Specific Header Fragment -->
-    <div th:fragment="dashboard-header" class="bg-white rounded-lg shadow-md p-6 mb-6">
-        <div class="flex justify-between items-center">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-3xl font-bold text-gray-800">🔧 Điều khiển máy chủ Ubuntu từ xa</h1>
-                <a href="/" class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 shadow-sm">
-                    <i class="fas fa-home mr-2"></i>Về trang chủ
-                </a>
-            </div>
-            <div class="flex items-center space-x-4" th:if="${user != null}">
-                <div class="text-right">
-                    <p class="text-sm text-gray-700 font-medium" th:text="${user.username}">admin</p>
-                    <p class="text-xs text-gray-500">Đã đăng nhập</p>
-                </div>
-                <img src="/images/avatar-default.png" alt="avatar" class="w-10 h-10 rounded-full border border-gray-300" />
-                <form th:action="@{/logout}" method="post" class="inline">
-                    <button type="submit" class="text-sm text-red-600 font-semibold hover:underline transition duration-200">
-                        <i class="fas fa-sign-out-alt mr-1"></i>Đăng xuất
-                    </button>
-                </form>
-            </div>
+
+    <div class="flex items-center space-x-4">
+      <a href="/" class="text-gray-700 hover:text-indigo-600 text-sm font-medium flex items-center group">
+        <i class="fas fa-home mr-1 group-hover:scale-110 transition-transform"></i>
+        Trang chủ
+      </a>
+      <a href="/dashboard" class="text-gray-700 hover:text-indigo-600 text-sm font-medium flex items-center group">
+        <i class="fas fa-th-large mr-1 group-hover:scale-110 transition-transform"></i>
+        Dashboard
+      </a>
+      <div th:if="${session.user != null}" class="flex items-center space-x-2">
+        <img src="/images/avatar-default.png" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-300 shadow" />
+        <div class="text-sm text-left">
+          <p class="font-medium text-gray-800" th:text="${session.user.username}">admin</p>
+          <p class="text-xs text-gray-500 italic">Đã đăng nhập</p>
         </div>
+      </div>
+      <a href="/logout" class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center group">
+        <i class="fas fa-sign-out-alt mr-1 group-hover:scale-110 transition-transform"></i>
+        Đăng xuất
+      </a>
+      
+    
+  </div>
+</div>
+
+<script>
+function updateTime() {
+  const now = new Date();
+  const timeString = now.toLocaleString('vi-VN', {
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    day: '2-digit',
+    month: '2-digit',
+    year: 'numeric',
+    hour12: false
+  }).replace(/(\d{2}:\d{2}:\d{2}), (\d{2}\/\d{2}\/\d{4})/, '$1 $2');
+  
+  const timeElement = document.getElementById('current-time');
+  if (timeElement) {
+    timeElement.textContent = timeString;
+  }
+}
+
+// Cập nhật thời gian ngay lập tức
+updateTime();
+
+// Cập nhật mỗi giây
+setInterval(updateTime, 1000);
+</script>
+
+<!-- Dashboard Header Fragment -->
+<div th:fragment="dashboard-header" class="bg-gradient-to-r from-white/80 to-white/60 backdrop-blur-md border border-gray-200 rounded-xl shadow-md p-6 mb-8">
+  <div class="flex justify-between items-center gap-x-6">
+    <!-- Trái: Tiêu đề + thời gian -->
+    <div class="flex items-center gap-4">
+      <div class="text-4xl text-indigo-600">
+        <i class="fas fa-th-large"></i>
+      </div>
+      <div>
+        <h1 class="text-2xl font-bold text-gray-800">Bảng điều khiển các chức năng</h1>
+        <p class="text-sm text-gray-500">
+          <span>Chào mừng bạn quay lại!</span><br />
+          <span id="dashboard-time">Loading...</span>
+        </p>
+      </div>
     </div>
-</body>
-</html>
+
+    <!-- Phải: Navigation + User info -->
+    <div class="flex items-center space-x-4">
+      <a href="/" class="text-gray-700 hover:text-indigo-600 text-sm font-medium flex items-center group">
+        <i class="fas fa-home mr-1 group-hover:scale-110 transition-transform"></i>
+        Trang chủ
+      </a>
+      <a href="/dashboard" class="text-gray-700 hover:text-indigo-600 text-sm font-medium flex items-center group">
+        <i class="fas fa-th-large mr-1 group-hover:scale-110 transition-transform"></i>
+        Dashboard
+      </a>
+      <div th:if="${session.user != null}" class="flex items-center space-x-2">
+        <img src="/images/avatar-default.png" alt="Avatar" class="w-10 h-10 rounded-full border border-gray-300 shadow" />
+        <div class="text-sm text-left">
+          <p class="font-medium text-gray-800" th:text="${session.user.username}">admin</p>
+          <p class="text-xs text-gray-500 italic">Đã đăng nhập</p>
+        </div>
+      </div>
+      <form th:action="@{/logout}" method="post" class="inline">
+        <button type="submit" class="text-red-600 hover:text-red-700 text-sm font-medium flex items-center group">
+          <i class="fas fa-sign-out-alt mr-1 group-hover:scale-110 transition-transform"></i>
+          Đăng xuất
+        </button>
+      </form>
+    </div>
+  </div>
+</div>
+
