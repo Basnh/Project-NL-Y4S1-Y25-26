@@ -1,8 +1,6 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
 import jakarta.persistence.*;
-import java.util.*;
-
 import com.example.sshcontrol.model.User;
 
 @Entity

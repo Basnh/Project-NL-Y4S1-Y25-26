@@ -1,6 +1,5 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
-import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.model.User;
 
 import com.example.sshcontrol.repository.UserRepository;

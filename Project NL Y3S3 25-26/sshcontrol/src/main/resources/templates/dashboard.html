@@ -10,24 +10,7 @@
 <div class="min-h-screen bg-gray-100 py-10 px-6">
     <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
         <!-- Header with user info -->
-        <div class="flex justify-between items-center mb-6">
-            <div class="flex items-center space-x-4">
-                <h1 class="text-3xl font-bold text-gray-800">🔧 Điều khiển máy chủ Ubuntu từ xa</h1>
-                <a href="/" class="inline-flex items-center px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition duration-200 shadow-sm">
-                    <i class="fas fa-home mr-2"></i>Về trang chủ
-                </a>
-            </div>
-            <div class="flex items-center space-x-4">
-                <div class="text-right">
-                    <p class="text-sm text-gray-700 font-medium" th:text="${user.username}">admin</p>
-                    <p class="text-xs text-gray-500">Đã đăng nhập</p>
-                </div>
-                <img src="/images/avatar-default.png" alt="avatar" class="w-10 h-10 rounded-full border border-gray-300" />
-                <form th:action="@{/logout}" method="post">
-                    <button class="text-sm text-red-600 font-semibold hover:underline">Đăng xuất</button>
-                </form>
-            </div>
-        </div>
+        <div th:replace="fragments/header :: dashboard-header"></div>
 
         <!-- Navigation Header with Layout Toggle -->
         <div class="flex justify-between items-center mb-6">
@@ -84,7 +67,7 @@
 
             <!-- Cấu hình dịch vụ -->
             <a th:href="@{/edit-config-page}" class="p-6 bg-purple-100 rounded-lg hover:bg-purple-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-cogs text-purple-600 text-2xl"></i>
+                <i class="fas fa-cogs text-purple-600 "></i>
                 <div>
                     <h2 class="text-lg font-semibold text-purple-800">Cấu hình dịch vụ</h2>
                     <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
@@ -93,10 +76,10 @@
 
             <!-- Quản lý file cấu hình -->
             <a th:href="@{/file-manager}" class="p-6 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition flex items-center gap-4 shadow">
-                <i class="fas fa-folder-open text-yellow-600 text-2xl"></i>
+                <i class="fa-solid fa-folder-open mr-2 text-blue-600 text-2xl "></i>
                 <div>
-                    <h2 class="text-lg font-semibold text-yellow-800">Quản lý file cấu hình (unknown finished ???) </h2>
-                    <p class="text-sm text-gray-600">Chỉnh sửa file cấu hình trên máy chủ từ xa.</p>
+                    <h2 class="text-lg font-semibold text-blue-800">Cấu hình dịch vụ</h2>
+                    <p class="text-sm text-gray-600">Duyệt, tải lên, tải xuống và xóa file trên máy chủ qua SFTP.</p>
                 </div>
             </a>
 

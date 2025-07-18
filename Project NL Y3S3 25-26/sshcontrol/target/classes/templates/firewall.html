@@ -11,16 +11,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="flex items-center justify-between">
-                    <h1 class="text-2xl font-bold text-gray-800">
-                        <i class="fas fa-shield-alt mr-2"></i>Quản lý Firewall
-                    </h1>
-                    <a href="/dashboard" class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Quay lại Dashboard
-                    </a>
-                </div>
-            </div>
+            <div th:replace="fragments/header :: header('Quản lý Firewall', 'fa-shield-alt')"></div>
 
             <!-- Server Selection -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
@@ -80,6 +71,93 @@
                             id="disableBtn" disabled>
                         <i class="fas fa-power-off mr-2"></i>Tắt Firewall
                     </button>
+                </div>
+
+                <!-- Common Ports Suggestions -->
+                <div class="border-t pt-6">
+                    <h3 class="text-md font-semibold mb-4">
+                        <i class="fas fa-lightbulb mr-2"></i>Port thông dụng:
+                    </h3>
+                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6" id="commonPorts">
+                        <button onclick="fillPort('22', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="22" data-protocol="tcp">
+                            <div class="font-medium">SSH</div>
+                            <div class="text-xs text-gray-600">22/TCP</div>
+                        </button>
+                        <button onclick="fillPort('80', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="80" data-protocol="tcp">
+                            <div class="font-medium">HTTP</div>
+                            <div class="text-xs text-gray-600">80/TCP</div>
+                        </button>
+                        <button onclick="fillPort('443', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="443" data-protocol="tcp">
+                            <div class="font-medium">HTTPS</div>
+                            <div class="text-xs text-gray-600">443/TCP</div>
+                        </button>
+                        <button onclick="fillPort('21', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="21" data-protocol="tcp">
+                            <div class="font-medium">FTP</div>
+                            <div class="text-xs text-gray-600">21/TCP</div>
+                        </button>
+                        <button onclick="fillPort('53', 'udp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="53" data-protocol="udp">
+                            <div class="font-medium">DNS</div>
+                            <div class="text-xs text-gray-600">53/UDP</div>
+                        </button>
+                    </div>
+                    
+                    <!-- More Ports Toggle -->
+                    <div class="mb-4">
+                        <button onclick="toggleMorePorts()" id="morePortsBtn" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm">
+                            <i class="fas fa-plus mr-2"></i>Xem thêm port khác
+                        </button>
+                    </div>
+                    
+                    <!-- Extended Ports (Hidden by default) -->
+                    <div id="morePorts" class="hidden">
+                        <h4 class="text-sm font-medium text-gray-700 mb-3">Port khác:</h4>
+                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
+                            <button onclick="fillPort('25', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="25" data-protocol="tcp">
+                                <div class="font-medium">SMTP</div>
+                                <div class="text-xs text-gray-600">25/TCP</div>
+                            </button>
+                            <button onclick="fillPort('110', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="110" data-protocol="tcp">
+                                <div class="font-medium">POP3</div>
+                                <div class="text-xs text-gray-600">110/TCP</div>
+                            </button>
+                            <button onclick="fillPort('143', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="143" data-protocol="tcp">
+                                <div class="font-medium">IMAP</div>
+                                <div class="text-xs text-gray-600">143/TCP</div>
+                            </button>
+                            <button onclick="fillPort('993', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="993" data-protocol="tcp">
+                                <div class="font-medium">IMAPS</div>
+                                <div class="text-xs text-gray-600">993/TCP</div>
+                            </button>
+                            <button onclick="fillPort('995', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="995" data-protocol="tcp">
+                                <div class="font-medium">POP3S</div>
+                                <div class="text-xs text-gray-600">995/TCP</div>
+                            </button>
+                            <button onclick="fillPort('3306', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="3306" data-protocol="tcp">
+                                <div class="font-medium">MySQL</div>
+                                <div class="text-xs text-gray-600">3306/TCP</div>
+                            </button>
+                            <button onclick="fillPort('5432', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="5432" data-protocol="tcp">
+                                <div class="font-medium">PostgreSQL</div>
+                                <div class="text-xs text-gray-600">5432/TCP</div>
+                            </button>
+                            <button onclick="fillPort('3389', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="3389" data-protocol="tcp">
+                                <div class="font-medium">RDP</div>
+                                <div class="text-xs text-gray-600">3389/TCP</div>
+                            </button>
+                            <button onclick="fillPort('5900', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="5900" data-protocol="tcp">
+                                <div class="font-medium">VNC</div>
+                                <div class="text-xs text-gray-600">5900/TCP</div>
+                            </button>
+                            <button onclick="fillPort('8080', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="8080" data-protocol="tcp">
+                                <div class="font-medium">HTTP Alt</div>
+                                <div class="text-xs text-gray-600">8080/TCP</div>
+                            </button>
+                            <button onclick="fillPort('8443', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="8443" data-protocol="tcp">
+                                <div class="font-medium">HTTPS Alt</div>
+                                <div class="text-xs text-gray-600">8443/TCP</div>
+                            </button>
+                        </div>
+                    </div>
                 </div>
 
                 <!-- Add Rule Form -->
@@ -198,6 +276,7 @@
                         password: selectedServer.password
                     })
                 });
+
                 
                 const result = await response.text();
                 showResult(result);
@@ -324,6 +403,68 @@
             }
         }
         
+        function fillPort(port, protocol) {
+            document.getElementById('portInput').value = port;
+            document.getElementById('protocolSelect').value = protocol;
+            highlightMatchingPort(port, protocol);
+        }
+        
+        function highlightMatchingPort(port, protocol) {
+            // Reset all port suggestions
+            document.querySelectorAll('.port-suggestion').forEach(btn => {
+                btn.classList.remove('border-blue-500', 'bg-blue-100', 'shadow-lg', 'scale-105');
+                btn.classList.add('border-gray-200', 'bg-gray-100');
+                btn.style.opacity = '0.5';
+            });
+            
+            // Find and highlight matching port
+            const matchingBtn = document.querySelector(`.port-suggestion[data-port="${port}"][data-protocol="${protocol}"]`);
+            if (matchingBtn) {
+                matchingBtn.classList.remove('border-gray-200', 'bg-gray-100');
+                matchingBtn.classList.add('border-blue-500', 'bg-blue-100', 'shadow-lg', 'scale-105');
+                matchingBtn.style.opacity = '1';
+            }
+        }
+        
+        function checkPortInput() {
+            const port = document.getElementById('portInput').value;
+            const protocol = document.getElementById('protocolSelect').value;
+            
+            if (port) {
+                highlightMatchingPort(port, protocol);
+            } else {
+                // Reset all when input is empty
+                document.querySelectorAll('.port-suggestion').forEach(btn => {
+                    btn.classList.remove('border-blue-500', 'bg-blue-100', 'shadow-lg', 'scale-105');
+                    btn.classList.add('border-gray-200', 'bg-gray-100');
+                    btn.style.opacity = '1';
+                });
+            }
+        }
+        
+        function toggleMorePorts() {
+            const morePorts = document.getElementById('morePorts');
+            const btn = document.getElementById('morePortsBtn');
+            
+            if (morePorts.classList.contains('hidden')) {
+                morePorts.classList.remove('hidden');
+                btn.innerHTML = '<i class="fas fa-minus mr-2"></i>Ẩn bớt port';
+                btn.classList.remove('bg-blue-100', 'text-blue-700', 'hover:bg-blue-200');
+                btn.classList.add('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+            } else {
+                morePorts.classList.add('hidden');
+                btn.innerHTML = '<i class="fas fa-plus mr-2"></i>Xem thêm port khác';
+                btn.classList.remove('bg-gray-100', 'text-gray-700', 'hover:bg-gray-200');
+                btn.classList.add('bg-blue-100', 'text-blue-700', 'hover:bg-blue-200');
+            }
+        }
+        
+        // Add event listeners when page loads
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('portInput').addEventListener('input', checkPortInput);
+            document.getElementById('protocolSelect').addEventListener('change', checkPortInput);
+        });
+        
         function showLoading() {
             const resultsDiv = document.getElementById('results');
             resultsDiv.innerHTML = `
@@ -334,10 +475,43 @@
             `;
         }
         
+        // function showResult(result) {
+        //     const resultsDiv = document.getElementById('results');
+        //     resultsDiv.innerHTML = `<pre>${result}</pre>`;
+        // }
         function showResult(result) {
             const resultsDiv = document.getElementById('results');
-            resultsDiv.innerHTML = `<pre>${result}</pre>`;
-        }
+            const lines = result.split('\n');
+            
+
+            const formatted = lines.map(line => {
+            const clean = line.trim().toLowerCase();
+
+            if (clean.includes('rule deleted')) {
+                return `<div class="text-green-400"><i class="fas fa-check-circle mr-2"></i>Quy tắc đã xóa thành công</div>`;
+            } else if (clean.includes('rule added')) {
+                return `<div class="text-green-400"><i class="fas fa-check-circle mr-2"></i>Đã thêm quy tắc mới</div>`;
+            } else if (clean.includes('status: active')) {
+                return `<div class="text-green-400"><i class="fas fa-shield-alt mr-2"></i>Tường lửa đang bật</div>`;
+            } else if (clean.includes('status: inactive')) {
+                return `<div class="text-yellow-400"><i class="fas fa-exclamation-circle mr-2"></i>Tường lửa đang tắt</div>`;
+            } else if (clean.includes('not enabled')) {
+                return `<div class="text-red-400"><i class="fas fa-times-circle mr-2"></i>Tường lửa chưa được bật</div>`;
+            } else if (clean.includes('firewall is active and enabled on system startup')) { 
+                return `<div class="text-green-500"><i class="fas fa-check-circle mr-2"></i>Tường lửa đã được bật và đang hoạt động trong hệ thống</div>`;
+            } else if (clean.includes('firewall stopped and disabled on system startup')) { 
+                return `<div class="text-red-500"><i class="fas fa-times-circle mr-2"></i>Tường lửa đã được tắt và không còn hoạt động trong hệ thống</div>`;    
+            } else if (clean.startsWith('error') || clean.startsWith('lỗi')) {
+                return `<div class="text-red-500"><i class="fas fa-exclamation-triangle mr-2"></i>${line}</div>`;
+            } else {
+                return `<div class="text-gray-300">${line}</div>`;
+            }
+            }).join('');
+
+    resultsDiv.innerHTML = `<div class="space-y-2">${formatted}</div>`;
+} 
     </script>
 </body>
 </html>
+
+ 

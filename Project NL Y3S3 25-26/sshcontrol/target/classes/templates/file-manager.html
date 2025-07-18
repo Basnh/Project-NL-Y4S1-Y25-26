@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Trình quản lý File - UControl</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100 text-gray-800">
+  <!-- Content -->
+  <main class="pt-8 pb-16 px-4 md:px-10 max-w-7xl mx-auto">
+    <!-- Header -->
+    <div th:replace="fragments/header :: header('Trình quản lý File', 'fa-folder-open')"></div>
+    
+    <div class="mb-8">
+      <p class="text-gray-600">Duyệt và thao tác file từ xa qua kết nối SSH</p>
+    </div>
+
+    <!-- Chọn máy chủ -->
+    <div class="bg-white shadow rounded-xl p-6 mb-8">
+      <h2 class="text-xl font-semibold mb-4"><i class="fas fa-server mr-2"></i>Chọn máy chủ để thực thi:</h2>
+      
+      <div th:if="${servers != null and !servers.isEmpty()}" class="grid gap-3 mb-4">
+        <div th:each="server : ${servers}" 
+             class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+             th:data-server-ip="${server.ip}"
+             th:data-server-name="${server.name}"
+             th:data-server-username="${server.sshUsername}"
+             th:data-server-online="${server.online}"
+             onclick="selectServer(this)">
+          <div class="flex items-center flex-1">
+            <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
+            <div class="flex-1">
+              <div class="font-medium text-gray-800" th:text="${server.name}"></div>
+              <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+              <div class="text-xs text-gray-500 mt-1">
+                <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+              </div>
+            </div>
+          </div>
+          <div class="flex items-center gap-3">
+            <span th:if="${server.online}" class="px-3 py-1 text-xs rounded-full bg-green-100 text-green-800">
+              <i class="fas fa-circle mr-1"></i>Online
+            </span>
+            <span th:unless="${server.online}" class="px-3 py-1 text-xs rounded-full bg-red-100 text-red-800">
+              <i class="fas fa-circle mr-1"></i>Offline
+            </span>
+            <div class="selected-indicator hidden">
+              <i class="fas fa-check-circle text-white text-xl"></i>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <div th:if="${servers == null or servers.isEmpty()}" class="text-gray-500 text-center py-8">
+        <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
+        <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
+        <a href="/add-server" class="inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+          <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
+        </a>
+      </div>
+      
+      <!-- Selected Server Info -->
+      <div id="selectedServerInfo" class="hidden mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center">
+            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+            <span class="text-blue-800 font-medium">Máy chủ được chọn:</span>
+            <span id="selectedServerName" class="ml-2 text-blue-700"></span>
+          </div>
+          <button onclick="connectToServer()" id="connectBtn" 
+                  class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-400"
+                  disabled>
+            <i class="fas fa-plug mr-2"></i>Kết nối
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Trình quản lý File -->
+    <div class="bg-white shadow rounded-xl p-6">
+      <h2 class="text-xl font-semibold mb-4"><i class="fas fa-folder-tree mr-2"></i>Thư mục: <span class="font-mono text-blue-600">/home/ubuntu</span></h2>
+
+      <!-- Thanh điều hướng -->
+      <div class="flex items-center space-x-2 mb-4">
+        <button class="bg-gray-200 px-3 py-1 rounded hover:bg-gray-300"><i class="fas fa-arrow-left"></i></button>
+        <input type="text" class="flex-1 border px-4 py-2 rounded text-sm" value="/home/ubuntu">
+        <button class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600">Đi</button>
+      </div>
+
+      <!-- Danh sách file -->
+      <div class="overflow-x-auto">
+        <table class="min-w-full text-sm">
+          <thead>
+            <tr class="bg-gray-100 text-left">
+              <th class="py-2 px-4">Tên</th>
+              <th class="py-2 px-4">Loại</th>
+              <th class="py-2 px-4">Kích thước</th>
+              <th class="py-2 px-4">Hành động</th>
+            </tr>
+          </thead>
+          <tbody>
+            <!-- Thư mục -->
+            <tr class="hover:bg-gray-50">
+              <td class="py-2 px-4"><i class="fas fa-folder text-yellow-500 mr-2"></i>documents</td>
+              <td class="py-2 px-4">Thư mục</td>
+              <td class="py-2 px-4">-</td>
+              <td class="py-2 px-4 space-x-2">
+                <button class="text-blue-600 hover:underline">Mở</button>
+              </td>
+            </tr>
+            <!-- Tập tin -->
+            <tr class="hover:bg-gray-50">
+              <td class="py-2 px-4"><i class="fas fa-file-alt text-gray-500 mr-2"></i>readme.txt</td>
+              <td class="py-2 px-4">Tập tin</td>
+              <td class="py-2 px-4">1.2 KB</td>
+              <td class="py-2 px-4 space-x-2">
+                <button class="text-green-600 hover:underline">Xem</button>
+                <button class="text-yellow-600 hover:underline">Đổi tên</button>
+                <button class="text-red-600 hover:underline">Xóa</button>
+              </td>
+            </tr>
+            <!-- Thêm dòng khác nếu cần -->
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </main>
+
+  <script>
+    let selectedServer = null;
+    
+    function selectServer(element) {
+      // Remove previous selection
+      document.querySelectorAll('.server-card').forEach(card => {
+        card.classList.remove('selected');
+        card.querySelector('.selected-indicator').classList.add('hidden');
+      });
+      
+      // Add selection to clicked server
+      element.classList.add('selected');
+      element.querySelector('.selected-indicator').classList.remove('hidden');
+      
+      // Get server info
+      selectedServer = {
+        ip: element.dataset.serverIp,
+        name: element.dataset.serverName,
+        username: element.dataset.serverUsername,
+        online: element.dataset.serverOnline === 'true'
+      };
+      
+      // Update selected server info
+      const selectedInfo = document.getElementById('selectedServerInfo');
+      const selectedName = document.getElementById('selectedServerName');
+      
+      selectedName.textContent = `${selectedServer.name} (${selectedServer.ip})`;
+      selectedInfo.classList.remove('hidden');
+      
+      // Enable/disable connect button based on server status
+      const connectBtn = document.getElementById('connectBtn');
+      if (selectedServer.online) {
+        connectBtn.disabled = false;
+        connectBtn.innerHTML = '<i class="fas fa-plug mr-2"></i>Kết nối';
+        connectBtn.classList.add('bg-blue-500', 'hover:bg-blue-600');
+        connectBtn.classList.remove('bg-gray-400');
+        
+        // Tự động load files khi chọn server online
+        connectToServer();
+      } else {
+        connectBtn.disabled = true;
+        connectBtn.innerHTML = '<i class="fas fa-exclamation-triangle mr-2"></i>Offline';
+        connectBtn.classList.add('bg-gray-400');
+        connectBtn.classList.remove('bg-blue-500', 'hover:bg-blue-600');
+      }
+    }
+    
+    function connectToServer() {
+      if (!selectedServer) {
+        alert('Vui lòng chọn máy chủ!');
+        return;
+      }
+      
+      if (!selectedServer.online) {
+        alert('Máy chủ đang offline, không thể kết nối!');
+        return;
+      }
+      
+      // Redirect to file manager with selected server
+      window.location.href = `/file-manager?serverId=${encodeURIComponent(selectedServer.ip)}`;
+    }
+  </script>
+</body>
+</html>

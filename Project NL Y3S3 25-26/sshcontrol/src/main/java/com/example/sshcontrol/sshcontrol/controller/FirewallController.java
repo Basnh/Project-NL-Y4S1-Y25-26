@@ -36,37 +36,77 @@ public class FirewallController {
     @PostMapping("/firewall/status")
     @ResponseBody
     public ResponseEntity<String> getStatus(@RequestBody Map<String, String> request) {
-        String host = request.get("host");
-        String username = request.get("username");
-        String password = request.get("password");
-        
-        String command = "sudo ufw status";
-        String output = sshService.executeCommand(host, username, password, command);
-        return ResponseEntity.ok(output);
+        try {
+            String host = request.get("host");
+            String username = request.get("username");
+            String password = request.get("password");
+            
+            System.out.println("Getting firewall status on host: " + host + " with user: " + username);
+            
+            String command = "sudo ufw status";
+            String output = sshService.executeCommand(host, username, password, command);
+            
+            if (output == null || output.trim().isEmpty()) {
+                return ResponseEntity.ok("Không thể lấy trạng thái firewall");
+            }
+            
+            return ResponseEntity.ok(output);
+        } catch (Exception e) {
+            System.err.println("Error getting firewall status: " + e.getMessage());
+            return ResponseEntity.ok("Lỗi khi kiểm tra trạng thái firewall: " + e.getMessage());
+        }
     }
 
     @PostMapping("/firewall/enable")
     @ResponseBody
     public ResponseEntity<String> enableFirewall(@RequestBody Map<String, String> request) {
-        String host = request.get("host");
-        String username = request.get("username");
-        String password = request.get("password");
-        
-        String command = "echo 'y' | sudo ufw enable";
-        String output = sshService.executeCommand(host, username, password, command);
-        return ResponseEntity.ok(output);
+        try {
+            String host = request.get("host");
+            String username = request.get("username");
+            String password = request.get("password");
+            
+            System.out.println("Enabling firewall on host: " + host + " with user: " + username);
+            
+            // Sử dụng --force để tránh câu hỏi xác nhận
+            String command = "sudo ufw --force enable";
+            String output = sshService.executeCommand(host, username, password, command);
+            
+            System.out.println("Firewall enable output: " + output);
+            
+            if (output == null || output.trim().isEmpty()) {
+                return ResponseEntity.ok("Lệnh đã thực hiện nhưng không có output từ server");
+            }
+            
+            return ResponseEntity.ok(output);
+        } catch (Exception e) {
+            System.err.println("Error enabling firewall: " + e.getMessage());
+            e.printStackTrace();
+            return ResponseEntity.ok("Lỗi khi bật firewall: " + e.getMessage());
+        }
     }
 
     @PostMapping("/firewall/disable")
     @ResponseBody
     public ResponseEntity<String> disableFirewall(@RequestBody Map<String, String> request) {
-        String host = request.get("host");
-        String username = request.get("username");
-        String password = request.get("password");
-        
-        String command = "sudo ufw disable";
-        String output = sshService.executeCommand(host, username, password, command);
-        return ResponseEntity.ok(output);
+        try {
+            String host = request.get("host");
+            String username = request.get("username");
+            String password = request.get("password");
+            
+            System.out.println("Disabling firewall on host: " + host + " with user: " + username);
+            
+            String command = "sudo ufw disable";
+            String output = sshService.executeCommand(host, username, password, command);
+            
+            if (output == null || output.trim().isEmpty()) {
+                return ResponseEntity.ok("Lệnh đã thực hiện nhưng không có output từ server");
+            }
+            
+            return ResponseEntity.ok(output);
+        } catch (Exception e) {
+            System.err.println("Error disabling firewall: " + e.getMessage());
+            return ResponseEntity.ok("Lỗi khi tắt firewall: " + e.getMessage());
+        }
     }
 
     @PostMapping("/firewall/add-rule")

@@ -66,9 +66,17 @@ public class SSHService {
             session.connect(30000);
 
             ChannelExec channel = (ChannelExec) session.openChannel("exec");
-            channel.setCommand(command);
-            // Truyền mật khẩu sudo + nội dung file
-            String fullInput = password + "\n" + input;
+            
+            // Nếu là lệnh sudo thì cần sử dụng -S để đọc password từ stdin
+            String realCommand = command;
+            String fullInput = input;
+            
+            if (command.trim().startsWith("sudo") || command.contains("sudo ")) {
+                realCommand = command.replaceFirst("sudo", "sudo -S");
+                fullInput = password + "\n" + input;
+            }
+            
+            channel.setCommand(realCommand);
             channel.setInputStream(new ByteArrayInputStream(fullInput.getBytes(StandardCharsets.UTF_8)));
             channel.setErrStream(System.err);
 
@@ -88,7 +96,7 @@ public class SSHService {
             channel.disconnect();
             session.disconnect();
         } catch (Exception e) {
-            output.append(e.getMessage());
+            output.append("[Lỗi SSH] ").append(e.getMessage());
         }
         return output.toString();
     }
