@@ -613,24 +613,81 @@ public class SSHController {
         String filePath = request.get("filePath");
         String content = request.get("content");
         
+        // Kiểm tra đầu vào
+        if (host == null || filePath == null) {
+            result.put("success", false);
+            result.put("error", "Thiếu thông tin host hoặc đường dẫn file");
+            return result;
+        }
+        
+        // Đảm bảo content không null
+        if (content == null) {
+            content = "";
+        }
+        
+        // Log để debug - QUAN TRỌNG để tìm nguyên nhân
+        System.out.println("=== SAVE FILE API DEBUG ===");
+        System.out.println("Host: " + host);
+        System.out.println("File path: " + filePath);
+        System.out.println("Content length: " + content.length());
+        System.out.println("Content is null: " + (content == null));
+        System.out.println("Content is empty after trim: " + content.trim().isEmpty());
+        System.out.println("Content preview (first 200 chars): " + (content.length() > 200 ? content.substring(0, 200) + "..." : content));
+        System.out.println("===========================");
+        
         String[] credentials = getUserCredentials(host, session);
         String username = credentials[0];
         String password = credentials[1];
         
         try {
-            String cmd = "echo '" + password + "' | sudo -S tee " + filePath;
-            String saveResult = sshService.executeCommandWithInput(host, username, password, cmd, content);
+            // Cách tiếp cận an toàn: Tạo temporary file trước, sau đó copy với sudo
+            String tempFile = "/tmp/temp_edit_" + System.currentTimeMillis();
             
-            if (saveResult != null && saveResult.toLowerCase().contains("permission denied")) {
+            // Bước 1: Tạo file tạm với nội dung (không cần sudo)
+            String createTempCmd = "cat > " + tempFile + " << 'EDIT_FILE_EOF'\n" + content + "\nEDIT_FILE_EOF";
+            
+            System.out.println("Step 1: Creating temp file with content...");
+            String tempResult = sshService.executeCommand(host, username, password, createTempCmd);
+            System.out.println("Temp file creation result: " + tempResult);
+            
+            // Bước 2: Copy file tạm đến vị trí đích với sudo
+            String copyCmd = "echo '" + password + "' | sudo -S cp " + tempFile + " " + filePath;
+            
+            System.out.println("Step 2: Copying temp file to destination with sudo...");
+            String copyResult = sshService.executeCommand(host, username, password, copyCmd);
+            System.out.println("Copy result: " + copyResult);
+            
+            // Bước 3: Xóa file tạm
+            String cleanupCmd = "rm -f " + tempFile;
+            sshService.executeCommand(host, username, password, cleanupCmd);
+            
+            // Kiểm tra kết quả
+            if (copyResult != null && (copyResult.toLowerCase().contains("permission denied") || 
+                                     copyResult.toLowerCase().contains("cannot create") ||
+                                     copyResult.toLowerCase().contains("no such file") ||
+                                     copyResult.toLowerCase().contains("error"))) {
                 result.put("success", false);
-                result.put("error", "Không đủ quyền ghi file");
+                result.put("error", "Không thể lưu file: " + copyResult);
             } else {
+                // Verify bằng cách kiểm tra kích thước file
+                String verifyCmd = "wc -c " + filePath + " 2>/dev/null || echo 'Error checking file'";
+                String verifyResult = sshService.executeCommand(host, username, password, verifyCmd);
+                
                 result.put("success", true);
                 result.put("message", "Lưu file thành công");
+                result.put("contentLength", content.length());
+                result.put("verification", verifyResult != null ? verifyResult.trim() : "No verification");
+                
+                System.out.println("✅ File saved successfully!");
+                System.out.println("Original content length: " + content.length());
+                System.out.println("File verification: " + verifyResult);
             }
+            
         } catch (Exception e) {
             result.put("success", false);
-            result.put("error", "Lỗi: " + e.getMessage());
+            result.put("error", "Lỗi khi lưu file: " + e.getMessage());
+            System.err.println("❌ Error saving file: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return result;

@@ -7,6 +7,200 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/executepage.css">
+    <style>
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #4B5563;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #4B5563 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Step indicators */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Enhanced buttons */
+        .btn-primary-enhanced {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-primary-enhanced:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary-enhanced {
+            background: linear-gradient(135deg, #6B7280, #4B5563);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger-enhanced {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        /* Loading animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #10B981, #059669);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+        }
+        
+        .toast.warning {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+        }
+        
+        /* Activity log styles */
+        .activity-log {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-left: 3px solid #E5E7EB;
+            margin-bottom: 4px;
+            background: #F9FAFB;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+        }
+        
+        .log-item.success {
+            border-left-color: #10B981;
+            background: #ECFDF5;
+        }
+        
+        .log-item.error {
+            border-left-color: #EF4444;
+            background: #FEF2F2;
+        }
+        
+        .log-item.info {
+            border-left-color: #3B82F6;
+            background: #EFF6FF;
+        }
+        
+        .log-time {
+            color: #6B7280;
+            font-size: 12px;
+            margin-right: 12px;
+            min-width: 60px;
+        }
+    </style>
 </head>
 <body class="bg-gray-100">
     <div class="container mx-auto px-4 py-8">
@@ -25,9 +219,17 @@
 
             <!-- Server Selection -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-server mr-2"></i>Chọn máy chủ để chỉnh sửa:
-                </h2>
+                <div class="step-indicator">
+                    <div class="step-number">1</div>
+                    <span>Chọn máy chủ để chỉnh sửa file cấu hình</span>
+                    <div class="tooltip ml-2">
+                        <i class="fas fa-question-circle text-white cursor-pointer"></i>
+                        <span class="tooltiptext">
+                            Chọn server Ubuntu bạn muốn chỉnh sửa file cấu hình. 
+                            Đảm bảo server đang online (hiển thị trạng thái xanh) để có thể truy cập file.
+                        </span>
+                    </div>
+                </div>
                 
                 <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3 mb-4">
                     <div th:each="server : ${userServers}" 
@@ -35,6 +237,7 @@
                          th:data-server-ip="${server.ip}"
                          th:data-server-name="${server.name}"
                          th:data-server-username="${server.sshUsername}"
+                         th:data-server-password="${server.sshPassword}"
                          th:data-server-online="${server.online}"
                          onclick="selectServer(this)">
                         <div class="flex items-center flex-1">
@@ -81,9 +284,39 @@
 
             <!-- File Path Input -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-file mr-2"></i>Đường dẫn file cấu hình:
-                </h2>
+                <div class="step-indicator">
+                    <div class="step-number">2</div>
+                    <span>Nhập đường dẫn file cấu hình</span>
+                    <div class="tooltip ml-2">
+                        <i class="fas fa-question-circle text-white cursor-pointer"></i>
+                        <span class="tooltiptext">
+                            Nhập đường dẫn tuyệt đối đến file cấu hình. 
+                            Ví dụ: /etc/ssh/sshd_config, /etc/nginx/nginx.conf, /etc/apache2/apache2.conf
+                        </span>
+                    </div>
+                </div>
+                
+                <!-- Quick path suggestions -->
+                <div id="pathSuggestions" class="hidden mb-4">
+                    <div class="text-sm text-gray-600 mb-2">
+                        <i class="fas fa-lightbulb mr-1"></i>Đường dẫn phổ biến:
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        <button onclick="fillPath('/etc/ssh/sshd_config')" class="px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-sm hover:bg-blue-200 transition">
+                            SSH Config
+                        </button>
+                        <button onclick="fillPath('/etc/nginx/nginx.conf')" class="px-3 py-1 bg-green-100 text-green-800 rounded-full text-sm hover:bg-green-200 transition">
+                            Nginx
+                        </button>
+                        <button onclick="fillPath('/etc/apache2/apache2.conf')" class="px-3 py-1 bg-orange-100 text-orange-800 rounded-full text-sm hover:bg-orange-200 transition">
+                            Apache
+                        </button>
+                        <button onclick="fillPath('/etc/hosts')" class="px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-sm hover:bg-purple-200 transition">
+                            Hosts
+                        </button>
+                    </div>
+                </div>
+                
                 <div class="space-y-4">
                     <div class="relative">
                         <input type="text" 
@@ -97,12 +330,12 @@
                     </div>
                     <div class="flex gap-2">
                         <button id="loadFileBtn" onclick="loadFile()" 
-                                class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                class="btn-primary-enhanced disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                                 disabled>
                             <i class="fas fa-download mr-2"></i>Tải file
                         </button>
                         <button onclick="clearEditor()" 
-                                class="px-6 py-2 btn-secondary text-white rounded-lg transition">
+                                class="btn-danger-enhanced flex items-center">
                             <i class="fas fa-eraser mr-2"></i>Xóa nội dung
                         </button>
                     </div>
@@ -111,9 +344,18 @@
 
             <!-- File Editor -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-code mr-2"></i>Nội dung file:
-                </h2>
+                <div class="step-indicator">
+                    <div class="step-number">3</div>
+                    <span>Chỉnh sửa nội dung file</span>
+                    <div class="tooltip ml-2">
+                        <i class="fas fa-question-circle text-white cursor-pointer"></i>
+                        <span class="tooltiptext">
+                            Chỉnh sửa nội dung file cấu hình. Sử dụng Ctrl+S để lưu nhanh, 
+                            Ctrl+R để tải lại file gốc.
+                        </span>
+                    </div>
+                </div>
+                
                 <div class="space-y-4">
                     <div class="relative">
                         <textarea id="fileContent" 
@@ -121,18 +363,30 @@
                                   rows="20" 
                                   placeholder="Nội dung file sẽ hiển thị ở đây..."
                                   disabled></textarea>
+                        <!-- File Status Display -->
+                        <div id="fileStatus" class="mt-2 hidden">
+                            <div class="flex items-center justify-between text-sm bg-gray-50 px-3 py-2 rounded border">
+                                <div class="flex items-center space-x-4">
+                                    <span class="text-gray-600"><i class="fas fa-file-lines mr-1"></i>Dòng: <strong>0</strong></span>
+                                    <span class="text-gray-600"><i class="fas fa-keyboard mr-1"></i>Ký tự: <strong>0</strong></span>
+                                </div>
+                                <div class="flex items-center">
+                                    <span class="text-gray-500"><i class="fas fa-info-circle mr-1"></i>Chưa tải file</span>
+                                </div>
+                            </div>
+                        </div>
                         <div class="absolute top-2 right-2 text-xs text-gray-400">
                             Ctrl + S để lưu
                         </div>
                     </div>
                     <div class="flex gap-2">
                         <button id="saveFileBtn" onclick="saveFile()" 
-                                class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                class="btn-primary-enhanced disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                                 disabled>
                             <i class="fas fa-save mr-2"></i>Lưu file
                         </button>
                         <button id="reloadFileBtn" onclick="reloadFile()" 
-                                class="px-6 py-2 btn-secondary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                class="btn-secondary-enhanced disabled:opacity-50 disabled:cursor-not-allowed flex items-center"
                                 disabled>
                             <i class="fas fa-refresh mr-2"></i>Tải lại
                         </button>
@@ -140,8 +394,29 @@
                 </div>
             </div>
 
+            <!-- Activity Log -->
+                        <!-- Activity Log -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4 flex items-center">
+                    <i class="fas fa-history mr-2 text-blue-600"></i>Lịch sử thao tác
+                    <div class="tooltip ml-2">
+                        <i class="fas fa-question-circle text-gray-400 cursor-pointer"></i>
+                        <span class="tooltiptext">
+                            Theo dõi các thao tác đã thực hiện trong phiên làm việc này
+                        </span>
+                    </div>
+                </h2>
+                <div id="activityLog" class="activity-log">
+                    <div class="log-item info">
+                        <span class="log-time">--:--</span>
+                        <i class="fas fa-info-circle mr-2 text-blue-500"></i>
+                        <span>Sẵn sàng chỉnh sửa file cấu hình</span>
+                    </div>
+                </div>
+            </div>
+
             <!-- Results -->
-            <div class="bg-white rounded-lg shadow-md p-6">
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-lg font-semibold mb-4">
                     <i class="fas fa-info-circle mr-2"></i>Kết quả:
                 </h2>
@@ -149,12 +424,96 @@
                     <div class="text-gray-500">Chưa có kết quả...</div>
                 </div>
             </div>
+
+            <!-- Navigation Buttons -->
+            <div class="text-center space-x-4">
+                <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+                </a>
+                <a th:href="@{/multi-edit-config}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-edit mr-2"></i> Chỉnh sửa nhiều máy chủ
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toastContainer"></div>
+
+    <!-- Loading Overlay -->
+    <div id="loadingOverlay" class="loading-overlay hidden">
+        <div class="loading-content">
+            <i class="fas fa-spinner fa-spin text-blue-600 text-3xl mb-3"></i>
+            <p class="text-gray-700 font-medium">Đang xử lý...</p>
+            <p id="loadingMessage" class="text-sm text-gray-500 mt-2"></p>
         </div>
     </div>
 
     <script>
         let selectedServer = null;
         let currentFilePath = null;
+        
+        // Toast notification function
+        function showToast(message, type = 'info', duration = 4000) {
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            toast.innerHTML = `
+                <div class="flex items-center">
+                    <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2"></i>
+                    <span>${message}</span>
+                </div>
+            `;
+            
+            document.getElementById('toastContainer').appendChild(toast);
+            
+            // Show toast
+            setTimeout(() => toast.classList.add('show'), 100);
+            
+            // Hide and remove toast
+            setTimeout(() => {
+                toast.classList.remove('show');
+                setTimeout(() => toast.remove(), 300);
+            }, duration);
+        }
+        
+        // Activity log function
+        function addLogEntry(message, type = 'info') {
+            const logContainer = document.getElementById('activityLog');
+            const time = new Date().toLocaleTimeString('vi-VN', { hour: '2-digit', minute: '2-digit' });
+            
+            const logItem = document.createElement('div');
+            logItem.className = `log-item ${type}`;
+            logItem.innerHTML = `
+                <span class="log-time">${time}</span>
+                <i class="fas fa-${type === 'success' ? 'check-circle' : type === 'error' ? 'exclamation-triangle' : 'info-circle'} mr-2 text-${type === 'success' ? 'green' : type === 'error' ? 'red' : 'blue'}-500"></i>
+                <span>${message}</span>
+            `;
+            
+            logContainer.appendChild(logItem);
+            logContainer.scrollTop = logContainer.scrollHeight;
+            
+            // Keep only last 10 entries
+            const logItems = logContainer.querySelectorAll('.log-item');
+            if (logItems.length > 10) {
+                logItems[0].remove();
+            }
+        }
+        
+        // Loading overlay functions
+        function showLoading(message) {
+            document.getElementById('loadingMessage').textContent = message;
+            document.getElementById('loadingOverlay').classList.remove('hidden');
+        }
+        
+        function hideLoading() {
+            document.getElementById('loadingOverlay').classList.add('hidden');
+        }
+        
+        // Fill path suggestion
+        function fillPath(path) {
+            document.getElementById('configFileInput').value = path;
+            addLogEntry(`Đã chọn đường dẫn: ${path}`, 'info');
+        }
         
         function selectServer(element) {
             // Remove previous selection
@@ -172,6 +531,7 @@
                 ip: element.dataset.serverIp,
                 name: element.dataset.serverName,
                 username: element.dataset.serverUsername,
+                password: element.dataset.serverPassword,
                 online: element.dataset.serverOnline === 'true'
             };
             
@@ -190,6 +550,9 @@
             configFileInput.placeholder = 'Nhập đường dẫn file cấu hình (ví dụ: /etc/nginx/nginx.conf)';
             loadFileBtn.disabled = false;
             
+            // Show path suggestions
+            document.getElementById('pathSuggestions').classList.remove('hidden');
+            
             // Add pulse animation to selected server
             element.classList.add('pulse-animation');
             setTimeout(() => {
@@ -198,11 +561,15 @@
             
             // Focus on file path input
             configFileInput.focus();
+            
+            // Log activity
+            addLogEntry(`Đã chọn máy chủ: ${selectedServer.name} (${selectedServer.ip})`, 'success');
+            showToast(`Đã chọn máy chủ ${selectedServer.name}`, 'success');
         }
         
         async function loadFile() {
             if (!selectedServer) {
-                alert('Vui lòng chọn máy chủ trước!');
+                showToast('Vui lòng chọn máy chủ trước!', 'error');
                 return;
             }
             
@@ -211,23 +578,29 @@
             const fileContent = document.getElementById('fileContent');
             
             if (!filePath.trim()) {
-                alert('Vui lòng nhập đường dẫn file!');
+                showToast('Vui lòng nhập đường dẫn file!', 'error');
                 return;
             }
             
             // Check if server is online
             if (!selectedServer.online) {
+                const errorMsg = `Máy chủ ${selectedServer.name} (${selectedServer.ip}) đang offline`;
                 resultsDiv.innerHTML = `
                     <div class="text-red-400">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: Máy chủ ${selectedServer.name} (${selectedServer.ip}) đang offline
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: ${errorMsg}
                     </div>
                 `;
+                addLogEntry(errorMsg, 'error');
+                showToast('Máy chủ đang offline!', 'error');
                 return;
             }
             
             currentFilePath = filePath;
             
             // Show loading
+            showLoading('Đang tải file từ máy chủ...');
+            addLogEntry(`📥 Đang tải file: ${filePath}`, 'info');
+            
             resultsDiv.innerHTML = `
                 <div class="text-yellow-400">
                     <i class="fas fa-spinner fa-spin mr-2"></i>Đang tải file từ ${selectedServer.name}...
@@ -248,111 +621,369 @@
                 
                 const result = await response.json();
                 
+                hideLoading();
+                
                 if (result.success) {
+                    const originalContent = result.content || '';
+                    
+                    // Log chi tiết việc tải file
+                    console.log('=== LOAD FILE SUCCESS ===');
+                    console.log('Original content length:', originalContent.length);
+                    console.log('Original content preview:', originalContent.substring(0, 200));
+                    console.log('File path:', filePath);
+                    console.log('========================');
+                    
+                    // Cập nhật textarea với nội dung gốc
                     fileContent.disabled = false;
-                    fileContent.value = result.content || '';
+                    fileContent.value = originalContent;
+                    
+                    // Lưu nội dung gốc để so sánh sau này
+                    fileContent.setAttribute('data-original-content', originalContent);
+                    fileContent.setAttribute('data-original-length', originalContent.length);
                     
                     // Enable save and reload buttons
                     document.getElementById('saveFileBtn').disabled = false;
                     document.getElementById('reloadFileBtn').disabled = false;
                     
+                    // Cập nhật hiển thị trạng thái file
+                    updateFileStatus();
+                    
+                    const lineCount = originalContent.split('\n').length;
+                    const charCount = originalContent.length;
+                    
+                    const successMsg = `✅ Đã tải thành công file: ${filePath}`;
                     resultsDiv.innerHTML = `
                         <div class="text-green-400">
-                            <i class="fas fa-check-circle mr-2"></i>Đã tải thành công file: ${filePath}
+                            <i class="fas fa-check-circle mr-2"></i>${successMsg}
+                            <div class="mt-2 text-sm space-y-1">
+                                <div>📄 Số dòng: <strong>${lineCount}</strong></div>
+                                <div>📝 Số ký tự: <strong>${charCount}</strong></div>
+                                <div>🎯 Trạng thái: <span class="text-green-300">SẴN SÀNG CHỈNH SỬA</span></div>
+                            </div>
                         </div>
                     `;
+                    
+                    addLogEntry(`✅ Tải file thành công: ${filePath} (${lineCount} dòng, ${charCount} ký tự)`, 'success');
+                    showToast(`🎉 Tải file thành công! ${lineCount} dòng đã được tải.`, 'success');
+                    
+                    // Focus vào textarea để user có thể chỉnh sửa ngay
+                    fileContent.focus();
+                    
+                    // Thiết lập theo dõi thay đổi cho file này
+                    setupFileWatcher(fileContent);
+                    
                 } else {
+                    const errorMsg = result.error || 'Không thể tải file';
                     resultsDiv.innerHTML = `
                         <div class="text-red-400">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: ${result.error || 'Không thể tải file'}
+                            <i class="fas fa-exclamation-triangle mr-2"></i>❌ Lỗi: ${errorMsg}
+                            <div class="mt-2 text-sm">
+                                <div>🔍 Kiểm tra đường dẫn file và quyền truy cập</div>
+                            </div>
                         </div>
                     `;
+                    addLogEntry(`❌ Lỗi tải file: ${errorMsg}`, 'error');
+                    showToast(`❌ Lỗi: ${errorMsg}`, 'error');
                 }
                 
             } catch (error) {
+                hideLoading();
+                const errorMsg = `Lỗi kết nối: ${error.message}`;
                 resultsDiv.innerHTML = `
                     <div class="text-red-400">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi kết nối: ${error.message}
+                        <i class="fas fa-exclamation-triangle mr-2"></i>❌ ${errorMsg}
+                        <div class="mt-2 text-sm">
+                            <div>🔍 Kiểm tra kết nối mạng và trạng thái server</div>
+                        </div>
                     </div>
                 `;
+                addLogEntry(`❌ ${errorMsg}`, 'error');
+                showToast('❌ Lỗi kết nối mạng!', 'error');
+                console.error('Load file error details:', error);
             }
+        }
+        
+        // Hàm theo dõi và bảo vệ nội dung file
+        function setupFileWatcher(fileContentElement) {
+            if (!fileContentElement) return;
+            
+            const originalContent = fileContentElement.getAttribute('data-original-content') || '';
+            const originalLength = parseInt(fileContentElement.getAttribute('data-original-length')) || 0;
+            
+            console.log('📋 Setting up file watcher for content length:', originalLength);
+            
+            // Theo dõi mọi thay đổi
+            fileContentElement.addEventListener('input', function() {
+                const currentContent = this.value;
+                const currentLength = currentContent.length;
+                
+                // Cập nhật trạng thái
+                updateFileStatus();
+                
+                // Cảnh báo nếu nội dung bị xóa đột ngột
+                if (originalLength > 100 && currentLength === 0) {
+                    console.warn('🚨 WARNING: File content was suddenly emptied!');
+                    showToast('⚠️ CẢNH BÁO: Nội dung file đã bị xóa hoàn toàn!', 'warning', 6000);
+                    addLogEntry('🚨 CẢNH BÁO: File content was emptied - possible accidental deletion', 'error');
+                }
+                
+                // Cảnh báo nếu mất quá nhiều nội dung
+                if (originalLength > 100 && currentLength < originalLength * 0.1) {
+                    console.warn('🚨 WARNING: Significant content loss detected!');
+                    showToast('⚠️ CẢNH BÁO: Đã mất hơn 90% nội dung file!', 'warning', 5000);
+                }
+            });
+            
+            // Theo dõi paste
+            fileContentElement.addEventListener('paste', function() {
+                setTimeout(() => {
+                    updateFileStatus();
+                    showToast('📋 Đã dán nội dung vào editor', 'info', 2000);
+                }, 100);
+            });
+            
+            // Theo dõi cut/delete
+            fileContentElement.addEventListener('cut', function() {
+                setTimeout(() => {
+                    updateFileStatus();
+                    const currentContent = this.value;
+                    if (currentContent.trim() === '') {
+                        showToast('🚨 CẢNH BÁO: File đã trở nên trống sau khi cắt!', 'warning', 4000);
+                    }
+                }, 100);
+            });
+        }
+        
+        // Hàm cập nhật trạng thái file với bảo vệ
+        function updateFileStatus() {
+            const fileContent = document.getElementById('fileContent');
+            const statusDiv = document.getElementById('fileStatus');
+            
+            if (!fileContent || !statusDiv) return;
+            
+            const content = fileContent.value || '';
+            const lineCount = content.split('\n').length;
+            const charCount = content.length;
+            const isEmpty = content.trim() === '';
+            
+            // Hiển thị status div
+            statusDiv.classList.remove('hidden');
+            
+            statusDiv.innerHTML = `
+                <div class="flex items-center justify-between text-sm bg-gray-50 px-3 py-2 rounded border">
+                    <div class="flex items-center space-x-4">
+                        <span class="text-gray-600"><i class="fas fa-file-lines mr-1"></i>Dòng: <strong>${lineCount}</strong></span>
+                        <span class="text-gray-600"><i class="fas fa-keyboard mr-1"></i>Ký tự: <strong>${charCount}</strong></span>
+                    </div>
+                    <div class="flex items-center">
+                        ${isEmpty ? 
+                            '<span class="text-red-600 font-bold animate-pulse"><i class="fas fa-exclamation-triangle mr-1"></i>FILE TRỐNG - NGUY HIỂM!</span>' : 
+                            '<span class="text-green-600 font-medium"><i class="fas fa-check-circle mr-1"></i>Có nội dung an toàn</span>'
+                        }
+                    </div>
+                </div>
+            `;
+            
+            return { isEmpty, lineCount, charCount, content };
         }
         
         async function saveFile() {
             if (!selectedServer || !currentFilePath) {
-                alert('Vui lòng tải file trước khi lưu!');
+                showToast('Vui lòng tải file trước khi lưu!', 'error');
                 return;
             }
             
-            const content = document.getElementById('fileContent').value;
-            const resultsDiv = document.getElementById('results');
-            
-            if (!content.trim()) {
-                if (!confirm('File rỗng. Bạn có chắc muốn lưu không?')) {
-                    return;
-                }
+            // Lấy nội dung từ textarea với bảo vệ kép
+            const fileContentElement = document.getElementById('fileContent');
+            if (!fileContentElement) {
+                showToast('❌ Lỗi: Không tìm thấy textarea!', 'error');
+                return;
             }
             
-            // Show loading
+            const content = fileContentElement.value;
+            const resultsDiv = document.getElementById('results');
+            
+            // === KIỂM TRA BẢO VỆ KÉP ===
+            console.log('=== SAVE FILE PROTECTION CHECK ===');
+            console.log('Element found:', !!fileContentElement);
+            console.log('Raw content:', content);
+            console.log('Content length:', content ? content.length : 'NULL/UNDEFINED');
+            console.log('Content type:', typeof content);
+            console.log('Is empty after trim:', content ? content.trim() === '' : 'CONTENT IS NULL');
+            console.log('=====================================');
+            
+            // Kiểm tra nội dung null/undefined
+            if (content === null || content === undefined) {
+                showToast('❌ CRITICAL ERROR: Nội dung file là NULL/UNDEFINED!', 'error');
+                addLogEntry('🚨 CRITICAL: File content is null/undefined - BLOCKING SAVE', 'error');
+                return;
+            }
+            
+            // Kiểm tra nội dung trống với cảnh báo nghiêm trọng
+            if (content.trim() === '') {
+                // Hiển thị dialog cảnh báo với nhiều lớp xác nhận
+                const userConfirm1 = confirm('🚨 CẢNH BÁO CỰC KỲ NGHIÊM TRỌNG! 🚨\n\n' +
+                    '💀 FILE HIỆN TẠI HOÀN TOÀN TRỐNG!\n\n' +
+                    '⚠️ Lưu file trống sẽ:\n' +
+                    '• XÓA VĨNH VIỄN toàn bộ nội dung file gốc\n' +
+                    '• Có thể làm CRASH toàn bộ hệ thống\n' +
+                    '• Gây mất dữ liệu KHÔNG THỂ PHỤC HỒI\n\n' +
+                    '� ĐÂY CÓ THỂ LÀ LỖI NGHIÊM TRỌNG!\n\n' +
+                    'Bạn có muốn TIẾP TỤC không?\n' +
+                    '(Nhấn Cancel để AN TOÀN)');
+                
+                if (!userConfirm1) {
+                    showToast('✅ ĐÃ HỦY - Hệ thống được bảo vệ!', 'success');
+                    addLogEntry('🛡️ User wisely cancelled empty file save', 'success');
+                    return;
+                }
+                
+                // Lớp xác nhận thứ 2
+                const userConfirm2 = confirm('🔴 XÁC NHẬN LẦN CUỐI! 🔴\n\n' +
+                    'Bạn THỰC SỰ muốn xóa toàn bộ nội dung file?\n\n' +
+                    '⚠️ Hành động này KHÔNG THỂ HOÀN TÁC!\n\n' +
+                    'Nhấn OK để XÁC NHẬN XÓA\n' +
+                    'Nhấn Cancel để GIỮ AN TOÀN');
+                
+                if (!userConfirm2) {
+                    showToast('✅ SAFE - Đã hủy thao tác nguy hiểm!', 'success');
+                    addLogEntry('🛡️ Double protection: User cancelled dangerous operation', 'success');
+                    return;
+                }
+                
+                // Log cảnh báo nếu user vẫn tiếp tục
+                addLogEntry('🚨 WARNING: User confirmed saving empty file despite warnings!', 'error');
+                console.warn('🚨 USER CONFIRMED DANGEROUS OPERATION: Saving empty file!');
+            }
+            
+            // Show loading với thông tin chi tiết
+            showLoading(`Đang lưu file lên máy chủ...\nKích thước: ${content.length} ký tự`);
+            addLogEntry(`📤 Đang lưu file: ${currentFilePath} (${content.length} ký tự, ${content.split('\n').length} dòng)`, 'info');
+            
             resultsDiv.innerHTML = `
                 <div class="text-yellow-400">
                     <i class="fas fa-spinner fa-spin mr-2"></i>Đang lưu file trên ${selectedServer.name}...
+                    <div class="mt-1 text-sm">
+                        <div>📁 File: ${currentFilePath}</div>
+                        <div>📏 Kích thước: ${content.length} ký tự</div>
+                        <div>📄 Số dòng: ${content.split('\n').length}</div>
+                    </div>
                 </div>
             `;
             
             try {
+                // Tạo backup content để debug
+                const backupContent = content;
+                
+                // Tạo request body với kiểm tra an toàn
+                const requestBody = {
+                    host: selectedServer.ip,
+                    filePath: currentFilePath,
+                    content: content
+                };
+                
+                // Kiểm tra final trước khi gửi
+                console.log('=== FINAL SEND CHECK ===');
+                console.log('Request body keys:', Object.keys(requestBody));
+                console.log('Content in request body:', requestBody.content ? requestBody.content.length + ' chars' : 'NULL/EMPTY');
+                console.log('Content matches backup:', requestBody.content === backupContent);
+                console.log('========================');
+                
+                if (requestBody.content !== backupContent) {
+                    console.error('🚨 CRITICAL: Content was modified during request preparation!');
+                    showToast('❌ CRITICAL: Nội dung bị thay đổi bất thường!', 'error');
+                    hideLoading();
+                    return;
+                }
+                
                 const response = await fetch('/api/save-file-content', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
                     },
-                    body: JSON.stringify({
-                        host: selectedServer.ip,
-                        filePath: currentFilePath,
-                        content: content
-                    })
+                    body: JSON.stringify(requestBody)
                 });
                 
+                console.log('Response status:', response.status);
+                console.log('Response headers:', [...response.headers.entries()]);
+                
                 const result = await response.json();
+                console.log('Response result:', result);
+                
+                hideLoading();
                 
                 if (result.success) {
+                    const lineCount = content.split('\n').length;
+                    const charCount = content.length;
+                    
+                    const successMsg = `✅ Đã lưu thành công file: ${currentFilePath}`;
                     resultsDiv.innerHTML = `
                         <div class="text-green-400">
-                            <i class="fas fa-check-circle mr-2"></i>Đã lưu thành công file: ${currentFilePath}
+                            <i class="fas fa-check-circle mr-2"></i>${successMsg}
+                            <div class="mt-2 text-sm space-y-1">
+                                <div>📄 Số dòng: <strong>${lineCount}</strong></div>
+                                <div>📝 Số ký tự: <strong>${charCount}</strong></div>
+                                <div>⏰ Thời gian: <strong>${new Date().toLocaleTimeString('vi-VN')}</strong></div>
+                                <div>🎯 Trạng thái: <span class="text-green-300">THÀNH CÔNG</span></div>
+                            </div>
                         </div>
                     `;
+                    addLogEntry(`✅ Lưu file thành công: ${currentFilePath} (${lineCount} dòng, ${charCount} ký tự)`, 'success');
+                    showToast(`🎉 Lưu file thành công! ${lineCount} dòng đã được lưu an toàn.`, 'success');
                 } else {
+                    const errorMsg = result.error || 'Không thể lưu file';
                     resultsDiv.innerHTML = `
                         <div class="text-red-400">
-                            <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: ${result.error || 'Không thể lưu file'}
+                            <i class="fas fa-exclamation-triangle mr-2"></i>❌ Lỗi: ${errorMsg}
+                            <div class="mt-2 text-sm">
+                                <div>🔍 Chi tiết: Kiểm tra kết nối SSH và quyền file</div>
+                            </div>
                         </div>
                     `;
+                    addLogEntry(`❌ Lỗi lưu file: ${errorMsg}`, 'error');
+                    showToast(`❌ Lỗi: ${errorMsg}`, 'error');
                 }
                 
             } catch (error) {
+                hideLoading();
+                const errorMsg = `Lỗi kết nối: ${error.message}`;
                 resultsDiv.innerHTML = `
                     <div class="text-red-400">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi kết nối: ${error.message}
+                        <i class="fas fa-exclamation-triangle mr-2"></i>❌ ${errorMsg}
+                        <div class="mt-2 text-sm">
+                            <div>🔍 Chi tiết: Kiểm tra kết nối mạng và trạng thái server</div>
+                        </div>
                     </div>
                 `;
+                addLogEntry(`❌ ${errorMsg}`, 'error');
+                showToast('❌ Lỗi kết nối mạng!', 'error');
+                console.error('Save file error details:', error);
             }
         }
         
         function reloadFile() {
             if (!selectedServer || !currentFilePath) {
-                alert('Vui lòng tải file trước!');
+                showToast('Vui lòng tải file trước!', 'error');
                 return;
             }
             
-            if (confirm('Bạn có chắc muốn tải lại file? Các thay đổi chưa lưu sẽ bị mất.')) {
+            if (confirm('⚠️ Bạn có chắc muốn tải lại file?\n\nCác thay đổi chưa lưu sẽ bị mất.')) {
                 document.getElementById('configFileInput').value = currentFilePath;
+                addLogEntry('Đang tải lại file từ máy chủ', 'info');
                 loadFile();
             }
         }
         
         function clearEditor() {
+            if (document.getElementById('fileContent').value.trim() && 
+                !confirm('⚠️ Bạn có chắc muốn xóa toàn bộ nội dung?\n\nHành động này không thể hoàn tác.')) {
+                return;
+            }
+            
             document.getElementById('fileContent').value = '';
             document.getElementById('results').innerHTML = '<div class="text-gray-500">Đã xóa nội dung editor...</div>';
+            addLogEntry('Đã xóa nội dung editor', 'info');
+            showToast('Đã xóa nội dung editor', 'warning');
         }
         
         // Keyboard shortcuts
@@ -387,6 +1018,69 @@
                 selectServer(serverCard);
             }
         }
+        
+        // === HỆ THỐNG BẢO VỆ NỘI DUNG FILE ===
+        function initContentProtection() {
+            const fileContent = document.getElementById('fileContent');
+            if (!fileContent) {
+                console.error('❌ Cannot find fileContent textarea!');
+                return;
+            }
+            
+            console.log('🛡️ Initializing file content protection system...');
+            
+            // Thiết lập theo dõi cơ bản
+            fileContent.addEventListener('input', function() {
+                updateFileStatus();
+            });
+            
+            // Theo dõi các thao tác nguy hiểm
+            fileContent.addEventListener('keydown', function(e) {
+                // Ctrl+A (Select All) - cảnh báo nếu sau đó bị xóa
+                if (e.ctrlKey && e.key === 'a') {
+                    setTimeout(() => {
+                        const selection = window.getSelection().toString();
+                        if (selection.length > 0) {
+                            console.log('⚠️ User selected all content - monitoring for deletion...');
+                        }
+                    }, 100);
+                }
+                
+                // Delete/Backspace với nội dung lớn
+                if ((e.key === 'Delete' || e.key === 'Backspace') && this.value.length > 100) {
+                    const selectionLength = this.selectionEnd - this.selectionStart;
+                    if (selectionLength > this.value.length * 0.5) {
+                        console.warn('⚠️ User is about to delete significant portion of content!');
+                    }
+                }
+            });
+            
+            console.log('✅ File content protection system activated');
+        }
+        
+        // Khởi tạo khi DOM sẵn sàng
+        document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM Content Loaded - Initializing protection systems...');
+            initContentProtection();
+            
+            // Hiển thị thông báo bảo vệ
+            setTimeout(() => {
+                showToast('🛡️ Hệ thống bảo vệ file đã được kích hoạt', 'info', 3000);
+            }, 1000);
+        });
+        
+        // Cảnh báo trước khi rời khỏi trang nếu có thay đổi chưa lưu
+        window.addEventListener('beforeunload', function(e) {
+            const fileContent = document.getElementById('fileContent');
+            if (fileContent && fileContent.value.trim() !== '') {
+                const originalContent = fileContent.getAttribute('data-original-content') || '';
+                if (fileContent.value !== originalContent) {
+                    e.preventDefault();
+                    e.returnValue = 'Bạn có thay đổi chưa lưu. Bạn có chắc muốn rời khỏi trang?';
+                }
+            }
+        });
     </script>
 </body>
 </html>
+                

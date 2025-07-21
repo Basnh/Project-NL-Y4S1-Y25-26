@@ -3,18 +3,39 @@
 <head>
     <meta charset="UTF-8">
     <title>Thêm máy chủ mới</title>
-    <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Custom CSS file -->
     <link rel="stylesheet" href="/styles.css">
+    <style>
+        @keyframes slideIn {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+        
+        .animate-slide-in {
+            animation: slideIn 0.3s ease-out;
+        }
+        
+        .notification-container {
+            position: fixed;
+            top: 1rem;
+            right: 1rem;
+            z-index: 1000;
+            max-width: 400px;
+        }
+    </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-4xl mx-auto">
             <!-- Header -->
-            <div th:replace="fragments/header :: header('Thêm máy chủ mới', 'fa-server')"></div>
+            <div th:replace="~{fragments/header :: header('Thêm máy chủ mới', 'fas fa-server')}"></div>
             
             <div class="bg-white shadow-lg rounded-lg p-6">
                 <form th:action="@{/add-server}" method="post" th:object="${server}" class="space-y-6">
@@ -45,49 +66,267 @@
                 </button>
             </div>
         </form>
-        <div class="mt-8 text-center">
+        
+        <div id="notificationArea" class="fixed top-4 right-4 z-50 max-w-md">
+            <div id="successNotification" class="hidden bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded-lg shadow-lg mb-4 animate-slide-in">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-check-circle mr-2"></i>
+                        <span id="successMessage">Máy chủ đã được thêm thành công!</span>
+                    </div>
+                    <button onclick="hideNotification('success')" class="ml-2 text-green-600 hover:text-green-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="errorNotification" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded-lg shadow-lg mb-4 animate-slide-in">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center">
+                        <i class="fas fa-exclamation-circle mr-2"></i>
+                        <div>
+                            <div id="errorMessage" class="font-medium">Có lỗi xảy ra khi kết nối!</div>
+                            <div id="errorDetails" class="text-sm mt-1 hidden"></div>
+                        </div>
+                    </div>
+                    <button onclick="hideNotification('error')" class="ml-2 text-red-600 hover:text-red-800">
+                        <i class="fas fa-times"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div id="loadingNotification" class="hidden bg-blue-100 border border-blue-400 text-blue-700 px-4 py-3 rounded-lg shadow-lg mb-4">
+                <div class="flex items-center">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>
+                    <span>Đang kiểm tra kết nối SSH...</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="mt-8 text-center space-x-4">
+            <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+            </a>
             <a th:href="@{/server-list}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out">
                 <i class="fas fa-arrow-left mr-2"></i> Quay lại danh sách máy chủ
             </a>
         </div>
-        <!-- Script lưu server vào sessionStorage và hiển thị xác nhận -->
+        <!-- Enhanced Script with SSH Connection Validation -->
         <script>
-            document.querySelector('form').addEventListener('submit', function(e) {
+            // Utility functions for notifications
+            function showNotification(type, message, details = null) {
+                // Hide all notifications first
+                hideAllNotifications();
+                
+                const notification = document.getElementById(type + 'Notification');
+                const messageElement = document.getElementById(type + 'Message');
+                
+                if (messageElement) {
+                    messageElement.textContent = message;
+                }
+                
+                // Show details for error notifications
+                if (type === 'error' && details) {
+                    const detailsElement = document.getElementById('errorDetails');
+                    if (detailsElement) {
+                        detailsElement.textContent = details;
+                        detailsElement.classList.remove('hidden');
+                    }
+                }
+                
+                notification.classList.remove('hidden');
+                
+                // Auto hide after 7 seconds for non-loading notifications
+                if (type !== 'loading') {
+                    setTimeout(() => {
+                        notification.classList.add('hidden');
+                    }, 7000);
+                }
+            }
+            
+            function hideNotification(type) {
+                const notification = document.getElementById(type + 'Notification');
+                notification.classList.add('hidden');
+                
+                // Hide error details when closing error notification
+                if (type === 'error') {
+                    const detailsElement = document.getElementById('errorDetails');
+                    if (detailsElement) {
+                        detailsElement.classList.add('hidden');
+                    }
+                }
+            }
+            
+            function hideAllNotifications() {
+                document.getElementById('successNotification').classList.add('hidden');
+                document.getElementById('errorNotification').classList.add('hidden');
+                document.getElementById('loadingNotification').classList.add('hidden');
+                
+                // Hide error details
+                const detailsElement = document.getElementById('errorDetails');
+                if (detailsElement) {
+                    detailsElement.classList.add('hidden');
+                }
+            }
+            
+            // Enhanced validation with specific error messages
+            function validateInput(name, ip, username, password) {
+                const errors = [];
+                
+                if (!name || name.trim().length < 2) {
+                    errors.push('🏷️ Tên máy chủ: Phải có ít nhất 2 ký tự');
+                }
+                
+                // IP validation with specific error
+                const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+                if (!ip || !ip.trim()) {
+                    errors.push('🌐 Địa chỉ IP: Không được để trống');
+                } else if (!ipRegex.test(ip.trim())) {
+                    errors.push('🌐 Địa chỉ IP: Định dạng không hợp lệ (ví dụ đúng: 192.168.1.100)');
+                }
+                
+                if (!username || username.trim().length < 2) {
+                    errors.push('👤 SSH Username: Phải có ít nhất 2 ký tự');
+                }
+                
+                if (!password || password.length < 3) {
+                    errors.push('🔐 SSH Password: Phải có ít nhất 3 ký tự');
+                }
+                
+                return errors;
+            }
+            
+            // Test SSH connection with enhanced error handling
+            async function testSSHConnection(ip, username, password) {
+                try {
+                    const response = await fetch('/api/test-ssh-connection', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            ip: ip,
+                            username: username,
+                            password: password
+                        })
+                    });
+                    
+                    const result = await response.json();
+                    return {
+                        success: response.ok && result.success,
+                        message: result.message || 'Không thể kết nối',
+                        details: result.details || null
+                    };
+                } catch (error) {
+                    return {
+                        success: false,
+                        message: 'Lỗi kết nối mạng',
+                        details: 'Không thể kết nối đến server: ' + error.message
+                    };
+                }
+            }
+            
+            // Enhanced error message processing
+            function processErrorMessage(connectionResult) {
+                let mainMessage = connectionResult.message;
+                let details = connectionResult.details;
+                
+                // Determine specific error type and provide detailed guidance
+                if (mainMessage.includes('Xác thực thất bại') || mainMessage.includes('Auth fail')) {
+                    mainMessage = '🔐 Lỗi xác thực SSH';
+                    details = 'SSH Username hoặc SSH Password không đúng. Vui lòng kiểm tra lại thông tin đăng nhập.';
+                } else if (mainMessage.includes('timeout')) {
+                    mainMessage = '⏱️ Kết nối timeout';
+                    details = 'Không thể kết nối đến địa chỉ IP này. Kiểm tra: IP có đúng không? SSH service có đang chạy không?';
+                } else if (mainMessage.includes('Connection refused')) {
+                    mainMessage = '🚫 Kết nối bị từ chối';
+                    details = 'SSH service có thể chưa được bật hoặc port 22 bị chặn bởi firewall.';
+                } else if (mainMessage.includes('UnknownHostException') || mainMessage.includes('tìm thấy host')) {
+                    mainMessage = '🌐 Không tìm thấy host';
+                    details = 'Địa chỉ IP không tồn tại hoặc không thể truy cập. Vui lòng kiểm tra lại địa chỉ IP.';
+                } else if (mainMessage.includes('NoRouteToHostException')) {
+                    mainMessage = '🛣️ Không có đường kết nối';
+                    details = 'Không thể kết nối đến host. Kiểm tra kết nối mạng và cấu hình firewall.';
+                }
+                
+                return { mainMessage, details };
+            }
+            
+            // Main form submission handler
+            document.querySelector('form').addEventListener('submit', async function(e) {
                 e.preventDefault(); // Ngăn reload trang
-                // Lấy giá trị các trường
+                
+                // Get form values
                 const name = document.getElementById('serverName').value.trim();
                 const ip = document.querySelector('input[name="ip"]').value.trim();
                 const sshUsername = document.querySelector('input[name="sshUsername"]').value.trim();
                 const sshPassword = document.querySelector('input[name="sshPassword"]').value.trim();
-                // Lấy danh sách servers từ sessionStorage
+                
+                // Step 1: Validate input with specific error messages
+                const validationErrors = validateInput(name, ip, sshUsername, sshPassword);
+                if (validationErrors.length > 0) {
+                    const mainError = 'Vui lòng kiểm tra thông tin nhập vào:';
+                    const detailError = validationErrors.join('\n');
+                    showNotification('error', mainError, detailError);
+                    return;
+                }
+                
+                // Step 2: Check for duplicates
                 let servers = JSON.parse(sessionStorage.getItem('servers') || '[]');
-                // Kiểm tra trùng ip + username + password (không phân biệt hoa thường)
                 const isDuplicate = servers.some(s =>
                     s.ip && s.ip.toLowerCase() === ip.toLowerCase() &&
                     s.sshUsername && s.sshUsername.toLowerCase() === sshUsername.toLowerCase() &&
                     s.sshPassword && s.sshPassword === sshPassword
                 );
+                
                 if (isDuplicate) {
-                    alert('Máy chủ với IP, SSH Username và Password này đã tồn tại!');
-                    return; // Không lưu server nếu trùng
+                    showNotification('error', '⚠️ Máy chủ đã tồn tại', 'Máy chủ với IP, SSH Username và Password này đã được thêm trước đó.');
+                    return;
                 }
-                // Nếu không trùng thì lưu
+                
+                // Step 3: Test SSH connection
+                showNotification('loading', 'Đang kiểm tra kết nối SSH...');
+                
+                const connectionResult = await testSSHConnection(ip, sshUsername, sshPassword);
+                
+                if (!connectionResult.success) {
+                    const { mainMessage, details } = processErrorMessage(connectionResult);
+                    showNotification('error', mainMessage, details);
+                    return;
+                }
+                
+                // Step 4: Save to sessionStorage and backend
                 const newServer = { name, ip, sshUsername, sshPassword };
                 servers.push(newServer);
                 sessionStorage.setItem('servers', JSON.stringify(servers));
-                // Hiển thị xác nhận đúng định dạng
-                let confirmDiv = document.getElementById('serverConfirmDiv');
-                if (!confirmDiv) {
-                    confirmDiv = document.createElement('div');
-                    confirmDiv.id = 'serverConfirmDiv';
-                    confirmDiv.className = 'mt-4 text-green-600 text-center font-semibold';
-                    document.querySelector('.container').appendChild(confirmDiv);
+                
+                // Show success message
+                showNotification('success', `✅ Máy chủ "${name}" đã được thêm thành công!`, 'Kết nối SSH hoạt động bình thường và đã lưu thông tin.');
+                
+                // Clear form
+                document.querySelector('form').reset();
+                
+                // Optional: Submit to backend
+                try {
+                    const response = await fetch('/add-server', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                        },
+                        body: new URLSearchParams({
+                            name: name,
+                            ip: ip,
+                            sshUsername: sshUsername,
+                            sshPassword: sshPassword
+                        })
+                    });
+                    
+                    if (!response.ok) {
+                        console.warn('Backend save failed, but local storage successful');
+                    }
+                } catch (error) {
+                    console.warn('Backend save error:', error);
                 }
-                confirmDiv.innerText = `Đã lưu: ${name} – ${sshUsername} – ${ip}`;
-                // Sau khi xác nhận, submit form về backend (nếu muốn)
-                setTimeout(() => {
-                    e.target.submit();
-                }, 800); // Đợi 0.8s để user thấy xác nhận
             });
         </script>
             </div>

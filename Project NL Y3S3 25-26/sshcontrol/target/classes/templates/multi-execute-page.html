@@ -75,16 +75,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-7xl mx-auto">
             <!-- Header -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="flex items-center justify-between">
-                    <h1 class="text-2xl font-bold text-gray-800">
-                        <i class="fas fa-server mr-2"></i>Thực thi lệnh nhiều máy chủ
-                    </h1>
-                    <a href="/dashboard" class="px-4 py-2 btn-secondary text-white rounded-lg transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
-                    </a>
-                </div>
-            </div>
+            <div th:replace="~{fragments/header :: header('Thực thi lệnh trên nhiều máy chủ', 'fas fa-layer-group')}"></div>
 
             <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 <!-- Left Panel - Server Selection -->
@@ -113,6 +104,7 @@
                                  th:data-server-ip="${server.ip}"
                                  th:data-server-name="${server.name}"
                                  th:data-server-username="${server.sshUsername}"
+                                 th:data-server-password="${server.sshPassword}"
                                  th:data-server-online="${server.online}"
                                  onclick="toggleServer(this)">
                                 <div class="flex items-center flex-1">
@@ -170,6 +162,25 @@
                         <h2 class="text-lg font-semibold mb-4">
                             <i class="fas fa-code mr-2"></i>Nhập lệnh:
                         </h2>
+                        
+                        <!-- Command Tips -->
+                        <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                            <div class="flex">
+                                <div class="flex-shrink-0">
+                                    <i class="fas fa-lightbulb text-yellow-400"></i>
+                                </div>
+                                <div class="ml-3">
+                                    <h3 class="text-sm font-medium text-yellow-800 mb-2">Mẹo sử dụng lệnh:</h3>
+                                    <ul class="text-sm text-yellow-700 space-y-1">
+                                        <li>• <strong>Lệnh sudo:</strong> Chỉ cần gõ <code class="bg-yellow-100 px-1 rounded">sudo command</code> - hệ thống tự động thêm mật khẩu!</li>
+                                        <li>• <strong>Ví dụ:</strong> <code class="bg-yellow-100 px-1 rounded">sudo systemctl status ssh</code> (không cần echo password)</li>
+                                        <li>• <strong>Lệnh thông thường:</strong> <code class="bg-yellow-100 px-1 rounded">ls -la, ps aux, df -h, free -m</code></li>
+                                        <li>• <strong>Đa máy chủ:</strong> Lệnh sẽ được thực thi đồng thời trên tất cả máy chủ đã chọn</li>
+                                    </ul>
+                                </div>
+                            </div>
+                        </div>
+                        
                         <div class="space-y-4">
                             <div class="relative">
                                 <textarea id="commandInput" 
@@ -209,6 +220,16 @@
                     </div>
                 </div>
             </div>
+
+            <!-- Navigation Buttons -->
+            <div class="text-center space-x-4 mt-6">
+                <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+                </a>
+                <a th:href="@{/execute-page}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-terminal mr-2"></i> Thực thi một máy chủ
+                </a>
+            </div>
         </div>
     </div>
 
@@ -220,6 +241,7 @@
                 ip: element.dataset.serverIp,
                 name: element.dataset.serverName,
                 username: element.dataset.serverUsername,
+                password: element.dataset.serverPassword,
                 online: element.dataset.serverOnline === 'true'
             };
             
@@ -258,6 +280,7 @@
                         ip: card.dataset.serverIp,
                         name: card.dataset.serverName,
                         username: card.dataset.serverUsername,
+                        password: card.dataset.serverPassword,
                         online: card.dataset.serverOnline === 'true'
                     });
                 }
@@ -372,10 +395,30 @@
                 executeBtn.disabled = true;
             } else {
                 commandInput.disabled = false;
-                commandInput.placeholder = `Nhập lệnh SSH cho ${selectedServers.length} máy chủ... (Ví dụ: ls -la, ps aux, df -h)`;
+                commandInput.placeholder = `Nhập lệnh SSH cho ${selectedServers.length} máy chủ... (Ví dụ: sudo systemctl status ssh, ls -la, ps aux)`;
                 executeBtn.disabled = false;
                 commandInput.focus();
             }
+        }
+        
+        function processCommand(command, serverPassword) {
+            if (!serverPassword) {
+                return command;
+            }
+            
+            // Tự động thêm mật khẩu cho lệnh sudo
+            if (command.trim().startsWith('sudo ')) {
+                // Nếu đã có echo password, không thay đổi
+                if (command.includes('echo ') && command.includes('sudo -S')) {
+                    return command;
+                }
+                
+                // Thay đổi "sudo command" thành "echo 'password' | sudo -S command"
+                const sudoCommand = command.trim().substring(5); // Bỏ "sudo "
+                return `echo '${serverPassword}' | sudo -S ${sudoCommand}`;
+            }
+            
+            return command;
         }
         
         async function executeCommand() {
@@ -398,46 +441,47 @@
                     <i class="fas fa-spinner fa-spin text-blue-600 text-3xl mb-3"></i>
                     <p class="text-gray-600">Đang thực thi lệnh trên ${selectedServers.length} máy chủ...</p>
                     <div class="mt-4 text-sm text-gray-500">
-                        <p>Đang thiết lập kết nối SSH...</p>
+                        <p>Hệ thống đang xử lí yêu cầu, vui lòng đợi trong giây lát...</p>
                     </div>
                 </div>
             `;
             
             try {
-                const response = await fetch('/api/execute-command', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        command: command,
-                        hosts: selectedServers.map(s => s.ip)
-                    })
+                // Tạo array các request cho từng máy chủ với lệnh đã được xử lý
+                const requests = selectedServers.map(server => {
+                    const processedCommand = processCommand(command, server.password);
+                    return fetch('/api/execute-command', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json',
+                        },
+                        body: JSON.stringify({
+                            command: processedCommand,
+                            hosts: [server.ip]
+                        })
+                    });
                 });
                 
-                if (!response.ok) {
-                    throw new Error(`HTTP error! status: ${response.status}`);
-                }
+                // Thực hiện tất cả requests đồng thời
+                const responses = await Promise.all(requests);
+                const results = await Promise.all(responses.map(res => res.json()));
                 
-                const result = await response.json();
+                // Kết hợp kết quả từ tất cả máy chủ
+                const allResults = [];
+                results.forEach(result => {
+                    if (result.success && result.results) {
+                        allResults.push(...result.results);
+                    }
+                });
                 
-                if (result.success && result.results) {
-                    displayResults(result.results);
+                if (allResults.length > 0) {
+                    displayResults(allResults, command); // Truyền lệnh gốc để hiển thị
                 } else {
                     resultsDiv.innerHTML = `
                         <div class="text-center py-8">
                             <i class="fas fa-exclamation-triangle text-red-600 text-3xl mb-3"></i>
-                            <p class="text-red-600 mb-2">Lỗi thực thi lệnh</p>
-                            <p class="text-sm text-gray-600">${result.error || 'Không có kết quả trả về'}</p>
-                            <div class="mt-4 text-xs text-gray-500">
-                                <p>Có thể do:</p>
-                                <ul class="list-disc list-inside mt-2 text-left inline-block">
-                                    <li>Máy chủ không khả dụng</li>
-                                    <li>Lỗi xác thực SSH</li>
-                                    <li>Timeout kết nối</li>
-                                    <li>Lệnh không hợp lệ</li>
-                                </ul>
-                            </div>
+                            <p class="text-red-600 mb-2">Không có kết quả từ máy chủ nào</p>
+                            <p class="text-sm text-gray-600">Tất cả máy chủ đều không phản hồi hoặc xảy ra lỗi</p>
                         </div>
                     `;
                 }
@@ -463,7 +507,7 @@
             }
         }
         
-        function displayResults(results) {
+        function displayResults(results, originalCommand = null) {
             const resultsDiv = document.getElementById('results');
             let html = '';
             
@@ -471,6 +515,9 @@
                 const statusColor = result.success ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50';
                 const statusIcon = result.success ? 'fas fa-check-circle text-green-600' : 'fas fa-times-circle text-red-600';
                 const statusText = result.success ? 'Thành công' : 'Thất bại';
+                
+                // Hiển thị lệnh gốc thay vì lệnh đã xử lý (để ẩn mật khẩu)
+                const displayCommand = originalCommand || result.command;
                 
                 // Kiểm tra loại lỗi
                 let errorType = '';
@@ -513,7 +560,7 @@
                         
                         <div class="mb-2">
                             <div class="text-sm text-gray-600 mb-1">Lệnh:</div>
-                            <code class="bg-gray-100 px-2 py-1 rounded text-sm">${result.command}</code>
+                            <code class="bg-gray-100 px-2 py-1 rounded text-sm">${displayCommand}</code>
                         </div>
                         
                         ${result.output ? `

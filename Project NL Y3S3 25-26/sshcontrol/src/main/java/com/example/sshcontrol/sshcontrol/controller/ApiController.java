@@ -64,6 +64,97 @@ public class ApiController {
         }
     }
 
+    @PostMapping("/test-ssh-connection")
+    public ResponseEntity<Map<String, Object>> testSSHConnection(@RequestBody Map<String, String> request) {
+        String ip = request.get("ip");
+        String username = request.get("username");
+        String password = request.get("password");
+
+        Map<String, Object> response = new HashMap<>();
+
+        try {
+            // Validate input parameters
+            if (ip == null || ip.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Địa chỉ IP không được để trống");
+                response.put("details", "IP validation failed");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (username == null || username.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "SSH Username không được để trống");
+                response.put("details", "Username validation failed");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            if (password == null || password.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "SSH Password không được để trống");
+                response.put("details", "Password validation failed");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Use JSch library for SSH connection test
+            JSch jsch = new JSch();
+            Session session = jsch.getSession(username.trim(), ip.trim(), 22);
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.setTimeout(10000); // 10 second timeout
+
+            System.out.println("Testing SSH connection to " + ip + " with user " + username);
+            session.connect();
+            
+            // Test a simple command to ensure the connection is fully functional
+            com.jcraft.jsch.Channel channel = session.openChannel("exec");
+            ((com.jcraft.jsch.ChannelExec) channel).setCommand("echo 'test'");
+            channel.connect();
+            channel.disconnect();
+            
+            session.disconnect();
+
+            response.put("success", true);
+            response.put("message", "Kết nối SSH thành công và hoạt động bình thường");
+            response.put("details", "Connection tested successfully");
+            return ResponseEntity.ok(response);
+
+        } catch (JSchException e) {
+            String errorMessage;
+            String details = e.getMessage();
+            
+            if (e.getMessage().contains("Auth fail")) {
+                errorMessage = "Xác thực thất bại - Sai SSH Username hoặc Password";
+                details = "Authentication failed";
+            } else if (e.getMessage().contains("timeout")) {
+                errorMessage = "Kết nối timeout - Kiểm tra địa chỉ IP và đảm bảo SSH service đang chạy";
+                details = "Connection timeout";
+            } else if (e.getMessage().contains("Connection refused")) {
+                errorMessage = "Kết nối bị từ chối - SSH service có thể chưa được bật hoặc port 22 bị chặn";
+                details = "Connection refused";
+            } else if (e.getMessage().contains("UnknownHostException")) {
+                errorMessage = "Không thể tìm thấy host - Kiểm tra lại địa chỉ IP";
+                details = "Unknown host";
+            } else if (e.getMessage().contains("NoRouteToHostException")) {
+                errorMessage = "Không thể kết nối tới host - Kiểm tra mạng và firewall";
+                details = "No route to host";
+            } else {
+                errorMessage = "Lỗi SSH: " + e.getMessage();
+                details = "SSH error";
+            }
+
+            response.put("success", false);
+            response.put("message", errorMessage);
+            response.put("details", details);
+            return ResponseEntity.ok(response);
+
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Có lỗi không xác định: " + e.getMessage());
+            response.put("details", "Unexpected error");
+            return ResponseEntity.ok(response);
+        }
+    }
+
     @PostMapping("/check-duplicate")
     public ResponseEntity<Map<String, Object>> checkDuplicateServer(
             @RequestBody Map<String, String> request,
