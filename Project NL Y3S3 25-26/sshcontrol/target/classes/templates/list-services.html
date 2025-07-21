@@ -7,60 +7,8 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/executepage.css">
-    <style>
-        /* Notification styles */
-        #notificationArea {
-            position: fixed;
-            top: 20px;
-            right: 20px;
-            z-index: 99999;
-            max-width: 400px;
-            min-width: 300px;
-        }
-        
-        #notificationArea:not(.hidden) {
-            animation: slideIn 0.3s ease-out;
-        }
-        
-        @keyframes slideIn {
-            from {
-                transform: translateX(100%);
-                opacity: 0;
-            }
-            to {
-                transform: translateX(0);
-                opacity: 1;
-            }
-        }
-        
-        /* Pulse animation */
-        .pulse-animation {
-            animation: pulse 0.5s ease-in-out infinite;
-        }
-        
-        @keyframes pulse {
-            0% { transform: scale(1); }
-            50% { transform: scale(1.02); }
-            100% { transform: scale(1); }
-        }
-        
-        /* Server card selected state */
-        .server-card.selected {
-            border-color: #3b82f6;
-            background-color: #eff6ff;
-        }
-        
-        /* Status colors */
-        .status-online {
-            background-color: #dcfce7;
-            color: #166534;
-        }
-        
-        .status-offline {
-            background-color: #fee2e2  !important;
-            color: #dc2626 !important;
-        }
-    </style>
+    <link rel="stylesheet" href="/service.css">
+    
 </head>
 <body class="bg-gray-100">
     <!-- Notification Area -->
@@ -117,10 +65,10 @@
                         </div>
                         <div class="flex items-center gap-3">
                             <span th:if="${server.online}" class="status-online px-3 py-1 text-xs rounded-full">
-                                <i class="fas fa-circle mr-1"></i>Online
+                                <i class="fas fa-circle mr-1"></i>Đang hoạt động
                             </span>
                             <span th:unless="${server.online}" class="status-offline px-3 py-1 text-xs rounded-full">
-                                <i class="fas fa-circle mr-1"></i>Offline
+                                <i class="fas fa-circle mr-1"></i>Không hoạt động
                             </span>
                             <div class="selected-indicator hidden">
                                 <i class="fas fa-check-circle text-blue-500 text-xl"></i>
@@ -390,6 +338,63 @@
             return status; // Return original if no translation found
         }
         
+        // Get status class for styling
+        function getStatusClass(status) {
+            const statusLower = status.toLowerCase();
+            
+            if (statusLower.includes('active') || statusLower.includes('running')) {
+                return 'service-status-running';
+            } else if (statusLower.includes('inactive') || statusLower.includes('stopped') || statusLower.includes('dead')) {
+                return 'service-status-stopped';
+            } else if (statusLower.includes('failed')) {
+                return 'service-status-failed';
+            } else if (statusLower.includes('error')) {
+                return 'service-status-error';
+            } else if (statusLower.includes('loading') || statusLower.includes('activating')) {
+                return 'service-status-loading';
+            } else if (statusLower.includes('disabled') || statusLower.includes('masked')) {
+                return 'service-status-disabled';
+            } else {
+                return 'service-status-unknown';
+            }
+        }
+        
+        // Get status icon
+        function getStatusIcon(status) {
+            const statusLower = status.toLowerCase();
+            
+            if (statusLower.includes('active') || statusLower.includes('running')) {
+                return 'fas fa-play-circle';
+            } else if (statusLower.includes('inactive') || statusLower.includes('stopped')) {
+                return 'fas fa-stop-circle';
+            } else if (statusLower.includes('failed') || statusLower.includes('error')) {
+                return 'fas fa-exclamation-triangle';
+            } else if (statusLower.includes('loading') || statusLower.includes('activating')) {
+                return 'fas fa-spinner fa-spin';
+            } else if (statusLower.includes('disabled') || statusLower.includes('masked')) {
+                return 'fas fa-ban';
+            } else if (statusLower.includes('dead')) {
+                return 'fas fa-skull';
+            } else {
+                return 'fas fa-question-circle';
+            }
+        }
+        
+        // Get service item class based on status
+        function getServiceItemClass(status) {
+            const statusLower = status.toLowerCase();
+            
+            if (statusLower.includes('active') || statusLower.includes('running')) {
+                return 'running';
+            } else if (statusLower.includes('inactive') || statusLower.includes('stopped')) {
+                return 'stopped';
+            } else if (statusLower.includes('failed') || statusLower.includes('error')) {
+                return 'failed';
+            } else {
+                return '';
+            }
+        }
+        
         // Server selection function
         function selectServer(element) {
             // Remove previous selection
@@ -544,45 +549,43 @@
             let html = '<div class="grid gap-3">';
             
             currentServices.forEach(service => {
-                console.log('uuuuuuuuuuuuuuuuuuuuuuuuuuuuuuuu');
-                console.log(service.status);
                 const translatedStatus = translateStatus(service.status);
                 const statusClass = getStatusClass(service.status);
-                console.log(statusClass);
                 const statusIcon = getStatusIcon(service.status);
+                const serviceItemClass = getServiceItemClass(service.status);
                 
                 html += `
-                    <div class="service-item bg-gray-50 border border-gray-200 rounded-lg p-4 hover:bg-gray-100 transition">
+                    <div class="service-item ${serviceItemClass} bg-white border border-gray-200 rounded-lg p-4 transition">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center flex-1">
-                                <i class="fas fa-cog text-gray-600 mr-3 text-lg"></i>
+                                <i class="fas fa-cog text-gray-500 mr-4 text-xl"></i>
                                 <div class="flex-1">
-                                    <div class="font-medium text-gray-800">${service.name}</div>
+                                    <div class="font-semibold text-gray-800 text-lg">${service.name}</div>
                                     <div class="text-sm text-gray-600 mt-1">${service.description || 'Không có mô tả'}</div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-3">
-                                <span class="${statusClass}">
-                                    <i class="${statusIcon} mr-1"></i>${translatedStatus}
+                            <div class="flex items-center gap-4">
+                                <span class="px-4 py-2 text-sm rounded-full font-medium ${statusClass}">
+                                    <i class="${statusIcon} mr-2"></i>${translatedStatus}
                                 </span>
-                                <div class="flex gap-1">
+                                <div class="flex gap-2">
                                     <button onclick="serviceAction('${service.name}', 'start')" 
-                                            class="px-3 py-1 bg-green-500 text-white rounded text-xs hover:bg-green-600 transition"
+                                            class="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition shadow-sm"
                                             title="Khởi động dịch vụ">
                                         <i class="fas fa-play"></i>
                                     </button>
                                     <button onclick="serviceAction('${service.name}', 'stop')" 
-                                            class="px-3 py-1 bg-red-500 text-white rounded text-xs hover:bg-red-600 transition"
+                                            class="px-3 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition shadow-sm"
                                             title="Dừng dịch vụ">
                                         <i class="fas fa-stop"></i>
                                     </button>
                                     <button onclick="serviceAction('${service.name}', 'restart')" 
-                                            class="px-3 py-1 bg-blue-500 text-white rounded text-xs hover:bg-blue-600 transition"
+                                            class="px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition shadow-sm"
                                             title="Khởi động lại dịch vụ">
-                                        <i class="fas fa-refresh"></i>
+                                        <i class="fas fa-redo"></i>
                                     </button>
                                     <button onclick="serviceAction('${service.name}', 'status')" 
-                                            class="px-3 py-1 bg-gray-500 text-white rounded text-xs hover:bg-gray-600 transition"
+                                            class="px-3 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition shadow-sm"
                                             title="Xem trạng thái chi tiết">
                                         <i class="fas fa-info"></i>
                                     </button>

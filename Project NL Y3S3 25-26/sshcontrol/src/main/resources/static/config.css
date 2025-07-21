@@ -1,0 +1,193 @@
+
+        /* Tooltip styles */
+        .tooltip {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .tooltip .tooltiptext {
+            visibility: hidden;
+            width: 300px;
+            background-color: #4B5563;
+            color: white;
+            text-align: center;
+            border-radius: 6px;
+            padding: 8px;
+            position: absolute;
+            z-index: 1000;
+            bottom: 125%;
+            left: 50%;
+            margin-left: -150px;
+            opacity: 0;
+            transition: opacity 0.3s;
+            font-size: 12px;
+            line-height: 1.4;
+        }
+        
+        .tooltip .tooltiptext::after {
+            content: "";
+            position: absolute;
+            top: 100%;
+            left: 50%;
+            margin-left: -5px;
+            border-width: 5px;
+            border-style: solid;
+            border-color: #4B5563 transparent transparent transparent;
+        }
+        
+        .tooltip:hover .tooltiptext {
+            visibility: visible;
+            opacity: 1;
+        }
+        
+        /* Step indicators */
+        .step-indicator {
+            display: flex;
+            align-items: center;
+            background: linear-gradient(135deg, #3B82F6, #1D4ED8);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 14px;
+            font-weight: 600;
+            margin-bottom: 16px;
+            box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+        }
+        
+        .step-number {
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 12px;
+            font-size: 12px;
+            font-weight: bold;
+        }
+        
+        /* Enhanced buttons */
+        .btn-primary-enhanced {
+            background: linear-gradient(135deg, #10B981, #059669);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-weight: 600;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+        }
+        
+        .btn-primary-enhanced:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 6px 16px rgba(16, 185, 129, 0.4);
+        }
+        
+        .btn-secondary-enhanced {
+            background: linear-gradient(135deg, #6B7280, #4B5563);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        .btn-danger-enhanced {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+            color: white;
+            padding: 10px 20px;
+            border-radius: 8px;
+            font-weight: 500;
+            transition: all 0.3s ease;
+        }
+        
+        /* Loading animation */
+        .loading-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 9999;
+        }
+        
+        .loading-content {
+            background: white;
+            padding: 30px;
+            border-radius: 12px;
+            text-align: center;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+        }
+        
+        /* Toast notifications */
+        .toast {
+            position: fixed;
+            top: 20px;
+            right: 20px;
+            padding: 16px 24px;
+            border-radius: 8px;
+            color: white;
+            font-weight: 500;
+            z-index: 1000;
+            transform: translateX(100%);
+            transition: transform 0.3s ease;
+        }
+        
+        .toast.show {
+            transform: translateX(0);
+        }
+        
+        .toast.success {
+            background: linear-gradient(135deg, #10B981, #059669);
+        }
+        
+        .toast.error {
+            background: linear-gradient(135deg, #EF4444, #DC2626);
+        }
+        
+        .toast.warning {
+            background: linear-gradient(135deg, #F59E0B, #D97706);
+        }
+        
+        /* Activity log styles */
+        .activity-log {
+            max-height: 200px;
+            overflow-y: auto;
+        }
+        
+        .log-item {
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-left: 3px solid #E5E7EB;
+            margin-bottom: 4px;
+            background: #F9FAFB;
+            border-radius: 0 6px 6px 0;
+            font-size: 14px;
+        }
+        
+        .log-item.success {
+            border-left-color: #10B981;
+            background: #ECFDF5;
+        }
+        
+        .log-item.error {
+            border-left-color: #EF4444;
+            background: #FEF2F2;
+        }
+        
+        .log-item.info {
+            border-left-color: #3B82F6;
+            background: #EFF6FF;
+        }
+        
+        .log-time {
+            color: #6B7280;
+            font-size: 12px;
+            margin-right: 12px;
+            min-width: 60px;
+        }

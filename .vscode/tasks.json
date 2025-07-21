@@ -1,0 +1,16 @@
+{
+	"version": "2.0.0",
+	"tasks": [
+		{
+			"label": "Start Spring Boot with DevTools",
+			"type": "shell",
+			"command": "./mvnw.cmd",
+			"args": [
+				"spring-boot:run"
+			],
+			"group": "build",
+			"isBackground": true,
+			"problemMatcher": []
+		}
+	]
+}

@@ -3,6 +3,7 @@ com\example\sshcontrol\sshcontrol\controller\MultiExecuteController.class
 com\example\sshcontrol\model\MultiConfigRequest.class
 com\example\sshcontrol\sshcontrol\controller\FirewallController.class
 com\example\sshcontrol\service\RemoteCommandExecutor.class
+com\example\sshcontrol\service\SshFileService.class
 com\example\sshcontrol\model\MultiSSHRequest.class
 com\example\sshcontrol\model\SSHRequest.class
 com\example\sshcontrol\model\MultiServiceRequest.class
