@@ -5,8 +5,10 @@
     <title>Danh sách máy chủ</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/layout.css">
 </head>
-<body class="bg-gray-100 font-sans antialiased">
+<body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
+<main class="flex-1">
 <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
     <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Danh sách máy chủ</h2>
     
@@ -174,5 +176,11 @@
         }
     }
 </script>
+</div>
+</main>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
+</html>
 </html>

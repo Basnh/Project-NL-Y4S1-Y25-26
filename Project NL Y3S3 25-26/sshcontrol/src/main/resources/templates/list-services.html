@@ -8,9 +8,11 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <link rel="stylesheet" href="/executepage.css">
     <link rel="stylesheet" href="/service.css">
+    <link rel="stylesheet" href="/layout.css">
     
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<main class="flex-1">
     <!-- Notification Area -->
     <div id="notificationArea" class="hidden">
         <div id="notification" class="flex items-center p-4 rounded-lg shadow-xl border">
@@ -216,6 +218,7 @@
             </div>
         </div>
     </div>
+</main>
 
     <script>
         // Global variables
@@ -880,4 +883,7 @@
         });
     </script>
 </body>
+<footer>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</footer>
 </html>

@@ -8,14 +8,16 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/layout.css">
     <style>
         body {
             background-color: #f3f4f6; /* Light gray background for the body */
         }
     </style>
 </head>
-<body class="font-sans antialiased">
-    <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-md">
+<body class="font-sans antialiased min-h-screen flex flex-col">
+    <main class="flex-1 flex items-center justify-center py-10">
+        <div class="container mx-auto p-6 bg-white shadow-lg rounded-lg max-w-md">
         <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Đăng nhập vào hệ thống</h2>
         
         <form id="loginForm" action="/login" method="POST">
@@ -38,5 +40,9 @@
             </a>
         </div>
     </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
 </body>
 </html>

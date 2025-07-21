@@ -4,7 +4,7 @@
     <div class="max-w-7xl mx-auto bg-white p-6 rounded-xl shadow-lg">
       <div class="flex justify-between items-center mb-6">
         <div>
-          <h1 class="text-2xl font-bold text-gray-900">� Xin chào <span th:text="${session.user.username}">Admin</span>!</h1>
+          <h1 class="text-2xl font-bold text-gray-900">👋 Xin chào <span th:text="${session.user.username}">Admin</span>!</h1>
           <p class="text-gray-600">Chào mừng bạn đến với hệ thống điều khiển máy chủ từ xa. Hãy chọn chức năng bên dưới để bắt đầu.</p>
         </div>
       </div>
@@ -15,15 +15,22 @@
         <a th:href="@{/add-server}" class="p-6 bg-indigo-100 rounded-lg hover:bg-indigo-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-plug text-indigo-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-indigo-800">Kết nối máy chủ</h2>
+            <h3 class="text-lg font-semibold text-indigo-800">Kết nối máy chủ</h3>
             <p class="text-sm text-gray-600">Thêm máy chủ mới để điều khiển.</p>
           </div>
         </a>
         <a th:href="@{/server-list}" class="p-6 bg-green-100 rounded-lg hover:bg-green-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-server text-green-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-green-800">Danh sách máy chủ</h2>
+            <h3 class="text-lg font-semibold text-green-800">Danh sách máy chủ</h3>
             <p class="text-sm text-gray-600">Xem, xóa, kiểm tra trạng thái máy.</p>
+          </div>
+        </a>
+        <a th:href="@{/vm-control}" class="p-6 bg-green-100 rounded-lg hover:bg-green-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
+          <i class="fas fa-power-off text-gray-600 text-2xl"></i>
+          <div>
+            <h3 class="text-lgfont-semibold text-gray-800">Điều khiển máy ảo</h3>
+            <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
           </div>
         </a>
       </div>
@@ -34,24 +41,24 @@
         <a th:href="@{/execute-page}" class="p-6 bg-yellow-100 rounded-lg hover:bg-yellow-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-terminal text-yellow-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-yellow-800">Thực thi lệnh</h2>
+            <h3 class="text-lg font-semibold text-yellow-800">Thực thi lệnh</h3>
             <p class="text-sm text-gray-600">Gửi lệnh nhanh tới máy chủ đơn.</p>
           </div>
         </a>
         <a th:href="@{/multi-execute-page}" class="p-6 bg-purple-100 rounded-lg hover:bg-purple-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-layer-group text-purple-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-purple-800">Thực thi nhiều máy</h2>
+            <h3 class="text-lg font-semibold text-purple-800">Thực thi nhiều máy</h3>
             <p class="text-sm text-gray-600">Chạy lệnh trên nhiều máy chủ cùng lúc.</p>
           </div>
         </a>
-        <a th:href="@{/history}" class="p-6 bg-gray-200 rounded-lg hover:bg-gray-300 transition transform hover:scale-105 flex items-center gap-4 shadow">
-          <i class="fas fa-clock text-gray-700 text-2xl"></i>
+        <div class="p-6 bg-white rounded-lg opacity-60 shadow-sm border border-gray-200">
+          <i class="fas fa-history text-gray-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-gray-800">Lịch sử thao tác</h2>
-            <p class="text-sm text-gray-600">Xem các lệnh và thao tác đã thực hiện.</p>
+            <h3 class="font-semibold text-gray-800">Lịch sử thao tác</h3>
+            <p class="text-sm text-gray-600">Xem lịch sử các lệnh đã thực hiện (Coming soon...)</p>
           </div>
-        </a>
+        </div>
       </div>
 
       <!-- Nhóm: Quản lý Dịch vụ & File -->
@@ -60,24 +67,24 @@
         <a th:href="@{/edit-config-page}" class="p-6 bg-pink-100 rounded-lg hover:bg-pink-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-cogs text-pink-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-pink-800">Cấu hình dịch vụ</h2>
+            <h3 class="text-lg font-semibold text-pink-800">Cấu hình dịch vụ</h3>
             <p class="text-sm text-gray-600">Chỉnh sửa các file cấu hình từ xa.</p>
-          </div>
-        </a>
-        <a th:href="@{/file-manager}" class="p-6 bg-blue-100 rounded-lg hover:bg-blue-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
-          <i class="fas fa-folder-open text-blue-600 text-2xl"></i>
-          <div>
-            <h2 class="text-lg font-semibold text-blue-800">Quản lý File</h2>
-            <p class="text-sm text-gray-600">Duyệt, tải file qua SFTP.</p>
           </div>
         </a>
         <a th:href="@{/list-services}" class="p-6 bg-orange-100 rounded-lg hover:bg-orange-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-hard-drive text-orange-600 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-orange-800">Quản lý Dịch vụ</h2>
+            <h3 class="text-lg font-semibold text-orange-800">Quản lý Dịch vụ</h3>
             <p class="text-sm text-gray-600">Liệt kê và điều khiển dịch vụ trên máy chủ.</p>
           </div>
         </a>
+        <div class="p-6 bg-white rounded-lg opacity-60 shadow-sm border border-gray-200">
+          <i class="fas fa-folder-open text-orange-600 text-2xl"></i>
+          <div>
+            <h3 class="font-semibold text-orange-800">Quản lý file</h3>
+            <p class="text-sm text-gray-600">Duyệt, tải lên, tải xuống file qua SFTP (Coming soon...)</p>
+          </div>
+        </div>
       </div>
 
       <!-- Nhóm: Bảo mật & Firewall -->
@@ -86,17 +93,24 @@
         <a th:href="@{/vm-control}" class="p-6 bg-gray-100 rounded-lg hover:bg-gray-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-power-off text-gray-800 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h2>
-            <p class="text-sm text-gray-600">Bật/tắt các máy ảo.</p>
+            <h3 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h3>
+            <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
           </div>
         </a>
         <a th:href="@{/firewall}" class="p-6 bg-red-100 rounded-lg hover:bg-red-200 transition transform hover:scale-105 flex items-center gap-4 shadow">
           <i class="fas fa-fire text-red-700 text-2xl"></i>
           <div>
-            <h2 class="text-lg font-semibold text-red-800">Firewall</h2>
+            <h3 class="text-lg font-semibold text-red-800">Firewall</h3>
             <p class="text-sm text-gray-600">Cấu hình tường lửa từ xa.</p>
           </div>
         </a>
+        <div class="p-6 bg-white rounded-lg opacity-60 shadow-sm border border-gray-200">
+          <i class="fas fa-shield-alt text-gray-600 text-2xl"></i>
+          <div>
+            <h3 class="font-semibold text-gray-800">Bảo mật nâng cao</h3>
+            <p class="text-sm text-gray-600">Quản lý SSH keys, certificates (Coming soon...)</p>
+          </div>
+        </div>
       </div>
     </div>
   </div>

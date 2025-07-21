@@ -6,9 +6,11 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/service.css">
+    <link rel="stylesheet" href="/layout.css">
 </head>
-<body class="bg-gray-100 font-sans antialiased">
+<body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
     
+<main class="flex-1">
 <div class="min-h-screen bg-gray-100 py-10 px-6">
     <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
         <div th:replace="~{fragments/dashboard-header :: dashboard-header}"></div>
@@ -133,8 +135,10 @@
                         <h4 class="font-semibold text-gray-600">Lịch sử thao tác</h4>
                         <p class="text-sm text-gray-500">Xem lịch sử các lệnh đã thực hiện (Coming soon...)</p>
                     </div>
+
                 </div>
-            </div>        </div>
+            </div>        
+        </div>
 
         <!-- Navigation List View -->
         <div id="listView" class="hidden space-y-3">
@@ -851,9 +855,10 @@
     updateDashboardTime();
     setInterval(updateDashboardTime, 1000);
 </script>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
 </body>
-<footer>
-    <div th:replace="~{fragments/footer :: footer}"></div>
-</footer>
+</html>
 
 </html>

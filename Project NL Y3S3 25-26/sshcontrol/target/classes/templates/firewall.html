@@ -6,8 +6,10 @@
     <title>Quản lý Firewall</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/layout.css">
 </head>
-<body class="bg-gray-100">
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<main class="flex-1">
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
@@ -195,6 +197,7 @@
             </div>
         </div>
     </div>
+</main>
 
     <script>
         let selectedServer = null;
@@ -512,6 +515,7 @@
 } 
     </script>
 </body>
+<footer>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</footer>
 </html>
-
- 
