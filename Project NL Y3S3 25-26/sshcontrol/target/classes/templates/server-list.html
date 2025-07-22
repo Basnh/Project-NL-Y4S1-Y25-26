@@ -8,179 +8,270 @@
     <link rel="stylesheet" href="/layout.css">
 </head>
 <body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
-<main class="flex-1">
-<div class="container mx-auto p-6 bg-white shadow-lg rounded-lg mt-10 max-w-4xl">
-    <h2 class="text-3xl font-bold text-gray-800 mb-6 text-center">Danh sách máy chủ</h2>
-    
-    <!-- Thêm nút về dashboard -->
-    <div class="mb-4">
-        <a th:href="@{/dashboard}" class="inline-flex items-center px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200">
-            <i class="fas fa-arrow-left mr-2"></i>
-            Về Dashboard
-        </a>
-    </div>
-    
-    <div class="overflow-x-auto">
-        <table class="min-w-full divide-y divide-gray-200">
-            <thead class="bg-gray-50">
-                <tr>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Tên máy chủ</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Địa chỉ IP</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Trạng thái</th>
-                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase">Hành động</th>
-                </tr>
-            </thead>
-            <tbody class="bg-white divide-y divide-gray-200">
-                <tr th:each="server : ${servers}">
-                    <td class="px-6 py-4 font-semibold text-gray-800" th:text="${server.name}">Server</td>
-                    <td class="px-6 py-4 text-gray-600" th:text="${server.ip}">192.168.1.10</td>
-                    <td class="px-6 py-4">
-                        <span th:if="${server.online}" class="text-green-600 font-semibold">Online</span>
-                        <span th:if="${!server.online}" class="text-red-600 font-semibold">Offline</span>
-                    </td>
-                    <td class="px-6 py-4">
-                        <button type="button" 
-                            class="btn-server-info text-blue-600 hover:underline font-semibold mr-4"
-                            th:data-ip="${server.ip}">
-                            <i class="fas fa-info-circle mr-1"></i> Xem thông tin
-                        </button>
-                        <button type="button" 
-                            class="btn-server-delete text-red-600 hover:underline font-semibold"
-                            th:data-ip="${server.ip}">
-                            <i class="fas fa-trash mr-1"></i> Xóa
-                        </button>
-                    </td>
-                </tr>
-                <tr th:if="${#lists.isEmpty(servers)}">
-                    <td colspan="4" class="px-6 py-4 text-center text-gray-500">Chưa có máy chủ nào.</td>
-                </tr>
-            </tbody>
-        </table>
-    </div>
-</div>
+    <main class="flex-1">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-6xl mx-auto">
+                <!-- Sửa tiêu đề từ 'Thêm máy chủ mới' thành 'Danh sách máy chủ' -->
+                <div th:replace="~{fragments/header :: header('Danh sách máy chủ hiện có', 'fas fa-server')}"></div>
+                
+                <!-- Add server button -->
+                <div class="mb-6 flex justify-between items-center">
+                    <h2 class="text-2xl font-bold text-gray-800">Quản lý máy chủ</h2>
+                    <a th:href="@{/add-server}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200">
+                        <i class="fas fa-plus mr-2"></i> Thêm máy chủ mới
+                    </a>
+                </div>
 
-<!-- Modal xem thông tin -->
-<div id="serverInfoModal" class="fixed inset-0 bg-black bg-opacity-40 flex items-center justify-center z-50 hidden">
-    <div class="bg-white p-6 rounded-lg shadow-lg max-w-lg w-full mx-4">
-        <h3 class="text-xl font-bold mb-4">Thông tin máy chủ</h3>
-        <div id="serverInfoContent" class="text-sm text-gray-700">
-            <!-- Loading indicator -->
-            <div id="loadingIndicator" class="text-center">
-                <i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i>
-                <p class="mt-2">Đang tải thông tin...</p>
+                <!-- Server table container -->
+                <div class="bg-white shadow-lg rounded-lg overflow-hidden">
+                    <div class="overflow-x-auto">
+                        <table class="min-w-full divide-y divide-gray-200">
+                            <thead class="bg-gray-50">
+                                <tr>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Tên máy chủ</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Địa chỉ IP</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody class="bg-white divide-y divide-gray-200">
+                                <tr th:each="server : ${servers}" class="hover:bg-gray-50 transition duration-150">
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm font-medium text-gray-900" th:text="${server.name}">Server</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <div class="text-sm text-gray-600" th:text="${server.ip}">192.168.1.10</div>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap">
+                                        <span th:if="${server.online}" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-green-100 text-green-800">
+                                            <i class="fas fa-circle mr-1 text-green-500"></i> Online
+                                        </span>
+                                        <span th:if="${!server.online}" class="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
+                                            <i class="fas fa-circle mr-1 text-red-500"></i> Offline
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
+                                        <button type="button" 
+                                            class="btn-server-info inline-flex items-center px-3 py-1 border border-blue-300 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition duration-150"
+                                            th:data-ip="${server.ip}">
+                                            <i class="fas fa-info-circle mr-1"></i> Thông tin
+                                        </button>
+                                        <button type="button" 
+                                            class="btn-server-delete inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition duration-150"
+                                            th:data-ip="${server.ip}">
+                                            <i class="fas fa-trash mr-1"></i> Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(servers)}">
+                                    <td colspan="4" class="px-6 py-8 text-center">
+                                        <div class="flex flex-col items-center">
+                                            <i class="fas fa-server text-4xl text-gray-300 mb-4"></i>
+                                            <h3 class="text-lg font-medium text-gray-900 mb-2">Chưa có máy chủ nào</h3>
+                                            <p class="text-gray-500 mb-4">Bắt đầu bằng cách thêm máy chủ đầu tiên của bạn</p>
+                                            <a th:href="@{/add-server}" class="inline-flex items-center px-4 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200">
+                                                <i class="fas fa-plus mr-2"></i> Thêm máy chủ
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- Navigation buttons -->
+                <div class="mt-8 text-center">
+                    <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 transition duration-200">
+                        <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+                    </a>
+                </div>
             </div>
         </div>
-        <div class="mt-6 text-right">
-            <button onclick="closeServerInfoModal()" class="px-4 py-2 bg-gray-300 hover:bg-gray-400 rounded">Đóng</button>
+    </main>
+
+    <!-- Modal xem thông tin -->
+    <div id="serverInfoModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden">
+        <div class="bg-white p-6 rounded-lg shadow-xl max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-900">
+                    <i class="fas fa-server mr-2 text-indigo-600"></i>
+                    Thông tin máy chủ
+                </h3>
+                <button onclick="closeServerInfoModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+            <div id="serverInfoContent" class="text-sm text-gray-700">
+                <!-- Loading indicator -->
+                <div id="loadingIndicator" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-4"></i>
+                    <p class="text-gray-600">Đang tải thông tin máy chủ...</p>
+                </div>
+            </div>
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="closeServerInfoModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition duration-200">
+                    <i class="fas fa-times mr-1"></i> Đóng
+                </button>
+            </div>
         </div>
     </div>
-</div>
 
-<script>
-    // Event delegation cho các nút
-    document.addEventListener('DOMContentLoaded', function() {
-        // Xử lý nút "Xem thông tin"
-        document.querySelectorAll('.btn-server-info').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const ip = this.getAttribute('data-ip');
-                showServerInfoModal(ip);
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        // Event delegation cho các nút
+        document.addEventListener('DOMContentLoaded', function() {
+            // Xử lý nút "Xem thông tin"
+            document.querySelectorAll('.btn-server-info').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const ip = this.getAttribute('data-ip');
+                    showServerInfoModal(ip);
+                });
+            });
+
+            // Xử lý nút "Xóa"
+            document.querySelectorAll('.btn-server-delete').forEach(function(button) {
+                button.addEventListener('click', function() {
+                    const ip = this.getAttribute('data-ip');
+                    deleteServer(ip);
+                });
             });
         });
 
-        // Xử lý nút "Xóa"
-        document.querySelectorAll('.btn-server-delete').forEach(function(button) {
-            button.addEventListener('click', function() {
-                const ip = this.getAttribute('data-ip');
-                deleteServer(ip);
-            });
-        });
-    });
-
-    async function showServerInfoModal(ip) {
-        console.log('Requesting server info for IP:', ip); // Debug log
-        
-        // Hiển thị modal với loading indicator
-        document.getElementById('serverInfoModal').classList.remove('hidden');
-        document.getElementById('loadingIndicator').style.display = 'block';
-        
-        try {
-            const response = await fetch(`/api/server-info?ip=${encodeURIComponent(ip)}`);
-            console.log('Response status:', response.status); // Debug log
+        async function showServerInfoModal(ip) {
+            console.log('Requesting server info for IP:', ip); // Debug log
             
-            const result = await response.json();
-            console.log('Response data:', result); // Debug log
+            // Hiển thị modal với loading indicator
+            document.getElementById('serverInfoModal').classList.remove('hidden');
+            document.getElementById('loadingIndicator').style.display = 'block';
             
-            document.getElementById('loadingIndicator').style.display = 'none';
-            
-            if (response.ok && result.data) {
-                const data = result.data;
-                const content = `
-                    <div class="space-y-3">
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>🖥️ Hệ điều hành:</strong> <span class="text-blue-600">${data.os}</span>
+            try {
+                const response = await fetch(`/api/server-info?ip=${encodeURIComponent(ip)}`);
+                console.log('Response status:', response.status); // Debug log
+                
+                const result = await response.json();
+                console.log('Response data:', result); // Debug log
+                
+                document.getElementById('loadingIndicator').style.display = 'none';
+                
+                if (response.ok && result.data) {
+                    const data = result.data;
+                    const content = `
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                            <div class="bg-gradient-to-r from-blue-50 to-blue-100 p-4 rounded-lg border border-blue-200">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-desktop text-blue-600 mr-2"></i>
+                                    <strong class="text-blue-800">Hệ điều hành</strong>
+                                </div>
+                                <span class="text-blue-700 font-medium">${data.os}</span>
+                            </div>
+                            <div class="bg-gradient-to-r from-green-50 to-green-100 p-4 rounded-lg border border-green-200">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-microchip text-green-600 mr-2"></i>
+                                    <strong class="text-green-800">Kiến trúc</strong>
+                                </div>
+                                <span class="text-green-700 font-medium">${data.arch}</span>
+                            </div>
+                            <div class="bg-gradient-to-r from-purple-50 to-purple-100 p-4 rounded-lg border border-purple-200">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-memory text-purple-600 mr-2"></i>
+                                    <strong class="text-purple-800">RAM</strong>
+                                </div>
+                                <span class="text-purple-700 font-medium">${data.memory}</span>
+                            </div>
+                            <div class="bg-gradient-to-r from-yellow-50 to-yellow-100 p-4 rounded-lg border border-yellow-200">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-hdd text-yellow-600 mr-2"></i>
+                                    <strong class="text-yellow-800">Ổ đĩa</strong>
+                                </div>
+                                <span class="text-yellow-700 font-medium">${data.disk}</span>
+                            </div>
+                            <div class="bg-gradient-to-r from-indigo-50 to-indigo-100 p-4 rounded-lg border border-indigo-200">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-cog text-indigo-600 mr-2"></i>
+                                    <strong class="text-indigo-800">CPU</strong>
+                                </div>
+                                <span class="text-indigo-700 font-medium">${data.cpu}</span>
+                            </div>
+                            <div class="bg-gradient-to-r from-pink-50 to-pink-100 p-4 rounded-lg border border-pink-200">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-tasks text-pink-600 mr-2"></i>
+                                    <strong class="text-pink-800">Tiến trình</strong>
+                                </div>
+                                <span class="text-pink-700 font-medium">${data.processes}</span>
+                            </div>
+                            <div class="bg-gradient-to-r from-red-50 to-red-100 p-4 rounded-lg border border-red-200 md:col-span-2">
+                                <div class="flex items-center mb-2">
+                                    <i class="fas fa-clock text-red-600 mr-2"></i>
+                                    <strong class="text-red-800">Uptime</strong>
+                                </div>
+                                <span class="text-red-700 font-medium">${data.uptime}</span>
+                            </div>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>⚙️ Kiến trúc:</strong> <span class="text-blue-600">${data.arch}</span>
+                    `;
+                    document.getElementById('serverInfoContent').innerHTML = content;
+                } else {
+                    document.getElementById('serverInfoContent').innerHTML = `
+                        <div class="text-center py-8">
+                            <i class="fas fa-exclamation-triangle text-4xl text-red-500 mb-4"></i>
+                            <h3 class="text-lg font-medium text-gray-900 mb-2">Không thể lấy thông tin</h3>
+                            <p class="text-red-600">${result.error || 'Không thể kết nối đến máy chủ'}</p>
                         </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>🧠 RAM:</strong> <span class="text-green-600">${data.memory}</span>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>💾 Ổ đĩa:</strong> <span class="text-yellow-600">${data.disk}</span>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>🔧 CPU:</strong> <span class="text-purple-600">${data.cpu}</span>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>📊 Tiến trình:</strong> <span class="text-indigo-600">${data.processes}</span>
-                        </div>
-                        <div class="bg-gray-50 p-3 rounded">
-                            <strong>⏰ Uptime:</strong> <span class="text-red-600">${data.uptime}</span>
-                        </div>
-                    </div>
-                `;
-                document.getElementById('serverInfoContent').innerHTML = content;
-            } else {
+                    `;
+                }
+            } catch (error) {
+                console.error('Fetch error:', error); // Debug log
+                document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('serverInfoContent').innerHTML = `
-                    <div class="text-red-600 bg-red-50 p-4 rounded">
-                        <i class="fas fa-exclamation-triangle mr-2"></i>
-                        ${result.error || 'Không thể lấy thông tin máy chủ'}
+                    <div class="text-center py-8">
+                        <i class="fas fa-wifi-slash text-4xl text-red-500 mb-4"></i>
+                        <h3 class="text-lg font-medium text-gray-900 mb-2">Lỗi kết nối</h3>
+                        <p class="text-red-600">${error.message}</p>
                     </div>
                 `;
             }
-        } catch (error) {
-            console.error('Fetch error:', error); // Debug log
-            document.getElementById('loadingIndicator').style.display = 'none';
+        }
+
+        function closeServerInfoModal() {
+            document.getElementById('serverInfoModal').classList.add('hidden');
+            // Reset content to loading state
             document.getElementById('serverInfoContent').innerHTML = `
-                <div class="text-red-600 bg-red-50 p-4 rounded">
-                    <i class="fas fa-exclamation-triangle mr-2"></i>
-                    Lỗi kết nối: ${error.message}
+                <div id="loadingIndicator" class="text-center py-8">
+                    <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-4"></i>
+                    <p class="text-gray-600">Đang tải thông tin máy chủ...</p>
                 </div>
             `;
         }
-    }
 
-    function closeServerInfoModal() {
-        document.getElementById('serverInfoModal').classList.add('hidden');
-        document.getElementById('serverInfoContent').innerHTML = `
-            <div id="loadingIndicator" class="text-center">
-                <i class="fas fa-spinner fa-spin text-2xl text-blue-600"></i>
-                <p class="mt-2">Đang tải thông tin...</p>
-            </div>
-        `;
-    }
-
-    function deleteServer(ip) {
-        if (confirm('Bạn có chắc muốn xóa máy chủ này?')) {
-            window.location.href = `/delete-server?ip=${ip}`;
+        function deleteServer(ip) {
+            if (confirm('Bạn có chắc chắn muốn xóa máy chủ này không?\n\nHành động này không thể hoàn tác.')) {
+                // Show loading state
+                const deleteBtn = document.querySelector(`[data-ip="${ip}"].btn-server-delete`);
+                if (deleteBtn) {
+                    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Đang xóa...';
+                    deleteBtn.disabled = true;
+                }
+                
+                // Redirect to delete endpoint
+                window.location.href = `/delete-server?ip=${encodeURIComponent(ip)}`;
+            }
         }
-    }
-</script>
-</div>
-</main>
 
-<!-- Footer -->
-<div th:replace="~{fragments/footer :: footer}"></div>
+        // Close modal when clicking outside
+        document.getElementById('serverInfoModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeServerInfoModal();
+            }
+        });
+
+        // Close modal with Escape key
+        document.addEventListener('keydown', function(e) {
+            if (e.key === 'Escape') {
+                closeServerInfoModal();
+            }
+        });
+    </script>
 </body>
-</html>
 </html>

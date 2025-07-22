@@ -7,68 +7,282 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/layout.css">
 </head>
-<body class="bg-gray-100 font-sans min-h-screen flex flex-col">
-    <!-- Ô lưu ý ở góc phải -->
-    <div class="fixed top-4 right-4 z-50">
-        <div class="bg-yellow-50 border border-yellow-200 rounded-lg p-4 shadow-lg max-w-xs">
-            <div class="flex items-start">
-                <i class="fas fa-exclamation-circle text-yellow-600 text-lg mr-2 mt-1"></i>
-                <div>
-                    <h4 class="text-sm font-bold text-yellow-800 mb-2">Lưu ý sử dụng</h4>
-                    <ul class="text-xs text-yellow-700 space-y-1">
-                        <li>• Đảm bảo VirtualBox đã được cài đặt</li>
-                        <li>• Nhập chính xác tên máy ảo</li>
-                        <li>• Chức năng này chỉ hoạt động trên máy local</li>
-                        <li>• Kiểm tra trạng thái máy ảo trước khi thực hiện</li>
-                    </ul>
+<body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
+    <!-- Main content wrapper -->
+    <main class="flex-1">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-4xl mx-auto">
+                <!-- Header -->
+                <div th:replace="~{fragments/header :: header('Điều khiển máy ảo VirtualBox', 'fas fa-desktop')}"></div>
+                
+                <!-- Main card -->
+                <div class="bg-white shadow-lg rounded-lg p-6">
+                    <!-- Instructions Card -->
+                    <div class="bg-gradient-to-r from-yellow-50 to-amber-50 border border-yellow-200 rounded-lg p-6 mb-6">
+                        <div class="flex items-start">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-info-circle text-yellow-600 text-xl"></i>
+                            </div>
+                            <div class="ml-4">
+                                <h4 class="text-lg font-bold text-yellow-800 mb-3">
+                                    <i class="fas fa-exclamation-triangle mr-2"></i>
+                                    Lưu ý sử dụng
+                                </h4>
+                                <div class="grid grid-cols-1 md:grid-cols-2 gap-3 text-sm text-yellow-700">
+                                    <div class="flex items-center">
+                                        <i class="fas fa-check-circle text-yellow-600 mr-2"></i>
+                                        Đảm bảo VirtualBox đã được cài đặt
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-keyboard text-yellow-600 mr-2"></i>
+                                        Nhập chính xác tên máy ảo
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-home text-yellow-600 mr-2"></i>
+                                        Chức năng này chỉ hoạt động trên máy local
+                                    </div>
+                                    <div class="flex items-center">
+                                        <i class="fas fa-search text-yellow-600 mr-2"></i>
+                                        Kiểm tra trạng thái máy ảo trước khi thực hiện
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VM Control Form -->
+                    <form th:action="@{/vm-control}" method="post" class="space-y-6">
+                        <!-- VM Name Input -->
+                        <div class="space-y-2">
+                            <label for="vmName" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-desktop mr-2 text-indigo-600"></i>
+                                Tên máy ảo:
+                            </label>
+                            <input type="text" 
+                                   id="vmName" 
+                                   name="vmName" 
+                                   class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200" 
+                                   placeholder="Ví dụ: Ubuntu_VM, Windows_10_VM..."
+                                   required>
+                            <p class="text-xs text-gray-500 mt-1">
+                                <i class="fas fa-lightbulb mr-1"></i>
+                                Nhập chính xác tên máy ảo như hiển thị trong VirtualBox Manager
+                            </p>
+                        </div>
+
+                        <!-- Action Selection -->
+                        <div class="space-y-2">
+                            <label for="action" class="block text-sm font-semibold text-gray-700">
+                                <i class="fas fa-cog mr-2 text-indigo-600"></i>
+                                Hành động:
+                            </label>
+                            <select id="action" 
+                                    name="action" 
+                                    class="w-full px-4 py-3 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent transition duration-200">
+                                <option value="start">
+                                    🚀 Khởi động (Start) - Bật máy ảo
+                                </option>
+                                <option value="shutdown">
+                                    🔄 Tắt nhẹ nhàng (Shutdown) - Tắt an toàn
+                                </option>
+                                <option value="poweroff">
+                                    ⚡ Tắt ngay (Power Off) - Tắt khẩn cấp
+                                </option>
+                                <option value="status">
+                                    📊 Kiểm tra trạng thái (Status) - Xem tình trạng hiện tại
+                                </option>
+                            </select>
+                        </div>
+
+                        <!-- Action Buttons -->
+                        <div class="flex flex-col sm:flex-row gap-4 pt-6">
+                            <a th:href="@{/dashboard}" 
+                               class="flex items-center justify-center px-6 py-3 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 ease-in-out font-medium order-2 sm:order-1">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Quay về Dashboard
+                            </a>
+
+                            <button type="submit" 
+                                    class="flex items-center justify-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold shadow-lg order-1 sm:order-2 flex-1">
+                                <i class="fas fa-play mr-2"></i>
+                                Thực thi
+                            </button>
+                        </div>
+                    </form>
+
+                    <!-- Result Message -->
+                    <div th:if="${message}" class="mt-6">
+                        <div class="bg-gradient-to-r from-green-50 to-emerald-50 border border-green-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-check-circle text-green-600 text-xl mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-green-800">Thành công!</h4>
+                                    <p class="text-green-700" th:text="${message}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Error Message (if any) -->
+                    <div th:if="${error}" class="mt-6">
+                        <div class="bg-gradient-to-r from-red-50 to-pink-50 border border-red-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-exclamation-triangle text-red-600 text-xl mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-red-800">Lỗi!</h4>
+                                    <p class="text-red-700" th:text="${error}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- VM Status Result (from form submission) -->
+                    <div th:if="${status}" class="mt-6">
+                        <div class="bg-gradient-to-r from-blue-50 to-cyan-50 border border-blue-200 rounded-lg p-4">
+                            <div class="flex items-center">
+                                <i class="fas fa-info-circle text-blue-600 text-xl mr-3"></i>
+                                <div>
+                                    <h4 class="font-semibold text-blue-800">Trạng thái máy ảo</h4>
+                                    <p class="text-blue-700" th:text="${status}"></p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Quick Status Check Section -->
+                    <div class="mt-8 border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-search mr-2 text-indigo-600"></i>
+                            Kiểm tra nhanh trạng thái
+                        </h3>
+                        <div class="bg-gray-50 rounded-lg p-4">
+                            <div class="text-sm text-gray-600 mb-3">
+                                <i class="fas fa-info-circle mr-2"></i>
+                                Sử dụng form chính với hành động "Kiểm tra trạng thái" để xem tình trạng máy ảo
+                            </div>
+                            <div class="grid grid-cols-1 md:grid-cols-3 gap-3 text-xs">
+                                <div class="flex items-center p-2 bg-white rounded border">
+                                    <i class="fas fa-play-circle text-green-600 mr-2"></i>
+                                    <span><strong>Running:</strong> Máy ảo đang chạy</span>
+                                </div>
+                                <div class="flex items-center p-2 bg-white rounded border">
+                                    <i class="fas fa-stop-circle text-red-600 mr-2"></i>
+                                    <span><strong>Poweroff:</strong> Máy ảo đã tắt</span>
+                                </div>
+                                <div class="flex items-center p-2 bg-white rounded border">
+                                    <i class="fas fa-pause-circle text-yellow-600 mr-2"></i>
+                                    <span><strong>Saved:</strong> Máy ảo tạm dừng</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+
+                    <div class="mt-8 border-t pt-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4">
+                            <i class="fas fa-terminal mr-2 text-indigo-600"></i>
+                            Tham khảo lệnh VirtualBox
+                        </h3>
+                        <div class="bg-gray-900 text-green-400 rounded-lg p-4 text-sm font-mono">
+                            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div>
+                                    <div class="text-gray-300 mb-2">📋 Danh sách máy ảo:</div>
+                                    <div class="bg-gray-800 p-2 rounded">VBoxManage list vms</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-300 mb-2">📊 Trạng thái máy ảo:</div>
+                                    <div class="bg-gray-800 p-2 rounded">VBoxManage showvminfo [VM_NAME]</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-300 mb-2">🚀 Khởi động máy ảo:</div>
+                                    <div class="bg-gray-800 p-2 rounded">VBoxManage startvm [VM_NAME]</div>
+                                </div>
+                                <div>
+                                    <div class="text-gray-300 mb-2">⚡ Tắt máy ảo:</div>
+                                    <div class="bg-gray-800 p-2 rounded">VBoxManage controlvm [VM_NAME] poweroff</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
-    </div>
-
-    <!-- Main content wrapper -->
-    <main class="flex-1">
-        <div class="container mx-auto max-w-xl mt-10 bg-white p-6 shadow-lg rounded-lg">
-        <h2 class="text-2xl font-bold text-center mb-6 text-gray-800">Điều khiển máy ảo VirtualBox</h2>
-
-        <form th:action="@{/vm-control}" method="post" class="space-y-4">
-            <div>
-                <label for="vmName" class="block font-medium text-gray-700 mb-1">Tên máy ảo:</label>
-                <input type="text" id="vmName" name="vmName" class="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500" placeholder="vd: Ubuntu_VM" required>
-            </div>
-
-            <div>
-                <label for="action" class="block font-medium text-gray-700 mb-1">Hành động:</label>
-                <select id="action" name="action" class="w-full border border-gray-300 px-3 py-2 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500">
-                    <option value="start">Khởi động (Start)</option>
-                    <option value="shutdown">Tắt nhẹ nhàng (Shutdown)</option>
-                    <option value="poweroff">Tắt ngay (Power Off)</option>
-                </select>
-            </div>
-
-            <!-- Hai nút được thiết kế dễ phân biệt -->
-            <div class="flex justify-between items-center space-x-4 mt-6">
-                <!-- Nút Quay về trang chủ - màu xám -->
-                <a th:href="@{/dashboard}" class="flex items-center px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition duration-200 ease-in-out">
-                    <i class="fas fa-arrow-left mr-2"></i>
-                    Quay về dashboard
-                </a>
-
-                <!-- Nút Thực thi - màu xanh dương nổi bật -->
-                <button type="submit" class="flex items-center px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold">
-                    <i class="fas fa-play mr-2"></i>
-                    Thực thi
-                </button>
-            </div>
-
-            <!-- Thông báo kết quả -->
-            <div th:if="${message}" class="mt-4 p-4 bg-green-50 border border-green-200 rounded-lg">
-                <p class="text-green-700 font-medium text-center" th:text="${message}"></p>
-            </div>
-        </form>
     </main>
     
     <!-- Footer -->
     <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        // Auto-update button text based on selected action
+        document.getElementById('action').addEventListener('change', function() {
+            const action = this.value;
+            const button = document.querySelector('button[type="submit"]');
+            const icon = button.querySelector('i');
+            
+            switch(action) {
+                case 'start':
+                    icon.className = 'fas fa-play mr-2';
+                    button.innerHTML = '<i class="fas fa-play mr-2"></i>Khởi động';
+                    button.className = button.className.replace('bg-indigo-600 hover:bg-indigo-700', 'bg-green-600 hover:bg-green-700');
+                    break;
+                case 'shutdown':
+                    icon.className = 'fas fa-power-off mr-2';
+                    button.innerHTML = '<i class="fas fa-power-off mr-2"></i>Tắt nhẹ nhàng';
+                    button.className = button.className.replace(/bg-\w+-600 hover:bg-\w+-700/g, 'bg-orange-600 hover:bg-orange-700');
+                    break;
+                case 'poweroff':
+                    icon.className = 'fas fa-stop mr-2';
+                    button.innerHTML = '<i class="fas fa-stop mr-2"></i>Tắt ngay';
+                    button.className = button.className.replace(/bg-\w+-600 hover:bg-\w+-700/g, 'bg-red-600 hover:bg-red-700');
+                    break;
+                case 'status':
+                    icon.className = 'fas fa-search mr-2';
+                    button.innerHTML = '<i class="fas fa-search mr-2"></i>Kiểm tra trạng thái';
+                    button.className = button.className.replace(/bg-\w+-600 hover:bg-\w+-700/g, 'bg-blue-600 hover:bg-blue-700');
+                    break;
+                default:
+                    icon.className = 'fas fa-play mr-2';
+                    button.innerHTML = '<i class="fas fa-play mr-2"></i>Thực thi';
+                    button.className = button.className.replace(/bg-\w+-600 hover:bg-\w+-700/g, 'bg-indigo-600 hover:bg-indigo-700');
+            }
+        });
+
+        // Form validation
+        document.querySelector('form').addEventListener('submit', function(e) {
+            const vmName = document.getElementById('vmName').value.trim();
+            const action = document.getElementById('action').value;
+            
+            if (!vmName) {
+                e.preventDefault();
+                alert('Vui lòng nhập tên máy ảo');
+                return false;
+            }
+            
+            // Confirmation for destructive actions
+            if (action === 'poweroff') {
+                if (!confirm('Bạn có chắc chắn muốn tắt ngay máy ảo?\n\nHành động này có thể gây mất dữ liệu nếu máy ảo đang hoạt động.')) {
+                    e.preventDefault();
+                    return false;
+                }
+            }
+            
+            // Show loading state
+            const button = e.target.querySelector('button[type="submit"]');
+            const originalText = button.innerHTML;
+            button.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Đang thực thi...';
+            button.disabled = true;
+            
+            // Re-enable after timeout (in case something goes wrong)
+            setTimeout(() => {
+                button.innerHTML = originalText;
+                button.disabled = false;
+            }, 10000);
+        });
+
+        // Initialize button state
+        document.addEventListener('DOMContentLoaded', function() {
+            document.getElementById('action').dispatchEvent(new Event('change'));
+        });
+    </script>
 </body>
 </html>

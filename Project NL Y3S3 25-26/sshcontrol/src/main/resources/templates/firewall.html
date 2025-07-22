@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Quản lý Firewall</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/layout.css">
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
@@ -13,7 +13,7 @@
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
             <!-- Header -->
-            <div th:replace="fragments/header :: header('Quản lý Firewall', 'fa-shield-alt')"></div>
+            <div th:replace="~{fragments/header :: header('Quản lý Firewall', 'fas fa-fire')}"></div>
 
             <!-- Server Selection -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">

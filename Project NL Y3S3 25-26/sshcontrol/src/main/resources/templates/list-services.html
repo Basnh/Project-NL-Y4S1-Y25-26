@@ -29,17 +29,8 @@
     
     <div class="container mx-auto px-4 py-8">
         <div class="max-w-6xl mx-auto">
-            <!-- Header -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="flex items-center justify-between">
-                    <h1 class="text-2xl font-bold text-gray-800">
-                        <i class="fas fa-list mr-2"></i>Danh sách dịch vụ hệ thống
-                    </h1>
-                    <a href="/dashboard" class="px-4 py-2 btn-secondary text-white rounded-lg transition">
-                        <i class="fas fa-arrow-left mr-2"></i>Quay lại
-                    </a>
-                </div>
-            </div>
+            <div th:replace="~{fragments/header :: header('Liệt kê/Điều khiển dịch vụ', 'fas fa-hard-drive')}"></div>    
+        
 
             <!-- Server Selection -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
