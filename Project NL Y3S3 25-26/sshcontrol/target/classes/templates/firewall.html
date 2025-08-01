@@ -11,189 +11,224 @@
 <body class="bg-gray-100 min-h-screen flex flex-col">
 <main class="flex-1">
     <div class="container mx-auto px-4 py-8">
-        <div class="max-w-6xl mx-auto">
+        <div class="max-w-7xl mx-auto">
             <!-- Header -->
             <div th:replace="~{fragments/header :: header('Quản lý Firewall', 'fas fa-fire')}"></div>
 
-            <!-- Server Selection -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-server mr-2"></i>Chọn máy chủ:
-                </h2>
-                
-                <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3 mb-4">
-                    <div th:each="server : ${userServers}" 
-                         class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition"
-                         th:data-server-ip="${server.ip}"
-                         th:data-server-name="${server.name}"
-                         th:data-server-username="${server.sshUsername}"
-                         th:data-server-password="${server.sshPassword}"
-                         onclick="selectServer(this)">
-                        <div class="flex items-center flex-1">
-                            <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
-                            <div class="flex-1">
-                                <div class="font-medium text-gray-800" th:text="${server.name}"></div>
-                                <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+                <!-- Left Panel - Server Selection -->
+                <div class="bg-white rounded-lg shadow-md p-6">
+                    <h2 class="text-lg font-semibold mb-4">
+                        <i class="fas fa-server mr-2"></i>Chọn máy chủ:
+                    </h2>
+                    
+                    <div th:if="${userServers != null and !userServers.isEmpty()}" class="space-y-3">
+                        <div th:each="server : ${userServers}" 
+                             class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                             th:data-server-ip="${server.ip}"
+                             th:data-server-name="${server.name}"
+                             th:data-server-username="${server.sshUsername}"
+                             th:data-server-password="${server.sshPassword}"
+                             onclick="selectServer(this)">
+                            <div class="flex items-center flex-1">
+                                <i class="fas fa-server text-gray-600 mr-3 text-lg"></i>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-800 text-sm" th:text="${server.name}"></div>
+                                    <div class="text-xs text-gray-600 mt-1" th:text="${server.ip}"></div>
+                                    <div class="text-xs text-gray-500 mt-1">
+                                        <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span th:if="${server.online}" class="status-online px-2 py-1 text-xs rounded-full">
+                                    <i class="fas fa-circle mr-1"></i>Online
+                                </span>
+                                <span th:unless="${server.online}" class="status-offline px-2 py-1 text-xs rounded-full">
+                                    <i class="fas fa-circle mr-1"></i>Offline
+                                </span>
+                                <div class="selected-indicator hidden">
+                                    <i class="fas fa-check-circle text-blue-500 text-lg"></i>
+                                </div>
                             </div>
                         </div>
-                        <div class="selected-indicator hidden">
-                            <i class="fas fa-check-circle text-blue-500 text-xl"></i>
+                    </div>
+                    
+                    <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
+                        <i class="fas fa-server text-gray-400 text-3xl mb-3"></i>
+                        <p class="mb-2">Chưa có máy chủ nào.</p>
+                        <a href="/add-server" class="inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition text-sm">
+                            <i class="fas fa-plus mr-2"></i>Thêm máy chủ
+                        </a>
+                    </div>
+
+                    <!-- Server Info -->
+                    <div id="selectedServerInfo" class="hidden mt-6 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <span class="text-blue-800 font-medium text-sm">Máy chủ đã chọn:</span>
+                            <span id="selectedServerName" class="ml-2 text-blue-700 text-sm font-semibold"></span>
                         </div>
                     </div>
                 </div>
-                
-                <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
-                    <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
-                    <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
-                    <a href="/add-server" class="inline-block px-6 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
-                        <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
-                    </a>
+
+                <!-- Right Panel - Firewall Actions -->
+                <div class="space-y-6">
+                    <!-- Firewall Basic Actions -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-cogs mr-2"></i>Hành động Firewall:
+                        </h2>
+                        
+                        <div class="space-y-3">
+                            <button onclick="getFirewallStatus()" 
+                                    class="w-full px-4 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-400 text-sm"
+                                    id="statusBtn" disabled>
+                                <i class="fas fa-info-circle mr-2"></i>Kiểm tra trạng thái
+                            </button>
+                            <button onclick="enableFirewall()" 
+                                    class="w-full px-4 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-gray-400 text-sm"
+                                    id="enableBtn" disabled>
+                                <i class="fas fa-power-off mr-2"></i>Bật Firewall
+                            </button>
+                            <button onclick="disableFirewall()" 
+                                    class="w-full px-4 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:bg-gray-400 text-sm"
+                                    id="disableBtn" disabled>
+                                <i class="fas fa-power-off mr-2"></i>Tắt Firewall
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Port Rules Management -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h3 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-shield-alt mr-2"></i>Quản lý quy tắc Port:
+                        </h3>
+                        
+                        <!-- Add Rule Form -->
+                        <div class="space-y-4 mb-6">
+                            <div class="grid grid-cols-2 gap-3">
+                                <input type="text" id="portInput" placeholder="Port (VD: 80)" 
+                                       class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                <select id="protocolSelect" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 text-sm">
+                                    <option value="tcp">TCP</option>
+                                    <option value="udp">UDP</option>
+                                </select>
+                            </div>
+                            <div class="grid grid-cols-2 gap-3">
+                                <button onclick="addRule()" 
+                                        class="px-4 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-gray-400 text-sm"
+                                        id="addRuleBtn" disabled>
+                                    <i class="fas fa-plus mr-2"></i>Thêm quy tắc
+                                </button>
+                                <button onclick="deleteRule()" 
+                                        class="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:bg-gray-400 text-sm"
+                                        id="deleteRuleBtn" disabled>
+                                    <i class="fas fa-minus mr-2"></i>Xóa quy tắc
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Common Ports Suggestions -->
+                        <div class="border-t pt-4">
+                            <h4 class="text-sm font-medium mb-3">
+                                <i class="fas fa-lightbulb mr-2"></i>Port thông dụng:
+                            </h4>
+                            <div class="grid grid-cols-2 gap-2 mb-4" id="commonPorts">
+                                <button onclick="fillPort('22', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition border-2 border-gray-200" data-port="22" data-protocol="tcp">
+                                    <div class="font-medium">SSH</div>
+                                    <div class="text-xs text-gray-600">22/TCP</div>
+                                </button>
+                                <button onclick="fillPort('80', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition border-2 border-gray-200" data-port="80" data-protocol="tcp">
+                                    <div class="font-medium">HTTP</div>
+                                    <div class="text-xs text-gray-600">80/TCP</div>
+                                </button>
+                                <button onclick="fillPort('443', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition border-2 border-gray-200" data-port="443" data-protocol="tcp">
+                                    <div class="font-medium">HTTPS</div>
+                                    <div class="text-xs text-gray-600">443/TCP</div>
+                                </button>
+                                <button onclick="fillPort('21', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition border-2 border-gray-200" data-port="21" data-protocol="tcp">
+                                    <div class="font-medium">FTP</div>
+                                    <div class="text-xs text-gray-600">21/TCP</div>
+                                </button>
+                                <button onclick="fillPort('53', 'udp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition border-2 border-gray-200" data-port="53" data-protocol="udp">
+                                    <div class="font-medium">DNS</div>
+                                    <div class="text-xs text-gray-600">53/UDP</div>
+                                </button>
+                                <button onclick="fillPort('3306', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded-lg text-xs transition border-2 border-gray-200" data-port="3306" data-protocol="tcp">
+                                    <div class="font-medium">MySQL</div>
+                                    <div class="text-xs text-gray-600">3306/TCP</div>
+                                </button>
+                            </div>
+                            
+                            <!-- More Ports Toggle -->
+                            <div class="mb-4">
+                                <button onclick="toggleMorePorts()" id="morePortsBtn" class="w-full px-3 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-xs">
+                                    <i class="fas fa-plus mr-2"></i>Xem thêm port khác
+                                </button>
+                            </div>
+                            
+                            <!-- Extended Ports (Hidden by default) -->
+                            <div id="morePorts" class="hidden">
+                                <h4 class="text-xs font-medium text-gray-700 mb-3">Port khác:</h4>
+                                <div class="grid grid-cols-2 gap-2 mb-4">
+                                    <button onclick="fillPort('25', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="25" data-protocol="tcp">
+                                        <div class="font-medium">SMTP</div>
+                                        <div class="text-xs text-gray-600">25/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('110', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="110" data-protocol="tcp">
+                                        <div class="font-medium">POP3</div>
+                                        <div class="text-xs text-gray-600">110/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('143', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="143" data-protocol="tcp">
+                                        <div class="font-medium">IMAP</div>
+                                        <div class="text-xs text-gray-600">143/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('993', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="993" data-protocol="tcp">
+                                        <div class="font-medium">IMAPS</div>
+                                        <div class="text-xs text-gray-600">993/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('995', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="995" data-protocol="tcp">
+                                        <div class="font-medium">POP3S</div>
+                                        <div class="text-xs text-gray-600">995/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('5432', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="5432" data-protocol="tcp">
+                                        <div class="font-medium">PostgreSQL</div>
+                                        <div class="text-xs text-gray-600">5432/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('3389', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="3389" data-protocol="tcp">
+                                        <div class="font-medium">RDP</div>
+                                        <div class="text-xs text-gray-600">3389/TCP</div>
+                                    </button>
+                                    <button onclick="fillPort('8080', 'tcp')" class="port-suggestion px-2 py-2 bg-gray-100 hover:bg-gray-200 rounded text-xs transition border-2 border-gray-200" data-port="8080" data-protocol="tcp">
+                                        <div class="font-medium">HTTP Alt</div>
+                                        <div class="text-xs text-gray-600">8080/TCP</div>
+                                    </button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
 
-            <!-- Firewall Actions -->
+            <!-- Results Section - Full Width -->
             <div class="bg-white rounded-lg shadow-md p-6 mb-6">
                 <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-cogs mr-2"></i>Hành động Firewall:
+                    <i class="fas fa-terminal mr-2"></i>Kết quả thực thi:
                 </h2>
-                
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-                    <button onclick="getFirewallStatus()" 
-                            class="px-6 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition disabled:bg-gray-400"
-                            id="statusBtn" disabled>
-                        <i class="fas fa-info-circle mr-2"></i>Kiểm tra trạng thái
-                    </button>
-                    <button onclick="enableFirewall()" 
-                            class="px-6 py-3 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-gray-400"
-                            id="enableBtn" disabled>
-                        <i class="fas fa-power-off mr-2"></i>Bật Firewall
-                    </button>
-                    <button onclick="disableFirewall()" 
-                            class="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:bg-gray-400"
-                            id="disableBtn" disabled>
-                        <i class="fas fa-power-off mr-2"></i>Tắt Firewall
-                    </button>
-                </div>
-
-                <!-- Common Ports Suggestions -->
-                <div class="border-t pt-6">
-                    <h3 class="text-md font-semibold mb-4">
-                        <i class="fas fa-lightbulb mr-2"></i>Port thông dụng:
-                    </h3>
-                    <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6" id="commonPorts">
-                        <button onclick="fillPort('22', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="22" data-protocol="tcp">
-                            <div class="font-medium">SSH</div>
-                            <div class="text-xs text-gray-600">22/TCP</div>
-                        </button>
-                        <button onclick="fillPort('80', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="80" data-protocol="tcp">
-                            <div class="font-medium">HTTP</div>
-                            <div class="text-xs text-gray-600">80/TCP</div>
-                        </button>
-                        <button onclick="fillPort('443', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="443" data-protocol="tcp">
-                            <div class="font-medium">HTTPS</div>
-                            <div class="text-xs text-gray-600">443/TCP</div>
-                        </button>
-                        <button onclick="fillPort('21', 'tcp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="21" data-protocol="tcp">
-                            <div class="font-medium">FTP</div>
-                            <div class="text-xs text-gray-600">21/TCP</div>
-                        </button>
-                        <button onclick="fillPort('53', 'udp')" class="port-suggestion px-4 py-3 bg-gray-100 hover:bg-gray-200 rounded-lg text-sm transition border-2 border-gray-200" data-port="53" data-protocol="udp">
-                            <div class="font-medium">DNS</div>
-                            <div class="text-xs text-gray-600">53/UDP</div>
-                        </button>
-                    </div>
-                    
-                    <!-- More Ports Toggle -->
-                    <div class="mb-4">
-                        <button onclick="toggleMorePorts()" id="morePortsBtn" class="px-4 py-2 bg-blue-100 text-blue-700 rounded-lg hover:bg-blue-200 transition text-sm">
-                            <i class="fas fa-plus mr-2"></i>Xem thêm port khác
-                        </button>
-                    </div>
-                    
-                    <!-- Extended Ports (Hidden by default) -->
-                    <div id="morePorts" class="hidden">
-                        <h4 class="text-sm font-medium text-gray-700 mb-3">Port khác:</h4>
-                        <div class="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-6 gap-2 mb-4">
-                            <button onclick="fillPort('25', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="25" data-protocol="tcp">
-                                <div class="font-medium">SMTP</div>
-                                <div class="text-xs text-gray-600">25/TCP</div>
-                            </button>
-                            <button onclick="fillPort('110', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="110" data-protocol="tcp">
-                                <div class="font-medium">POP3</div>
-                                <div class="text-xs text-gray-600">110/TCP</div>
-                            </button>
-                            <button onclick="fillPort('143', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="143" data-protocol="tcp">
-                                <div class="font-medium">IMAP</div>
-                                <div class="text-xs text-gray-600">143/TCP</div>
-                            </button>
-                            <button onclick="fillPort('993', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="993" data-protocol="tcp">
-                                <div class="font-medium">IMAPS</div>
-                                <div class="text-xs text-gray-600">993/TCP</div>
-                            </button>
-                            <button onclick="fillPort('995', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="995" data-protocol="tcp">
-                                <div class="font-medium">POP3S</div>
-                                <div class="text-xs text-gray-600">995/TCP</div>
-                            </button>
-                            <button onclick="fillPort('3306', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="3306" data-protocol="tcp">
-                                <div class="font-medium">MySQL</div>
-                                <div class="text-xs text-gray-600">3306/TCP</div>
-                            </button>
-                            <button onclick="fillPort('5432', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="5432" data-protocol="tcp">
-                                <div class="font-medium">PostgreSQL</div>
-                                <div class="text-xs text-gray-600">5432/TCP</div>
-                            </button>
-                            <button onclick="fillPort('3389', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="3389" data-protocol="tcp">
-                                <div class="font-medium">RDP</div>
-                                <div class="text-xs text-gray-600">3389/TCP</div>
-                            </button>
-                            <button onclick="fillPort('5900', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="5900" data-protocol="tcp">
-                                <div class="font-medium">VNC</div>
-                                <div class="text-xs text-gray-600">5900/TCP</div>
-                            </button>
-                            <button onclick="fillPort('8080', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="8080" data-protocol="tcp">
-                                <div class="font-medium">HTTP Alt</div>
-                                <div class="text-xs text-gray-600">8080/TCP</div>
-                            </button>
-                            <button onclick="fillPort('8443', 'tcp')" class="port-suggestion px-3 py-2 bg-gray-100 hover:bg-gray-200 rounded text-sm transition border-2 border-gray-200" data-port="8443" data-protocol="tcp">
-                                <div class="font-medium">HTTPS Alt</div>
-                                <div class="text-xs text-gray-600">8443/TCP</div>
-                            </button>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Add Rule Form -->
-                <div class="border-t pt-6">
-                    <h3 class="text-md font-semibold mb-4">Thêm quy tắc mới:</h3>
-                    <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
-                        <input type="text" id="portInput" placeholder="Port (VD: 80)" 
-                               class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                        <select id="protocolSelect" class="px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500">
-                            <option value="tcp">TCP</option>
-                            <option value="udp">UDP</option>
-                        </select>
-                        <button onclick="addRule()" 
-                                class="px-6 py-2 bg-green-500 text-white rounded-lg hover:bg-green-600 transition disabled:bg-gray-400"
-                                id="addRuleBtn" disabled>
-                            <i class="fas fa-plus mr-2"></i>Thêm quy tắc
-                        </button>
-                        <button onclick="deleteRule()" 
-                                class="px-6 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600 transition disabled:bg-gray-400"
-                                id="deleteRuleBtn" disabled>
-                            <i class="fas fa-minus mr-2"></i>Xóa quy tắc
-                        </button>
-                    </div>
+                <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm min-h-[300px] max-h-[600px] overflow-auto">
+                    <div class="text-gray-500">Chọn máy chủ và thực hiện hành động...</div>
                 </div>
             </div>
 
-            <!-- Results -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-terminal mr-2"></i>Kết quả:
-                </h2>
-                <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm min-h-[300px] overflow-auto">
-                    <div class="text-gray-500">Chọn máy chủ và thực hiện hành động...</div>
-                </div>
+            <!-- Navigation Buttons -->
+            <div class="text-center space-x-4 mt-6">
+                <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+                </a>
+                <a th:href="@{/list-services}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-cogs mr-2"></i> Quản lý dịch vụ
+                </a>
             </div>
         </div>
     </div>
@@ -220,6 +255,12 @@
                 username: element.dataset.serverUsername,
                 password: element.dataset.serverPassword
             };
+            
+            // Show selected server info in left panel
+            const serverInfo = document.getElementById('selectedServerInfo');
+            const serverName = document.getElementById('selectedServerName');
+            serverName.textContent = `${selectedServer.name} (${selectedServer.ip})`;
+            serverInfo.classList.remove('hidden');
             
             // Enable action buttons
             document.querySelectorAll('#statusBtn, #enableBtn, #disableBtn, #addRuleBtn, #deleteRuleBtn').forEach(btn => {
