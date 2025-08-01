@@ -10,6 +10,59 @@
     <link rel="stylesheet" href="/service.css">
     <link rel="stylesheet" href="/layout.css">
     
+    <style>
+        .server-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .server-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .server-card.selected {
+            background: linear-gradient(135deg, #10B981 0%, #059669 100%) !important;
+            color: white !important;
+            transform: scale(1.01);
+            box-shadow: 0 8px 25px rgba(16, 185, 129, 0.3);
+        }
+        
+        .server-card.selected .text-gray-800,
+        .server-card.selected .text-gray-600,
+        .server-card.selected .text-gray-500 {
+            color: white !important;
+        }
+        
+        .server-card.selected .fas {
+            color: white !important;
+        }
+        
+        .server-card.selected .status-online,
+        .server-card.selected .status-offline {
+            background: rgba(255, 255, 255, 0.2) !important;
+            color: white !important;
+        }
+        
+        .service-item {
+            transition: all 0.3s ease;
+        }
+        
+        .service-item:hover {
+            transform: translateY(-1px);
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+        }
+        
+        .pulse-animation {
+            animation: pulse 2s infinite;
+        }
+        
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+    </style>
 </head>
 <body class="bg-gray-100 min-h-screen flex flex-col">
 <main class="flex-1">
@@ -28,184 +81,205 @@
     </div>
     
     <div class="container mx-auto px-4 py-8">
-        <div class="max-w-6xl mx-auto">
-            <div th:replace="~{fragments/header :: header('Liệt kê/Điều khiển dịch vụ', 'fas fa-hard-drive')}"></div>    
-        
+        <div class="max-w-7xl mx-auto">
+            <!-- Header -->
+            <div th:replace="~{fragments/header :: header('Liệt kê/Điều khiển dịch vụ', 'fas fa-hard-drive')}"></div>
 
-            <!-- Server Selection -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-server mr-2"></i>Chọn máy chủ để xem dịch vụ:
-                </h2>
-                
-                <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3 mb-4">
-                    <div th:each="server : ${userServers}" 
-                         class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition"
-                         th:data-server-ip="${server.ip}"
-                         th:data-server-name="${server.name}"
-                         th:data-server-username="${server.sshUsername}"
-                         th:data-server-online="${server.online}"
-                         onclick="selectServer(this)">
-                        <div class="flex items-center flex-1">
-                            <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
-                            <div class="flex-1">
-                                <div class="font-medium text-gray-800" th:text="${server.name}"></div>
-                                <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
-                                <div class="text-xs text-gray-500 mt-1">
-                                    <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+            <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                <!-- Left Panel - Server Selection -->
+                <div class="space-y-6">
+                    <!-- Server List -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">
+                                <i class="fas fa-server mr-2"></i>Danh sách máy chủ:
+                            </h2>
+                        </div>
+                        
+                        <div th:if="${userServers != null and !userServers.isEmpty()}" class="space-y-3">
+                            <div th:each="server : ${userServers}" 
+                                 class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg cursor-pointer hover:bg-gray-100 transition"
+                                 th:data-server-ip="${server.ip}"
+                                 th:data-server-name="${server.name}"
+                                 th:data-server-username="${server.sshUsername}"
+                                 th:data-server-online="${server.online}"
+                                 onclick="selectServer(this)">
+                                <div class="flex items-center flex-1">
+                                    <i class="fas fa-server text-gray-600 mr-3 text-lg"></i>
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-800 text-sm" th:text="${server.name}"></div>
+                                        <div class="text-xs text-gray-600 mt-1" th:text="${server.ip}"></div>
+                                        <div class="text-xs text-gray-500 mt-1">
+                                            <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <span th:if="${server.online}" class="status-online px-2 py-1 text-xs rounded-full">
+                                        <i class="fas fa-circle mr-1"></i>Online
+                                    </span>
+                                    <span th:unless="${server.online}" class="status-offline px-2 py-1 text-xs rounded-full">
+                                        <i class="fas fa-circle mr-1"></i>Offline
+                                    </span>
+                                    <div class="selected-indicator hidden">
+                                        <i class="fas fa-check-circle text-blue-500 text-lg"></i>
+                                    </div>
                                 </div>
                             </div>
                         </div>
-                        <div class="flex items-center gap-3">
-                            <span th:if="${server.online}" class="status-online px-3 py-1 text-xs rounded-full">
-                                <i class="fas fa-circle mr-1"></i>Đang hoạt động
-                            </span>
-                            <span th:unless="${server.online}" class="status-offline px-3 py-1 text-xs rounded-full">
-                                <i class="fas fa-circle mr-1"></i>Không hoạt động
-                            </span>
-                            <div class="selected-indicator hidden">
-                                <i class="fas fa-check-circle text-blue-500 text-xl"></i>
-                            </div>
+                        
+                        <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
+                            <i class="fas fa-server text-gray-400 text-3xl mb-3"></i>
+                            <p class="mb-2">Chưa có máy chủ nào.</p>
+                            <a href="/add-server" class="inline-block px-4 py-2 btn-primary text-white rounded-lg transition text-sm">
+                                <i class="fas fa-plus mr-2"></i>Thêm máy chủ
+                            </a>
                         </div>
                     </div>
-                </div>
-                
-                <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
-                    <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
-                    <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
-                    <a href="/add-server" class="inline-block px-6 py-2 btn-primary text-white rounded-lg transition">
-                        <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
-                    </a>
-                </div>
-                
-                <!-- Selected Server Info -->
-                <div id="selectedServerInfo" class="hidden mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
-                    <div class="flex items-center">
-                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
-                        <span class="text-blue-800 font-medium">Máy chủ được chọn:</span>
-                        <span id="selectedServerName" class="ml-2 text-blue-700"></span>
-                    </div>
-                </div>
-            </div>
 
-            <!-- Actions -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-cogs mr-2"></i>Hành động:
-                </h2>
-                <div class="flex gap-3">
-                    <button id="loadServicesBtn" onclick="loadServices()" 
-                            class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            disabled>
-                        <i class="fas fa-list mr-2"></i>Tải danh sách dịch vụ
-                    </button>
-                    <button id="refreshBtn" onclick="refreshServices()" 
-                            class="px-6 py-2 btn-secondary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
-                            disabled>
-                        <i class="fas fa-refresh mr-2"></i>Làm mới
-                    </button>
-                    <button onclick="clearResults()" 
-                            class="px-6 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition">
-                        <i class="fas fa-eraser mr-2"></i>Xóa kết quả
-                    </button>
-                </div>
-            </div>
-
-            <!-- Search and Filter -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="flex flex-col md:flex-row gap-4">
-                    <!-- Search Box -->
-                    <div class="flex-1">
-                        <div class="relative">
-                            <input type="text" 
-                                   id="searchInput" 
-                                   class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                                   placeholder="Tìm kiếm dịch vụ..."
-                                   onkeyup="searchServices()"
-                                   disabled>
-                            <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                                <i class="fas fa-search text-gray-400"></i>
-                            </div>
-                            <button onclick="clearSearch()" 
-                                    class="absolute inset-y-0 right-0 pr-3 flex items-center">
-                                <i class="fas fa-times text-gray-400 hover:text-gray-600"></i>
+                    <!-- Actions -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-cogs mr-2"></i>Hành động:
+                        </h2>
+                        <div class="space-y-3">
+                            <button id="loadServicesBtn" onclick="loadServices()" 
+                                    class="w-full px-4 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                                    disabled>
+                                <i class="fas fa-list mr-2"></i>Tải danh sách dịch vụ
+                            </button>
+                            <button id="refreshBtn" onclick="refreshServices()" 
+                                    class="w-full px-4 py-2 btn-secondary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed text-sm"
+                                    disabled>
+                                <i class="fas fa-refresh mr-2"></i>Làm mới
+                            </button>
+                            <button onclick="clearResults()" 
+                                    class="w-full px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600 transition text-sm">
+                                <i class="fas fa-eraser mr-2"></i>Xóa kết quả
                             </button>
                         </div>
                     </div>
-                    
-                    <!-- Filter Buttons -->
-                    <div class="flex gap-2">
-                        <button onclick="filterServices('all')" 
-                                class="filter-btn px-3 py-1 bg-blue-500 text-white rounded text-sm">
-                            Tất cả
-                        </button>
-                        <button onclick="filterServices('running')" 
-                                class="filter-btn px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm">
-                            Đang chạy
-                        </button>
-                        <button onclick="filterServices('stopped')" 
-                                class="filter-btn px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm">
-                            Đã dừng
-                        </button>
-                        <button onclick="filterServices('failed')" 
-                                class="filter-btn px-3 py-1 bg-gray-200 text-gray-700 rounded text-sm">
-                            Lỗi
-                        </button>
-                    </div>
                 </div>
-            </div>
 
-            <!-- Services List -->
-            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
-                <div class="flex items-center justify-between mb-4">
-                    <h2 class="text-lg font-semibold">
-                        <i class="fas fa-list-ul mr-2"></i>Danh sách dịch vụ:
-                    </h2>
-                    <div class="text-sm text-gray-600">
-                        <span id="serviceCount">0</span> dịch vụ
-                    </div>
-                </div>
-                
-                <div id="servicesContainer" class="min-h-[400px]">
-                    <div class="text-gray-500 text-center py-12">
-                        <i class="fas fa-list text-gray-400 text-4xl mb-4"></i>
-                        <p class="text-lg">Chọn máy chủ và nhấn "Tải danh sách dịch vụ" để xem các dịch vụ</p>
-                    </div>
-                </div>
-                
-                <!-- Pagination -->
-                <div id="paginationContainer" class="hidden mt-6 flex items-center justify-between">
-                    <div class="text-sm text-gray-600">
-                        Hiển thị <span id="showingFrom">1</span> - <span id="showingTo">15</span> trong tổng số <span id="totalServices">0</span> dịch vụ
-                    </div>
-                    <div class="flex gap-2">
-                        <button onclick="goToPage(currentPage - 1)" 
-                                id="prevBtn"
-                                class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled>
-                            <i class="fas fa-chevron-left"></i>
-                        </button>
-                        <div id="pageButtons" class="flex gap-1">
-                            <!-- Page buttons will be inserted here -->
+                <!-- Right Panel - Services List -->
+                <div class="space-y-6">
+                    <!-- Selected Server Info -->
+                    <div id="selectedServerInfo" class="hidden bg-white rounded-lg shadow-md p-4">
+                        <div class="flex items-center">
+                            <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                            <span class="text-blue-800 font-medium text-sm">Máy chủ:</span>
+                            <span id="selectedServerName" class="ml-2 text-blue-700 text-sm"></span>
                         </div>
-                        <button onclick="goToPage(currentPage + 1)" 
-                                id="nextBtn"
-                                class="px-3 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed"
-                                disabled>
-                            <i class="fas fa-chevron-right"></i>
-                        </button>
+                    </div>
+
+                    <!-- Search and Filter -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-search mr-2"></i>Tìm kiếm & Lọc:
+                        </h2>
+                        <div class="space-y-4">
+                            <!-- Search Box -->
+                            <div class="relative">
+                                <input type="text" 
+                                       id="searchInput" 
+                                       class="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 text-sm"
+                                       placeholder="Tìm kiếm dịch vụ..."
+                                       onkeyup="searchServices()"
+                                       disabled>
+                                <div class="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                                    <i class="fas fa-search text-gray-400"></i>
+                                </div>
+                                <button onclick="clearSearch()" 
+                                        class="absolute inset-y-0 right-0 pr-3 flex items-center">
+                                    <i class="fas fa-times text-gray-400 hover:text-gray-600"></i>
+                                </button>
+                            </div>
+                            
+                            <!-- Filter Buttons -->
+                            <div class="grid grid-cols-4 gap-2">
+                                <button onclick="filterServices('all')" 
+                                        class="filter-btn px-3 py-2 bg-blue-500 text-white rounded text-xs">
+                                    Tất cả
+                                </button>
+                                <button onclick="filterServices('running')" 
+                                        class="filter-btn px-3 py-2 bg-gray-200 text-gray-700 rounded text-xs">
+                                    Đang chạy
+                                </button>
+                                <button onclick="filterServices('stopped')" 
+                                        class="filter-btn px-3 py-2 bg-gray-200 text-gray-700 rounded text-xs">
+                                    Đã dừng
+                                </button>
+                                <button onclick="filterServices('failed')" 
+                                        class="filter-btn px-3 py-2 bg-gray-200 text-gray-700 rounded text-xs">
+                                    Lỗi
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Services List -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center justify-between mb-4">
+                            <h2 class="text-lg font-semibold">
+                                <i class="fas fa-list-ul mr-2"></i>Danh sách dịch vụ:
+                            </h2>
+                            <div class="text-sm text-gray-600">
+                                <span id="serviceCount">0</span> dịch vụ
+                            </div>
+                        </div>
+                        
+                        <div id="servicesContainer" class="max-h-[600px] overflow-y-auto">
+                            <div class="text-gray-500 text-center py-8">
+                                <i class="fas fa-list text-gray-400 text-3xl mb-3"></i>
+                                <p class="text-sm">Chọn máy chủ và tải danh sách dịch vụ</p>
+                            </div>
+                        </div>
+                        
+                        <!-- Pagination -->
+                        <div id="paginationContainer" class="hidden mt-4 flex items-center justify-between">
+                            <div class="text-xs text-gray-600">
+                                <span id="showingFrom">1</span> - <span id="showingTo">15</span> / <span id="totalServices">0</span>
+                            </div>
+                            <div class="flex gap-1">
+                                <button onclick="goToPage(currentPage - 1)" 
+                                        id="prevBtn"
+                                        class="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                                        disabled>
+                                    <i class="fas fa-chevron-left"></i>
+                                </button>
+                                <div id="pageButtons" class="flex gap-1">
+                                    <!-- Page buttons will be inserted here -->
+                                </div>
+                                <button onclick="goToPage(currentPage + 1)" 
+                                        id="nextBtn"
+                                        class="px-2 py-1 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition disabled:opacity-50 disabled:cursor-not-allowed text-xs"
+                                        disabled>
+                                    <i class="fas fa-chevron-right"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Results Panel -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <h2 class="text-lg font-semibold mb-4">
+                            <i class="fas fa-terminal mr-2"></i>Kết quả thực thi:
+                        </h2>
+                        <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-xs max-h-[300px] overflow-auto">
+                            <div class="text-gray-500">Chưa có thông tin...</div>
+                        </div>
                     </div>
                 </div>
             </div>
 
-            <!-- Loading and Results -->
-            <div class="bg-white rounded-lg shadow-md p-6">
-                <h2 class="text-lg font-semibold mb-4">
-                    <i class="fas fa-info-circle mr-2"></i>Thông tin:
-                </h2>
-                <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm min-h-[150px] overflow-auto">
-                    <div class="text-gray-500">Chưa có thông tin...</div>
-                </div>
+            <!-- Navigation Buttons -->
+            <div class="text-center space-x-4 mt-6">
+                <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+                </a>
+                <a th:href="@{/multi-execute-page}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-layer-group mr-2"></i> Thực thi nhiều máy chủ
+                </a>
             </div>
         </div>
     </div>
@@ -429,9 +503,9 @@
             
             // Clear previous results
             document.getElementById('servicesContainer').innerHTML = `
-                <div class="text-gray-500 text-center py-12">
-                    <i class="fas fa-list text-gray-400 text-4xl mb-4"></i>
-                    <p class="text-lg">Nhấn "Tải danh sách dịch vụ" để xem các dịch vụ trên ${selectedServer.name}</p>
+                <div class="text-gray-500 text-center py-8">
+                    <i class="fas fa-list text-gray-400 text-3xl mb-3"></i>
+                    <p class="text-sm">Nhấn "Tải danh sách dịch vụ" để xem các dịch vụ trên ${selectedServer.name}</p>
                 </div>
             `;
         }
@@ -540,7 +614,7 @@
             const currentServices = filteredServices.slice(startIndex, endIndex);
             
             // Display services
-            let html = '<div class="grid gap-3">';
+            let html = '<div class="space-y-2">';
             
             currentServices.forEach(service => {
                 const translatedStatus = translateStatus(service.status);
@@ -549,37 +623,37 @@
                 const serviceItemClass = getServiceItemClass(service.status);
                 
                 html += `
-                    <div class="service-item ${serviceItemClass} bg-white border border-gray-200 rounded-lg p-4 transition">
+                    <div class="service-item ${serviceItemClass} bg-gray-50 border border-gray-200 rounded-lg p-3 hover:bg-gray-100 transition">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center flex-1">
-                                <i class="fas fa-cog text-gray-500 mr-4 text-xl"></i>
+                                <i class="fas fa-cog text-gray-500 mr-3 text-sm"></i>
                                 <div class="flex-1">
-                                    <div class="font-semibold text-gray-800 text-lg">${service.name}</div>
-                                    <div class="text-sm text-gray-600 mt-1">${service.description || 'Không có mô tả'}</div>
+                                    <div class="font-medium text-gray-800 text-sm">${service.name}</div>
+                                    <div class="text-xs text-gray-600 mt-1">${service.description || 'Không có mô tả'}</div>
                                 </div>
                             </div>
-                            <div class="flex items-center gap-4">
-                                <span class="px-4 py-2 text-sm rounded-full font-medium ${statusClass}">
-                                    <i class="${statusIcon} mr-2"></i>${translatedStatus}
+                            <div class="flex items-center gap-2">
+                                <span class="px-2 py-1 text-xs rounded-full font-medium ${statusClass}">
+                                    <i class="${statusIcon} mr-1"></i>${translatedStatus}
                                 </span>
-                                <div class="flex gap-2">
-                                    <button onclick="serviceAction('${service.name}', 'start')" 
-                                            class="px-3 py-2 bg-green-500 text-white rounded-lg text-sm hover:bg-green-600 transition shadow-sm"
+                                <div class="flex items-center gap-1">
+                                    <button onclick="performServiceAction('start', '${service.name}')" 
+                                            class="p-2 bg-green-500 text-white rounded-lg text-xs hover:bg-green-600 transition shadow-sm"
                                             title="Khởi động dịch vụ">
                                         <i class="fas fa-play"></i>
                                     </button>
-                                    <button onclick="serviceAction('${service.name}', 'stop')" 
-                                            class="px-3 py-2 bg-red-500 text-white rounded-lg text-sm hover:bg-red-600 transition shadow-sm"
+                                    <button onclick="performServiceAction('stop', '${service.name}')" 
+                                            class="p-2 bg-red-500 text-white rounded-lg text-xs hover:bg-red-600 transition shadow-sm"
                                             title="Dừng dịch vụ">
                                         <i class="fas fa-stop"></i>
                                     </button>
-                                    <button onclick="serviceAction('${service.name}', 'restart')" 
-                                            class="px-3 py-2 bg-blue-500 text-white rounded-lg text-sm hover:bg-blue-600 transition shadow-sm"
+                                    <button onclick="performServiceAction('restart', '${service.name}')" 
+                                            class="p-2 bg-orange-500 text-white rounded-lg text-xs hover:bg-orange-600 transition shadow-sm"
                                             title="Khởi động lại dịch vụ">
                                         <i class="fas fa-redo"></i>
                                     </button>
-                                    <button onclick="serviceAction('${service.name}', 'status')" 
-                                            class="px-3 py-2 bg-gray-500 text-white rounded-lg text-sm hover:bg-gray-600 transition shadow-sm"
+                                    <button onclick="performServiceAction('status', '${service.name}')" 
+                                            class="p-2 bg-blue-500 text-white rounded-lg text-xs hover:bg-blue-600 transition shadow-sm"
                                             title="Xem trạng thái chi tiết">
                                         <i class="fas fa-info"></i>
                                     </button>
@@ -854,6 +928,155 @@
                     loadServices();
                 }
             }, 1000); // Wait for DOM to be ready
+        }
+
+        // Get action text in Vietnamese
+        function getActionText(action) {
+            const actionTexts = {
+                'start': 'Khởi động',
+                'stop': 'Dừng',
+                'restart': 'Khởi động lại',
+                'status': 'Kiểm tra trạng thái'
+            };
+            return actionTexts[action] || action;
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
+        }
+        
+        // Perform service action
+        async function performServiceAction(action, serviceName) {
+            if (!selectedServer) {
+                showNotification('warning', 'Cảnh báo', 'Vui lòng chọn máy chủ trước!');
+                return;
+            }
+
+            if (!serviceName) {
+                showNotification('warning', 'Cảnh báo', 'Tên dịch vụ không hợp lệ!');
+                return;
+            }
+            
+            const resultsDiv = document.getElementById('results');
+            
+            // Show loading in results
+            resultsDiv.innerHTML = `
+                <div class="text-center py-4">
+                    <i class="fas fa-spinner fa-spin text-blue-400 text-2xl mb-2"></i>
+                    <p class="text-gray-400 text-sm">Đang thực hiện ${getActionText(action)} cho dịch vụ "${serviceName}"...</p>
+                    <div class="mt-2 text-xs text-gray-500">
+                        <i class="fas fa-server mr-1"></i>Máy chủ: ${selectedServer.name} (${selectedServer.ip})
+                    </div>
+                </div>
+            `;
+            
+            try {
+                const command = `sudo systemctl ${action} ${serviceName}`;
+                
+                const response = await fetch('/api/execute-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        hosts: [selectedServer.ip],
+                        command: command,
+                        username: selectedServer.username
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.results && result.results.length > 0) {
+                    const commandResult = result.results[0];
+                    
+                    let html = `
+                        <div class="mb-4">
+                            <div class="text-green-400 font-semibold mb-2">
+                                <i class="fas fa-terminal mr-2"></i>Kết quả ${getActionText(action)} dịch vụ "${serviceName}":
+                            </div>
+                            <div class="bg-gray-800 p-3 rounded border-l-4 ${commandResult.success ? 'border-green-500' : 'border-red-500'}">
+                                <div class="text-xs text-gray-400 mb-2">
+                                    <i class="fas fa-server mr-1"></i>${selectedServer.name} (${selectedServer.ip})
+                                    <span class="ml-4"><i class="fas fa-user mr-1"></i>${selectedServer.username}</span>
+                                </div>
+                                <div class="text-xs text-gray-400 mb-2">
+                                    <i class="fas fa-terminal mr-1"></i>Lệnh: ${command}
+                                </div>
+                                <div class="text-sm ${commandResult.success ? 'text-green-400' : 'text-red-400'}">
+                                    ${commandResult.success ? 
+                                        `<i class="fas fa-check-circle mr-2"></i>Thành công` : 
+                                        `<i class="fas fa-times-circle mr-2"></i>Thất bại`
+                                    }
+                                </div>
+                                ${commandResult.output ? `
+                                    <div class="mt-2 text-xs text-gray-300 whitespace-pre-wrap border-t border-gray-700 pt-2">
+                                        ${escapeHtml(commandResult.output)}
+                                    </div>
+                                ` : ''}
+                                ${commandResult.error ? `
+                                    <div class="mt-2 text-xs text-red-400 whitespace-pre-wrap border-t border-gray-700 pt-2">
+                                        <i class="fas fa-exclamation-triangle mr-1"></i>Lỗi: ${escapeHtml(commandResult.error)}
+                                    </div>
+                                ` : ''}
+                            </div>
+                        </div>
+                    `;
+                    
+                    resultsDiv.innerHTML = html;
+                    
+                    if (commandResult.success) {
+                        showNotification('success', 'Thành công', `${getActionText(action)} dịch vụ "${serviceName}" thành công!`);
+                        // Refresh services list after action (except for status command)
+                        if (action !== 'status') {
+                            setTimeout(() => {
+                                refreshServices();
+                            }, 1000);
+                        }
+                    } else {
+                        showNotification('error', 'Thất bại', `${getActionText(action)} dịch vụ "${serviceName}" thất bại!`);
+                    }
+                    
+                } else {
+                    throw new Error('Không nhận được phản hồi từ máy chủ');
+                }
+                
+            } catch (error) {
+                console.error('Service action error:', error);
+                resultsDiv.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="fas fa-exclamation-triangle text-red-400 text-2xl mb-2"></i>
+                        <p class="text-red-400 mb-1">Lỗi kết nối</p>
+                        <p class="text-xs text-gray-400">${error.message}</p>
+                        <div class="mt-2 text-xs text-gray-500">
+                            <i class="fas fa-server mr-1"></i>Máy chủ: ${selectedServer.name} (${selectedServer.ip})
+                        </div>
+                    </div>
+                `;
+
+                showNotification('error', 'Lỗi', `Không thể ${getActionText(action).toLowerCase()} dịch vụ: ${error.message}`);
+            }
+        }
+        
+        // Get action text in Vietnamese
+        function getActionText(action) {
+            const actionTexts = {
+                'start': 'Khởi động',
+                'stop': 'Dừng',
+                'restart': 'Khởi động lại',
+                'status': 'Kiểm tra trạng thái'
+            };
+            return actionTexts[action] || action;
+        }
+        
+        // Escape HTML to prevent XSS
+        function escapeHtml(text) {
+            const div = document.createElement('div');
+            div.textContent = text;
+            return div.innerHTML;
         }
 
         // Also support ?host=... for backward compatibility
