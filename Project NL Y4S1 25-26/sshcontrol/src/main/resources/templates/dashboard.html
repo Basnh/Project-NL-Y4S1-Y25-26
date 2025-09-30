@@ -1,0 +1,864 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Bảng điều khiển - Điều khiển máy chủ Ubuntu</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/service.css">
+    <link rel="stylesheet" href="/layout.css">
+</head>
+<body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
+    
+<main class="flex-1">
+<div class="min-h-screen bg-gray-100 py-10 px-6">
+    <div class="max-w-5xl mx-auto bg-white p-6 rounded-xl shadow-lg">
+        <div th:replace="~{fragments/dashboard-header :: dashboard-header}"></div>
+        
+        <div class="flex justify-between items-center mb-6">
+            <h2 class="text-xl font-bold text-gray-800">Chức năng điều khiển</h2>
+            <div class="flex items-center space-x-2 bg-gray-200 rounded-lg p-1">
+                <button id="gridViewBtn" onclick="setViewMode('grid')" 
+                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 bg-blue-500 text-white">
+                    <i class="fas fa-th mr-2"></i>
+                </button>
+                <button id="listViewBtn" onclick="setViewMode('list')" 
+                        class="flex items-center px-3 py-2 rounded-md text-sm font-medium transition-colors duration-200 text-gray-700 hover:bg-gray-300">
+                    <i class="fas fa-list mr-2"></i>
+                </button>
+            </div>
+        </div>
+
+        <!-- Navigation Grid View -->
+        <div id="gridView" class="space-y-8">
+            <!-- 🖥️ Quản lý máy chủ -->
+            <div class="bg-gradient-to-r from-blue-50 to-indigo-50 p-6 rounded-xl border border-blue-200">
+                <h3 class="text-lg font-bold text-blue-800 mb-4 flex items-center">
+                    <i class="fas fa-server mr-2"></i>
+                    🖥️ Quản lý máy chủ
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Kết nối máy chủ -->
+                    <a th:href="@{/add-server}" class="p-4 bg-white rounded-lg hover:bg-blue-50 transition transform hover:scale-105 shadow-sm border border-blue-100">
+                        <i class="fas fa-plug text-indigo-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-indigo-800">Kết nối máy chủ</h4>
+                        <p class="text-sm text-gray-600">Thêm máy chủ mới để điều khiển</p>
+                    </a>
+
+                    <!-- Danh sách máy chủ -->
+                    <a th:href="@{/server-list}" class="p-4 bg-white rounded-lg hover:bg-green-50 transition transform hover:scale-105 shadow-sm border border-green-100">
+                        <i class="fas fa-server text-green-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-green-800">Danh sách máy chủ</h4>
+                        <p class="text-sm text-gray-600">Xem, xóa, kiểm tra trạng thái máy</p>
+                    </a>
+
+                    <!-- Điều khiển máy ảo -->
+                    <a th:href="@{/vm-control}" class="p-4 bg-white rounded-lg hover:bg-gray-50 transition transform hover:scale-105 shadow-sm border border-gray-200">
+                        <i class="fas fa-power-off text-gray-800 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-gray-900">Điều khiển máy ảo</h4>
+                        <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 📡 Thao tác từ xa -->
+            <div class="bg-gradient-to-r from-yellow-50 to-orange-50 p-6 rounded-xl border border-yellow-200">
+                <h3 class="text-lg font-bold text-yellow-800 mb-4 flex items-center">
+                    <i class="fas fa-terminal mr-2"></i>
+                    📡 Thao tác từ xa
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Thực thi lệnh -->
+                    <a th:href="@{/execute-page}" class="p-4 bg-white rounded-lg hover:bg-yellow-50 transition transform hover:scale-105 shadow-sm border border-yellow-100">
+                        <i class="fas fa-terminal text-yellow-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-yellow-800">Thực thi lệnh</h4>
+                        <p class="text-sm text-gray-600">Gửi lệnh nhanh tới máy chủ đơn</p>
+                    </a>
+
+                    <!-- Thực thi nhiều máy -->
+                    <a th:href="@{/multi-execute-page}" class="p-4 bg-white rounded-lg hover:bg-purple-50 transition transform hover:scale-105 shadow-sm border border-purple-100">
+                        <i class="fas fa-layer-group text-purple-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-purple-800">Thực thi lệnh nhiều máy</h4>
+                        <p class="text-sm text-gray-600">Chạy lệnh trên nhiều máy chủ cùng lúc</p>
+                    </a>
+                </div>
+            </div>
+
+            <!-- 🧰 Dịch vụ & Tệp tin -->
+            <div class="bg-gradient-to-r from-green-50 to-teal-50 p-6 rounded-xl border border-green-200">
+                <h3 class="text-lg font-bold text-green-800 mb-4 flex items-center">
+                    <i class="fas fa-cogs mr-2"></i>
+                    🧰 Dịch vụ & Tệp tin
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Cấu hình dịch vụ -->
+                    <a th:href="@{/edit-config-page}" class="p-4 bg-white rounded-lg hover:bg-purple-50 transition transform hover:scale-105 shadow-sm border border-purple-100">
+                        <i class="fas fa-cogs text-purple-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-purple-800">Cấu hình dịch vụ</h4>
+                        <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
+                    </a>
+
+                    <!-- Liệt kê dịch vụ -->
+                    <a th:href="@{/list-services}" class="p-4 bg-white rounded-lg hover:bg-blue-50 transition transform hover:scale-105 shadow-sm border border-blue-100">
+                        <i class="fas fa-hard-drive text-blue-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-blue-800">Liệt kê/Điều khiển dịch vụ</h4>
+                        <p class="text-sm text-gray-600">Liệt kê/Điều khiển các dịch vụ trên máy chủ</p>
+                    </a>
+
+
+                    <!-- Quản lí file -->
+                    <div class="p-4 bg-white rounded-lg opacity-60 shadow-sm border border-gray-200">
+                        <i class="fas fa-folder-open text-orange-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-orange-800">Quản lý file (Coming soon)</h4>
+                        <p class="text-sm text-gray-600">Duyệt, tải lên, tải xuống file qua SFTP</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 🔐 Bảo mật -->
+            <div class="bg-gradient-to-r from-red-50 to-pink-50 p-6 rounded-xl border border-red-200">
+                <h3 class="text-lg font-bold text-red-800 mb-4 flex items-center">
+                    <i class="fas fa-shield-alt mr-2"></i>
+                    🔐 Bảo mật
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Điều khiển tường lửa -->
+                    <a th:href="@{/firewall}" class="p-4 bg-white rounded-lg hover:bg-red-50 transition transform hover:scale-105 shadow-sm border border-red-100">
+                        <i class="fas fa-fire-burner text-red-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-red-800">Điều khiển tường lửa</h4>
+                        <p class="text-sm text-gray-600">Bật/tắt cổng, kiểm tra trạng thái tường lửa</p>
+                    </a>
+
+                    <!-- Lịch sử thao tác -->
+                    <div class="p-4 bg-white rounded-lg opacity-60 shadow-sm border border-gray-200">
+                        <i class="fas fa-history text-gray-500 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-gray-600">Lịch sử thao tác</h4>
+                        <p class="text-sm text-gray-500">Xem lịch sử các lệnh đã thực hiện (Coming soon...)</p>
+                    </div>
+
+                </div>
+            </div>        
+        </div>
+
+        <!-- Navigation List View -->
+        <div id="listView" class="hidden space-y-3">
+            <!-- Kết nối máy chủ -->
+            <a th:href="@{/add-server}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-plug text-indigo-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Kết nối máy chủ</h3>
+                            <p class="text-sm text-gray-600">Thêm máy chủ mới để điều khiển.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Danh sách máy chủ -->
+            <a th:href="@{/server-list}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-server text-green-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Danh sách máy chủ</h3>
+                            <p class="text-sm text-gray-600">Xem, xóa, kiểm tra trạng thái máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Thực thi lệnh -->
+            <a th:href="@{/execute-page}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-terminal text-yellow-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Thực thi lệnh</h3>
+                            <p class="text-sm text-gray-600">Gửi lệnh nhanh tới máy chủ đơn.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Thực thi nhiều máy -->
+            <a th:href="@{/multi-execute-page}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-server text-purple-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Thực thi lệnh nhiều máy chủ</h3>
+                            <p class="text-sm text-gray-600">Chạy lệnh trên nhiều máy chủ cùng lúc.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Cấu hình dịch vụ -->
+            <a th:href="@{/edit-config-page}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-cogs text-purple-600 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Cấu hình dịch vụ</h3>
+                            <p class="text-sm text-gray-600">Sửa file như sshd_config, nginx...</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Quản lý file cấu hình -->
+            <a th:href="@{/file-manager}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-folder-open text-yellow-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Quản lý file cấu hình</h3>
+                            <p class="text-sm text-gray-600">Chỉnh sửa file cấu hình trên máy chủ từ xa.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+
+            <!-- Điều khiển dịch vụ đơn -->
+            <button onclick="showServerSelectModal('service-control')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-toggle-on text-orange-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Điều khiển dịch vụ</h3>
+                            <p class="text-sm text-gray-600">Start/Stop/Restart dịch vụ trên 1 máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Liệt kê dịch vụ đơn -->
+            <button onclick="showServerSelectModal('service-list')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-list text-teal-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Liệt kê dịch vụ</h3>
+                            <p class="text-sm text-gray-600">Xem trạng thái dịch vụ trên 1 máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Điều khiển dịch vụ đa máy -->
+            <button onclick="showServerSelectModal('multi-service-control')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-layer-group text-rose-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Điều khiển dịch vụ đa máy</h3>
+                            <p class="text-sm text-gray-600">Control service trên nhiều máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Liệt kê dịch vụ đa máy -->
+            <button onclick="showServerSelectModal('multi-service-list')" class="w-full p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-server text-cyan-600 text-xl"></i>
+                        </div>
+                        <div class="text-left">
+                            <h3 class="text-lg font-semibold text-gray-900">Liệt kê dịch vụ đa máy</h3>
+                            <p class="text-sm text-gray-600">Xem service trên nhiều máy.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </button>
+
+            <!-- Điều khiển máy ảo -->
+            <a th:href="@{/vm-control}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
+                <div class="flex items-center justify-between">
+                    <div class="flex items-center space-x-4">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-power-off text-gray-800 text-xl"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-lg font-semibold text-gray-900">Điều khiển máy ảo</h3>
+                            <p class="text-sm text-gray-600">Bật/tắt các máy ảo VirtualBox.</p>
+                        </div>
+                    </div>
+                    <i class="fas fa-chevron-right text-gray-400"></i>
+                </div>
+            </a>
+        </div>
+
+       
+        <!-- Trạng thái máy chủ (old version)
+        <div class="mt-10">
+            <div class="flex justify-between items-center mb-4">
+                <h3 class="text-xl font-bold text-gray-800">📡 Trạng thái máy chủ</h3>
+                <div class="flex items-center space-x-2">
+                    <button id="refreshButton" onclick="refreshServerStatus()" 
+                            class="px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                        <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                    </button>
+                    <label class="flex items-center space-x-2">
+                        <input type="checkbox" id="autoRefresh" onchange="toggleAutoRefresh()" class="rounded">
+                        <span class="text-sm text-gray-600">Tự động làm mới</span>
+                    </label>
+                </div>
+            </div>
+            
+            <div id="lastUpdate" class="text-sm text-gray-500 mb-4"></div>
+            
+            <div th:if="${#lists.isEmpty(user.servers)}" class="text-center text-gray-500 py-8">
+                <i class="fas fa-server text-4xl mb-4"></i>
+                <p class="text-lg">Chưa có máy chủ nào được thêm</p>
+                <p class="text-sm">Hãy thêm máy chủ đầu tiên để bắt đầu!</p>
+            </div>
+            
+            <div th:if="${!#lists.isEmpty(user.servers)}" class="overflow-x-auto">
+                <table class="w-full table-auto border-collapse">
+                    <thead>
+                        <tr class="bg-gray-200 text-left">
+                            <th class="p-3 text-sm font-medium text-gray-700">Tên máy chủ</th>
+                            <th class="p-3 text-sm font-medium text-gray-700">IP</th>
+                            <th class="p-3 text-sm font-medium text-gray-700">Trạng thái</th>
+                        </tr>
+                    </thead>
+                    <tbody id="serverTableBody">
+                        <tr th:each="server : ${user.servers}" class="border-b hover:bg-gray-50">
+                            <td class="p-3 text-sm" th:text="${server.name}">Server 1</td>
+                            <td class="p-3 text-sm" th:text="${server.ip}">192.168.1.10</td>
+                            <td class="p-3 text-sm">
+                                <span th:data-ip="${server.ip}" class="server-status">
+                                    <span th:if="${server.online}" class="text-green-600 font-semibold">
+                                        <i class="fas fa-circle mr-1"></i>Online
+                                    </span>
+                                    <span th:if="${!server.online}" class="text-red-600 font-semibold">
+                                        <i class="fas fa-circle mr-1"></i>Offline
+                                    </span>
+                                </span>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div> -->
+
+
+        <div id="serverSelectModal" class="fixed inset-0 bg-black bg-opacity-50 hidden flex items-center justify-center z-50">
+            <div class="bg-white rounded-xl shadow-2xl max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+                <!-- Header -->
+                <div class="flex items-center justify-between p-6 border-b">
+                    <h2 id="modalTitle" class="text-xl font-bold text-gray-800">
+                        <i class="fas fa-server mr-2"></i>Chọn máy chủ
+                    </h2>
+                    <button onclick="closeServerSelectModal()" class="text-gray-500 hover:text-gray-700">
+                        <i class="fas fa-times text-xl"></i>
+                    </button>
+                </div>
+                
+                <!-- Content -->
+                <div class="p-6">
+                    <div th:if="${#lists.isEmpty(user.servers)}" class="text-center text-gray-500 py-8">
+                        <i class="fas fa-server text-4xl mb-4"></i>
+                        <p class="text-lg">Chưa có máy chủ nào</p>
+                        <p class="text-sm">Hãy thêm máy chủ trước!</p>
+                        <a th:href="@{/add-server}" class="mt-4 inline-block px-4 py-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition">
+                            <i class="fas fa-plus mr-2"></i>Thêm máy chủ
+                        </a>
+                    </div>
+                    
+                    <div th:if="${!#lists.isEmpty(user.servers)}" class="space-y-4">
+                        <p class="text-gray-600 mb-4">Chọn máy chủ để thực hiện thao tác:</p>
+                        
+                        <div id="singleServerSelection" class="space-y-3">
+                            <div th:each="server : ${user.servers}" 
+                                 class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50 cursor-pointer server-option"
+                                 th:data-server-ip="${server.ip}" 
+                                 th:data-server-name="${server.name}">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <i class="fas fa-server text-blue-600"></i>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-800" th:text="${server.name}">Server 1</h3>
+                                            <p class="text-sm text-gray-600" th:text="${server.ip}">192.168.1.10</p>
+                                        </div>
+                                    </div>
+                                    <div class="flex items-center space-x-2">
+                                        <span th:data-ip="${server.ip}" class="server-status-modal">
+                                            <span th:if="${server.online}" class="text-green-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Online
+                                            </span>
+                                            <span th:if="${!server.online}" class="text-red-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Offline
+                                            </span>
+                                        </span>
+                                        <i class="fas fa-chevron-right text-gray-400"></i>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Multiple Server Selection -->
+                        <div id="multipleServerSelection" class="space-y-3 hidden">
+                            <div class="flex items-center justify-between mb-4">
+                                <p class="text-gray-600">Chọn nhiều máy chủ:</p>
+                                <div class="space-x-2">
+                                    <button onclick="selectAllServers()" class="text-sm px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600">
+                                        Chọn tất cả
+                                    </button>
+                                    <button onclick="deselectAllServers()" class="text-sm px-3 py-1 bg-gray-500 text-white rounded hover:bg-gray-600">
+                                        Bỏ chọn tất cả
+                                    </button>
+                                </div>
+                            </div>
+                            
+                            <div th:each="server : ${user.servers}" class="border border-gray-200 rounded-lg p-4 hover:bg-gray-50">
+                                <div class="flex items-center space-x-3">
+                                    <input type="checkbox" 
+                                           th:id="'multi-' + ${server.ip}" 
+                                           th:value="${server.ip}" 
+                                           th:data-name="${server.name}"
+                                           class="h-4 w-4 text-blue-600 rounded multi-server-checkbox">
+                                    <label th:for="'multi-' + ${server.ip}" class="flex items-center justify-between w-full cursor-pointer">
+                                        <div class="flex items-center space-x-3">
+                                            <i class="fas fa-server text-blue-600"></i>
+                                            <div>
+                                                <h3 class="font-semibold text-gray-800" th:text="${server.name}">Server 1</h3>
+                                                <p class="text-sm text-gray-600" th:text="${server.ip}">192.168.1.10</p>
+                                            </div>
+                                        </div>
+                                        <span th:data-ip="${server.ip}" class="server-status-modal">
+                                            <span th:if="${server.online}" class="text-green-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Online
+                                            </span>
+                                            <span th:if="${!server.online}" class="text-red-600 font-semibold">
+                                                <i class="fas fa-circle mr-1"></i>Offline
+                                            </span>
+                                        </span>
+                                    </label>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Footer -->
+                <div class="flex justify-end space-x-3 p-6 border-t bg-gray-50">
+                    <button onclick="closeServerSelectModal()" class="px-4 py-2 text-gray-700 bg-gray-200 rounded-lg hover:bg-gray-300 transition">
+                        <i class="fas fa-times mr-2"></i>Hủy
+                    </button>
+                    <button id="confirmButton" onclick="confirmServerSelection()" class="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition" disabled>
+                        <i class="fas fa-check mr-2"></i>Xác nhận
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        <!-- Footer -->
+       
+    </div>
+</div>
+
+<!-- 🚀 Floating Server Status Panel -->
+<div id="floatingStatusPanel" class="collapsed">
+    <button class="panel-toggle" onclick="toggleStatusPanel()">
+        <i id="panelIcon" class="fas fa-server"></i>
+    </button>
+    
+    <div class="panel-content">
+        <div class="panel-header">
+            <h3 class="panel-title">
+                <i class="fas fa-server mr-2"></i>
+                Trạng thái máy chủ
+            </h3>
+            <div class="panel-controls">
+                <button class="panel-btn" onclick="refreshServerStatus()" title="Làm mới">
+                    <i class="fas fa-sync-alt"></i>
+                </button>
+                <label class="panel-btn" title="Tự động làm mới">
+                    <input type="checkbox" id="autoRefreshPanel" onchange="toggleAutoRefresh()" class="hidden">
+                    <i id="autoRefreshIcon" class="fas fa-pause"></i>
+                </label>
+            </div>
+        </div>
+        
+        <div class="panel-body">
+            <div th:if="${#lists.isEmpty(user.servers)}" class="text-center text-gray-500 py-6">
+                <i class="fas fa-server text-3xl mb-3 text-gray-400"></i>
+                <p class="text-sm">Chưa có máy chủ</p>
+                <a th:href="@{/add-server}" class="text-blue-600 hover:text-blue-800 text-xs">
+                    <i class="fas fa-plus mr-1"></i>Thêm máy chủ
+                </a>
+            </div>
+            
+            <div th:if="${!#lists.isEmpty(user.servers)}" id="serverStatusList">
+                <div th:each="server : ${user.servers}" class="server-status-item">
+                    <div class="server-info">
+                        <span th:data-ip="${server.ip}" class="server-status-floating">
+                            <span th:if="${server.online}" class="status-indicator online"></span>
+                            <span th:if="${!server.online}" class="status-indicator offline"></span>
+                        </span>
+                        <div>
+                            <div class="server-name" th:text="${server.name}">Server 1</div>
+                            <div class="server-ip" th:text="${server.ip}">192.168.1.10</div>
+                        </div>
+                    </div>
+                    <span th:data-ip="${server.ip}" class="server-status-text">
+                        <span th:if="${server.online}" class="text-green-600 text-xs font-medium">Online</span>
+                        <span th:if="${!server.online}" class="text-red-600 text-xs font-medium">Offline</span>
+                    </span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="panel-footer">
+            <div id="lastUpdatePanel" class="last-update">Chưa cập nhật</div>
+        </div>
+    </div>
+
+</div>
+
+<script>
+    let currentServiceType = '';
+    let selectedServers = [];
+    let currentViewMode = 'grid'; // Mặc định là grid view
+    let panelExpanded = false; // Trạng thái floating panel
+
+    // 🚀 Floating Panel Functions
+    function toggleStatusPanel() {
+        const panel = document.getElementById('floatingStatusPanel');
+        const icon = document.getElementById('panelIcon');
+        
+        panelExpanded = !panelExpanded;
+        
+        if (panelExpanded) {
+            panel.classList.remove('collapsed');
+            panel.classList.add('expanded');
+            icon.classList.remove('fa-server');
+            icon.classList.add('fa-times');
+            
+            // Làm mới dữ liệu khi mở panel
+            refreshServerStatus();
+        } else {
+            panel.classList.remove('expanded');
+            panel.classList.add('collapsed');
+            icon.classList.remove('fa-times');
+            icon.classList.add('fa-server');
+        }
+        
+        // Lưu trạng thái vào localStorage
+        localStorage.setItem('panelExpanded', panelExpanded);
+    }
+
+    // Khởi tạo trạng thái panel từ localStorage
+    function initPanelState() {
+        const savedState = localStorage.getItem('panelExpanded');
+        if (savedState === 'true') {
+            toggleStatusPanel();
+        }
+    }
+
+    // Chuyển đổi chế độ hiển thị
+    function setViewMode(mode) {
+        currentViewMode = mode;
+        const gridView = document.getElementById('gridView');
+        const listView = document.getElementById('listView');
+        const gridBtn = document.getElementById('gridViewBtn');
+        const listBtn = document.getElementById('listViewBtn');
+        
+        if (mode === 'grid') {
+            gridView.classList.remove('hidden');
+            listView.classList.add('hidden');
+            gridBtn.classList.add('bg-blue-500', 'text-white');
+            gridBtn.classList.remove('text-gray-700', 'hover:bg-gray-300');
+            listBtn.classList.remove('bg-blue-500', 'text-white');
+            listBtn.classList.add('text-gray-700', 'hover:bg-gray-300');
+        } else {
+            gridView.classList.add('hidden');
+            listView.classList.remove('hidden');
+            listBtn.classList.add('bg-blue-500', 'text-white');
+            listBtn.classList.remove('text-gray-700', 'hover:bg-gray-300');
+            gridBtn.classList.remove('bg-blue-500', 'text-white');
+            gridBtn.classList.add('text-gray-700', 'hover:bg-gray-300');
+        }
+        
+        // Lưu preference vào localStorage
+        localStorage.setItem('viewMode', mode);
+    }
+
+    // Tải preference từ localStorage khi trang được tải
+    function loadViewMode() {
+        const savedMode = localStorage.getItem('viewMode');
+        if (savedMode) {
+            setViewMode(savedMode);
+        }
+    }
+
+    // Hiển thị modal chọn máy chủ
+    function showServerSelectModal(serviceType) {
+        currentServiceType = serviceType;
+        const modal = document.getElementById('serverSelectModal');
+        const modalTitle = document.getElementById('modalTitle');
+        const singleSelection = document.getElementById('singleServerSelection');
+        const multipleSelection = document.getElementById('multipleServerSelection');
+        const confirmButton = document.getElementById('confirmButton');
+        
+        // Reset selections
+        selectedServers = [];
+        confirmButton.disabled = true;
+        
+        // Cấu hình modal theo loại service
+        if (serviceType === 'service-control' || serviceType === 'service-list') {
+            // Single server selection
+            modalTitle.innerHTML = '<i class="fas fa-server mr-2"></i>Chọn máy chủ (đơn)';
+            singleSelection.classList.remove('hidden');
+            multipleSelection.classList.add('hidden');
+            
+            // Remove previous selections
+            document.querySelectorAll('.server-option').forEach(el => {
+                el.classList.remove('bg-blue-100', 'border-blue-500');
+            });
+        } else {
+            // Multiple server selection
+            modalTitle.innerHTML = '<i class="fas fa-layer-group mr-2"></i>Chọn máy chủ (đa máy)';
+            singleSelection.classList.add('hidden');
+            multipleSelection.classList.remove('hidden');
+            
+            // Reset checkboxes
+            document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+                checkbox.checked = false;
+            });
+        }
+        
+        modal.classList.remove('hidden');
+    }
+
+    // Đóng modal
+    function closeServerSelectModal() {
+        document.getElementById('serverSelectModal').classList.add('hidden');
+    }
+
+    // Chọn máy chủ đơn
+    function selectSingleServer(element, ip, name) {
+        // Remove previous selection
+        document.querySelectorAll('.server-option').forEach(el => {
+            el.classList.remove('bg-blue-100', 'border-blue-500');
+        });
+        
+        // Add selection to current element
+        element.classList.add('bg-blue-100', 'border-blue-500');
+        
+        // Set selected server
+        selectedServers = [{ip: ip, name: name}];
+        
+        // Enable confirm button
+        document.getElementById('confirmButton').disabled = false;
+    }
+
+    // Chọn tất cả máy chủ
+    function selectAllServers() {
+        document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+            checkbox.checked = true;
+        });
+        updateMultipleServerSelection();
+    }
+
+    // Bỏ chọn tất cả máy chủ
+    function deselectAllServers() {
+        document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+            checkbox.checked = false;
+        });
+        updateMultipleServerSelection();
+    }
+
+    // Cập nhật lựa chọn nhiều máy chủ
+    function updateMultipleServerSelection() {
+        selectedServers = [];
+        document.querySelectorAll('.multi-server-checkbox:checked').forEach(checkbox => {
+            selectedServers.push({
+                ip: checkbox.value,
+                name: checkbox.getAttribute('data-name')
+            });
+        });
+        
+        document.getElementById('confirmButton').disabled = selectedServers.length === 0;
+    }
+
+    // Xác nhận lựa chọn máy chủ
+    function confirmServerSelection() {
+        if (selectedServers.length === 0) {
+            alert('Vui lòng chọn ít nhất một máy chủ!');
+            return;
+        }
+        
+        let url = '';
+        
+        if (currentServiceType === 'service-control' || currentServiceType === 'service-list') {
+            url = `/${currentServiceType}?host=${selectedServers[0].ip}`;
+        } else {
+            const ips = selectedServers.map(server => server.ip);
+            url = `/execute-command?hosts=${ips.join(',')}`; // Cập nhật URL
+        }
+        
+        window.location.href = url;
+    }
+
+    // Event listeners cho multiple server selection
+    document.addEventListener('DOMContentLoaded', function() {
+        document.querySelectorAll('.multi-server-checkbox').forEach(checkbox => {
+            checkbox.addEventListener('change', updateMultipleServerSelection);
+        });
+        
+        // Tải view mode preference
+        loadViewMode();
+    });
+
+    // Đóng modal khi click outside
+    document.getElementById('serverSelectModal').addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeServerSelectModal();
+        }
+    });
+
+    // Existing functions...
+    let autoRefreshInterval;
+    let isAutoRefreshEnabled = false;
+
+    // Làm mới trạng thái máy chủ
+    async function refreshServerStatus() {
+        const lastUpdateDiv = document.getElementById('lastUpdate');
+        const lastUpdatePanel = document.getElementById('lastUpdatePanel');
+        
+        try {
+            const response = await fetch('/api/server-status');
+            const result = await response.json();
+            
+            if (response.ok && result.statuses) {
+                // Cập nhật thời gian làm mới
+                const now = new Date();
+                const timeString = now.toLocaleString('vi-VN');
+                
+                if (lastUpdateDiv) {
+                    lastUpdateDiv.textContent = `Cập nhật lần cuối: ${timeString}`;
+                }
+                if (lastUpdatePanel) {
+                    lastUpdatePanel.textContent = `Cập nhật: ${timeString}`;
+                }
+                
+                // Cập nhật trạng thái cho mỗi máy chủ
+                for (const [ip, isOnline] of Object.entries(result.statuses)) {
+                    // Cập nhật floating panel indicators
+                    const floatingIndicator = document.querySelector(`.server-status-floating[data-ip="${ip}"] .status-indicator`);
+                    if (floatingIndicator) {
+                        floatingIndicator.className = `status-indicator ${isOnline ? 'online' : 'offline'}`;
+                    }
+                    
+                    // Cập nhật floating panel text
+                    const floatingText = document.querySelector(`.server-status-text[data-ip="${ip}"]`);
+                    if (floatingText) {
+                        floatingText.innerHTML = isOnline ? 
+                            '<span class="text-green-600 text-xs font-medium">Online</span>' :
+                            '<span class="text-red-600 text-xs font-medium">Offline</span>';
+                    }
+                    
+                    // Cập nhật modal status (nếu có)
+                    const modalStatusElement = document.querySelector(`.server-status-modal[data-ip="${ip}"]`);
+                    if (modalStatusElement) {
+                        modalStatusElement.innerHTML = isOnline ? 
+                            '<span class="text-green-600 font-semibold"><i class="fas fa-circle mr-1"></i>Online</span>' :
+                            '<span class="text-red-600 font-semibold"><i class="fas fa-circle mr-1"></i>Offline</span>';
+                    }
+                }
+            } else {
+                console.error('Error fetching server status:', result.error);
+                if (lastUpdatePanel) {
+                    lastUpdatePanel.textContent = 'Lỗi cập nhật';
+                }
+            }
+        } catch (error) {
+            console.error('Error:', error);
+            if (lastUpdatePanel) {
+                lastUpdatePanel.textContent = 'Lỗi kết nối';
+            }
+        }
+    }
+
+    // Bật/tắt tự động làm mới
+    function toggleAutoRefresh() {
+        const checkbox = document.getElementById('autoRefresh');
+        isAutoRefreshEnabled = checkbox.checked;
+        
+        if (isAutoRefreshEnabled) {
+            // Làm mới mỗi 30 giây
+            autoRefreshInterval = setInterval(refreshServerStatus, 30000);
+        } else {
+            clearInterval(autoRefreshInterval);
+        }
+    }
+
+    // Làm mới ngay khi trang load
+    window.onload = function() {
+        initPanelState();
+        refreshServerStatus();
+    };
+
+    // Function để cập nhật thời gian trong header
+    function updateDashboardTime() {
+        const now = new Date();
+        const timeString = now.toLocaleString('vi-VN', {
+            hour: '2-digit',
+            minute: '2-digit',
+            second: '2-digit',
+            day: '2-digit',
+            month: '2-digit',
+            year: 'numeric',
+            hour12: false
+        }).replace(/(\d{2}:\d{2}:\d{2}), (\d{2}\/\d{2}\/\d{4})/, '$1 $2');
+        
+        const timeElement = document.getElementById('dashboard-time');
+        if (timeElement) {
+            timeElement.textContent = timeString;
+        }
+    }
+
+    // Cập nhật thời gian ngay khi trang load và sau đó mỗi giây
+    updateDashboardTime();
+    setInterval(updateDashboardTime, 1000);
+</script>
+
+<!-- Footer -->
+<div th:replace="~{fragments/footer :: footer}"></div>
+</body>
+</html>
+
+</html>

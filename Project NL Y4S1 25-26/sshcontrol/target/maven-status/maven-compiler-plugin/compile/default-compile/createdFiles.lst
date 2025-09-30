@@ -1,0 +1,16 @@
+com\example\sshcontrol\model\FileInfo.class
+com\example\sshcontrol\service\SSHService.class
+com\example\sshcontrol\model\ServiceInfo.class
+com\example\sshcontrol\repository\UserRepository.class
+com\example\sshcontrol\model\MultiConfigRequest.class
+com\example\sshcontrol\SshcontrolApplication.class
+com\example\sshcontrol\model\ServerInfo.class
+com\example\sshcontrol\repository\ServerRepository.class
+com\example\sshcontrol\service\RemoteCommandExecutor.class
+com\example\sshcontrol\service\SshFileService.class
+com\example\sshcontrol\model\User.class
+com\example\sshcontrol\model\MultiSSHRequest.class
+com\example\sshcontrol\model\SSHRequest.class
+com\example\sshcontrol\model\MultiServiceRequest.class
+com\example\sshcontrol\model\Server.class
+main\java\com\example\sshcontrol\service\ServerService.class
