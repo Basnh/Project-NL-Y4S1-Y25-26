@@ -1,7 +1,7 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.model.User;
-import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 import com.jcraft.jsch.*;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -11,8 +11,10 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.List;
 import java.util.ArrayList;
+import org.springframework.stereotype.Controller;
+import org.springframework.ui.Model;
 
-@RestController
+@Controller
 @RequestMapping("/api")
 public class SSHCommandController {
 
@@ -45,14 +47,14 @@ public class SSHCommandController {
             
             // Nếu không có hosts được chọn, thực thi trên tất cả máy chủ
             if (selectedHosts == null || selectedHosts.isEmpty()) {
-                for (ServerInfo server : user.getServers()) {
+                for (Server server : user.getServers()) {
                     Map<String, Object> result = executeCommandOnServer(server, command);
                     results.add(result);
                 }
             } else {
                 // Thực thi trên các máy chủ được chọn
                 for (String hostIp : selectedHosts) {
-                    ServerInfo server = findServerByIp(user, hostIp);
+                    Server server = findServerByIp(user, hostIp);
                     if (server != null) {
                         Map<String, Object> result = executeCommandOnServer(server, command);
                         results.add(result);
@@ -71,7 +73,7 @@ public class SSHCommandController {
         }
     }
 
-    private Map<String, Object> executeCommandOnServer(ServerInfo server, String command) {
+    private Map<String, Object> executeCommandOnServer(Server server, String command) {
         Map<String, Object> result = new HashMap<>();
         result.put("server", server.getName());
         result.put("ip", server.getIp());
@@ -137,7 +139,7 @@ public class SSHCommandController {
         return result;
     }
     
-    private ServerInfo findServerByIp(User user, String ip) {
+    private Server findServerByIp(User user, String ip) {
         return user.getServers().stream()
                 .filter(server -> server.getIp().equals(ip))
                 .findFirst()

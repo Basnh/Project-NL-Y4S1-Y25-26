@@ -3,14 +3,12 @@ C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\MultiServiceRequest.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\MultiSSHRequest.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\Server.java
-C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\ServerInfo.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\ServiceInfo.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\SSHRequest.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\User.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\ServerRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\UserRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\RemoteCommandExecutor.java
-C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\ServerService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\SshFileService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\SSHService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\ApiController.java
@@ -19,10 +17,11 @@ C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\FileManagerController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\FirewallController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\MultiExecuteController.java
-C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\Server.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\ServerInfoController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\ServerStatusController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\SSHCommandController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\controller\VMController.java
+C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\service\ServerService.java
+C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\service\UserService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\SSHController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 Y25-26\project-nly4s1\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\SshcontrolApplication.java

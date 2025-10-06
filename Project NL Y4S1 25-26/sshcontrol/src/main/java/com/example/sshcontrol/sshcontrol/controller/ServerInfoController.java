@@ -1,33 +1,33 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
-import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
-
+import org.springframework.ui.Model;
+import org.springframework.stereotype.Controller;
 
 import jakarta.servlet.http.HttpSession;  
-
 
 import java.util.HashMap;
 import java.util.Map;
 import com.jcraft.jsch.JSch;
 import com.jcraft.jsch.Session;
 
-@RestController
+@Controller
 public class ServerInfoController {
 
     @GetMapping("/api/server-info")
-    public ResponseEntity<Map<String, Object>> getServerInfo(@RequestParam String ip, HttpSession session) {
+    public ResponseEntity<Map<String, Object>> getServerInfo(@RequestParam String ip, Server server, HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
         if (user == null) {
             return ResponseEntity.status(401).body(Map.of("error", "Chưa đăng nhập"));
         }
 
         // Tìm server theo IP
-        ServerInfo server = user.getServers().stream()
+        server = user.getServers().stream()
                 .filter(s -> s.getIp().equals(ip))
                 .findFirst()
                 .orElse(null);
@@ -76,7 +76,7 @@ public class ServerInfoController {
         return output.toString().trim();
     }
 
-    private Map<String, String> getServerInfoViaSSH(ServerInfo server) throws Exception {
+    private Map<String, String> getServerInfoViaSSH(Server server) throws Exception {
         Map<String, String> info = new HashMap<>();
         JSch jsch = new JSch();
         Session sshSession = jsch.getSession(server.getSshUsername(), server.getIp(), 22);

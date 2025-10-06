@@ -1,6 +1,6 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
-import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.model.User;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -35,7 +35,7 @@ public class ServerStatusController {
         } else {
             // Kiểm tra trạng thái của tất cả máy chủ
             Map<String, Boolean> statuses = new HashMap<>();
-            for (ServerInfo server : user.getServers()) {
+            for (Server server : user.getServers()) {
                 boolean isOnline = checkServerStatus(server.getIp());
                 statuses.put(server.getIp(), isOnline);
                 // Cập nhật trạng thái trong session

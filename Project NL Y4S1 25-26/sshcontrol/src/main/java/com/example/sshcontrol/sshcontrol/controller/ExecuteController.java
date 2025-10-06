@@ -1,7 +1,7 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.model.User;
-import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -47,12 +47,12 @@ public class ExecuteController {
         System.out.println("DEBUG: Selected hosts: " + hosts);
         
         // Tìm thông tin chi tiết của các máy chủ được chọn
-        List<ServerInfo> selectedServers = new ArrayList<>();
+        List<Server> selectedServers = new ArrayList<>();
         if (hosts != null && !hosts.trim().isEmpty()) {
             String[] hostArray = hosts.split(",");
             for (String host : hostArray) {
                 host = host.trim();
-                for (ServerInfo server : user.getServers()) {
+                for (Server server : user.getServers()) {
                     if (server.getIp().equals(host)) {
                         selectedServers.add(server);
                         break;

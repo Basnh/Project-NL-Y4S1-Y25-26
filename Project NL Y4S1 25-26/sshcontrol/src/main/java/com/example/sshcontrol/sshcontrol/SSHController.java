@@ -7,7 +7,7 @@ import com.example.sshcontrol.model.MultiServiceRequest;
 import com.example.sshcontrol.model.MultiConfigRequest;
 import com.example.sshcontrol.model.FileInfo;
 import com.example.sshcontrol.model.User;
-import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,23 +30,22 @@ public class SSHController {
     // MAIN PAGES
     // ===============================
 
-    @GetMapping("/")
-    public String index(HttpSession session, Model model) {
+    @GetMapping("/ssh-dashboard") 
+    public String sshDashboard(HttpSession session, Model model) {
         User user = (User) session.getAttribute("user");
-        if (user != null) {
-            // Kiểm tra trạng thái online cho từng server
-            for (ServerInfo server : user.getServers()) {
-                boolean isOnline = checkServerOnline(server);
-                server.setOnline(isOnline);
-            }
-            model.addAttribute("remoteUser", user.getUsername());
-            model.addAttribute("studentName", user.getUsername());
-            model.addAttribute("studentEmail", user.getEmail() != null ? user.getEmail() : "");
-            model.addAttribute("serverList", user.getServers());
-        } else {
-            model.addAttribute("serverList", new ArrayList<>());
+        if (user == null) {
+            return "redirect:/login";
         }
-        return "index";
+        // Kiểm tra trạng thái online cho từng server
+        for (Server server : user.getServers()) {
+            boolean isOnline = checkServerOnline(server);
+            server.setOnline(isOnline);
+        }
+        model.addAttribute("remoteUser", user.getUsername());
+        model.addAttribute("studentName", user.getUsername());
+        model.addAttribute("studentEmail", user.getUsername() != null ? user.getUsername() : "");
+        model.addAttribute("serverList", user.getServers());
+        return "dashboard"; // hoặc template phù hợp
     }
 
     @GetMapping("/logout")
@@ -81,7 +80,7 @@ public class SSHController {
         }
     }
 
-    private boolean checkServerOnline(ServerInfo server) {
+    private boolean checkServerOnline(Server server) {
         try {
             return java.net.InetAddress.getByName(server.getIp()).isReachable(1000);
         } catch (Exception e) {
@@ -146,7 +145,7 @@ public class SSHController {
             
             final String ipFinal = ip;
             if (sessionUser != null) {
-                ServerInfo s = sessionUser.getServers().stream()
+                Server s = sessionUser.getServers().stream()
                     .filter(server -> server.getIp().equals(ipFinal))
                     .findFirst()
                     .orElse(null);
@@ -185,7 +184,7 @@ public class SSHController {
             
             final String ipFinal = ip;
             if (sessionUser != null) {
-                ServerInfo s = sessionUser.getServers().stream()
+                Server s = sessionUser.getServers().stream()
                     .filter(server -> server.getIp().equals(ipFinal))
                     .findFirst()
                     .orElse(null);
@@ -500,7 +499,7 @@ public class SSHController {
             
             final String ipFinal = ip;
             if (sessionUser != null) {
-                ServerInfo s = sessionUser.getServers().stream()
+                Server s = sessionUser.getServers().stream()
                     .filter(server -> server.getIp().equals(ipFinal))
                     .findFirst()
                     .orElse(null);
@@ -802,7 +801,7 @@ public class SSHController {
                 String name = ip;
                 
                 if (sessionUser != null) {
-                    ServerInfo s = sessionUser.getServers().stream()
+                    Server s = sessionUser.getServers().stream()
                         .filter(server -> server.getIp().equals(ipFinal))
                         .findFirst()
                         .orElse(null);
@@ -857,7 +856,7 @@ public class SSHController {
             String name = ip;
             
             if (sessionUser != null) {
-                ServerInfo s = sessionUser.getServers().stream()
+                Server s = sessionUser.getServers().stream()
                     .filter(server -> server.getIp().equals(ip))
                     .findFirst()
                     .orElse(null);
@@ -907,7 +906,7 @@ public class SSHController {
         String password = null;
         
         if (sessionUser != null) {
-            ServerInfo server = sessionUser.getServers().stream()
+            Server server = sessionUser.getServers().stream()
                 .filter(s -> s.getIp().equals(host))
                 .findFirst()
                 .orElse(null);

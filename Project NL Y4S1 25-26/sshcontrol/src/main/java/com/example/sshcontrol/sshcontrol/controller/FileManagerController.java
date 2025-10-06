@@ -2,7 +2,7 @@ package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.service.SshFileService;
 import com.example.sshcontrol.model.User;
-import com.example.sshcontrol.model.ServerInfo;
+import com.example.sshcontrol.model.Server;
 import jakarta.servlet.http.HttpSession;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +44,8 @@ public class FileManagerController {
             System.out.println("Searching for server with IP: " + serverId);
             try {
                 // Tìm server theo IP
-                ServerInfo selectedServer = null;
-                for (ServerInfo server : user.getServers()) {
+                Server selectedServer = null;
+                for (Server server : user.getServers()) {
                     System.out.println("Checking server: " + server.getName() + " - " + server.getIp());
                     if (server.getIp().equals(serverId)) {
                         selectedServer = server;
@@ -105,8 +105,8 @@ public class FileManagerController {
         
         try {
             // Tìm server theo IP
-            ServerInfo selectedServer = null;
-            for (ServerInfo server : user.getServers()) {
+            Server selectedServer = null;
+            for (Server server : user.getServers()) {
                 if (server.getIp().equals(serverId)) {
                     selectedServer = server;
                     break;
@@ -136,8 +136,8 @@ public class FileManagerController {
         
         try {
             // Tìm server theo IP
-            ServerInfo selectedServer = null;
-            for (ServerInfo server : user.getServers()) {
+            Server selectedServer = null;
+            for (Server server : user.getServers()) {
                 if (server.getIp().equals(serverId)) {
                     selectedServer = server;
                     break;
