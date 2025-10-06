@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>CTIT - Điều khiển máy chủ Ubuntu từ xa</title>
+  <title>UControl - Điều khiển máy chủ Ubuntu từ xa</title>
   <script src="https://cdn.tailwindcss.com"></script>
   <link rel="icon" href="/images/logo.png" />
   <link rel="stylesheet" href="/index.css">
@@ -22,23 +22,23 @@
   <div class="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
     <div class="flex items-center space-x-3">
       <img src="/images/logo.png" alt="Logo" class="h-10 w-10" />
-      <span class="text-xl font-bold text-blue-600">CTIT</span>
+      <span class="text-xl font-bold text-blue-600">UControl</span>
     </div>
     <nav class="space-x-4 flex items-center" id="nav-buttons">
-      <a href="#features" class="text-gray-700 hover:text-blue-600" aria-label="Tính năng">Tính năng</a>
-      <a href="#faq" class="text-gray-700 hover:text-blue-600" aria-label="FAQ">FAQ</a>
-      <a href="#contact" class="text-gray-700 hover:text-blue-600" aria-label="Liên hệ">Liên hệ</a>
+      <a href="#features" class="text-gray-700 hover:text-blue-600">Tính năng</a>
+      <a href="#faq" class="text-gray-700 hover:text-blue-600">FAQ</a>
+      <a href="#contact" class="text-gray-700 hover:text-blue-600">Liên hệ</a>
 
       <!-- For Guest Users -->
       <div th:if="${session.user == null}" class="flex items-center space-x-2">
         <a href="/login" class="bg-blue-500 text-white px-4 py-2 rounded hover:bg-blue-600 transition">Đăng nhập</a>
-  <a href="/register" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition" aria-label="Đăng ký">Đăng ký</a>
+        <a href="/register" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Đăng ký</a>
       </div>
 
       <!-- For Logged In Users -->
       <div th:if="${session.user != null}" class="flex items-center space-x-4">
         <div class="flex items-center space-x-2">
-          <img src="/images/avatar-default.png" alt="Avatar" class="w-8 h-8 rounded-full" loading="lazy" />
+          <img src="/images/avatar-default.png" alt="Avatar" class="w-8 h-8 rounded-full" />
           <span class="text-gray-700 font-medium" th:text="${session.user.username}">User</span>
         </div>
         <a href="/dashboard" class="bg-green-500 text-white px-4 py-2 rounded hover:bg-green-600 transition">Bảng điều khiển</a>
@@ -50,92 +50,67 @@
   </div>
 </header>
 
-  <!-- Enterprise Hero (guest) -->
-  <section th:if="${session.user == null}" class="relative pt-24 pb-12 bg-gradient-to-br from-slate-900 via-blue-900 to-indigo-900 overflow-hidden" id="hero">
-    <!-- background particles (kept) -->
-    <div class="absolute inset-0 opacity-30">
-      <div class="particles-container"></div>
+  <!-- Hero Section for Guest Users -->
+<section th:if="${session.user == null}" class="relative pt-24 pb-16 bg-gradient-to-br from-blue-600 via-purple-600 to-blue-800 overflow-hidden" id="hero">
+  <!-- Animated background particles -->
+  <div class="absolute inset-0 overflow-hidden">
+    <div class="particles-container">
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
+      <div class="particle"></div>
     </div>
-
-    <!-- floating shapes (light parallax) -->
-    <div class="absolute top-16 left-8 w-20 h-20 bg-white/5 rounded-full blur-xl" data-parallax-speed="0.12"></div>
-    <div class="absolute top-36 right-20 w-28 h-28 bg-indigo-500/10 rounded-full blur-2xl" data-parallax-speed="0.22"></div>
-
-    <div class="max-w-7xl mx-auto px-6 flex flex-col-reverse md:flex-row items-center gap-12 relative z-10">
-      <div class="flex-1 text-white" data-aos="fade-right">
-        <div class="inline-block px-4 py-2 bg-white/10 rounded-full text-sm mb-4">Enterprise • Hỗ trợ SLA</div>
-        <h1 class="text-4xl sm:text-5xl md:text-6xl font-bold leading-tight mb-6">Quản trị máy chủ ở quy mô doanh nghiệp</h1>
-        <p class="text-lg text-slate-200 mb-6 max-w-xl">Nền tảng trung tâm để quản lý hàng ngàn máy chủ Linux/Windows, với bảo mật, audit, và khả năng tích hợp vào vận hành doanh nghiệp (SSO, SIEM, LDAP).</p>
-
-        <ul class="space-y-2 text-sm text-slate-300 mb-6">
-          <li>• Single Sign-On (SAML / OIDC) &amp; LDAP</li>
-          <li>• Role-based Access Control (RBAC) &amp; Audit trail</li>
-          <li>• High-availability &amp; Scalable agents</li>
-        </ul>
-
-        <div class="flex gap-4">
-          <a href="/contact?type=sales" class="bg-amber-400 text-slate-900 px-6 py-3 rounded-lg font-semibold shadow hover:scale-105 transition" aria-label="Liên hệ bán hàng">Liên hệ bán hàng</a>
-          <a href="#demo" class="border border-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/5 transition" aria-label="Yêu cầu demo">Yêu cầu demo</a>
-          <a href="/brochure.pdf" class="border border-white/20 text-white px-6 py-3 rounded-lg hover:bg-white/10 transition" aria-label="Tải brochure">Tải brochure</a>
-        </div>
+  </div>
+  
+  <!-- Floating shapes -->
+  <div class="absolute top-20 left-10 w-20 h-20 bg-white/10 rounded-full blur-xl animate-pulse"></div>
+  <div class="absolute top-40 right-20 w-32 h-32 bg-purple-300/20 rounded-full blur-2xl animate-bounce"></div>
+  <div class="absolute bottom-20 left-1/4 w-16 h-16 bg-blue-300/30 rounded-full blur-lg animate-ping"></div>
+  
+  <div class="max-w-7xl mx-auto px-6 flex flex-col md:flex-row items-center space-y-10 md:space-y-0 md:space-x-12 relative z-10">
+    <div class="flex-1 text-white" data-aos="fade-right">
+      <div class="inline-block px-4 py-2 bg-white/20 rounded-full text-sm mb-4 backdrop-blur-sm">
+        ✨ Phiên bản mới nhất 2025
       </div>
-
-      <div class="flex-1" data-aos="fade-left">
-        <div class="bg-white rounded-2xl overflow-hidden shadow-2xl">
-          <img src="https://images.unsplash.com/photo-1603791440384-56cd371ee9a7?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.0.3" alt="Enterprise dashboard" class="w-full h-72 object-cover" loading="lazy" />
-          <div class="p-4 bg-white">
-            <div class="flex items-center justify-between">
-              <div>
-                <div class="font-semibold text-slate-800">Dashboard doanh nghiệp</div>
-                <div class="text-xs text-slate-500">Trạng thái tổng quan &amp; cảnh báo</div>
-              </div>
-              <div class="text-sm text-slate-500">24/7 Support</div>
+      <h1 class="text-5xl md:text-6xl font-bold leading-tight mb-6">
+        Điều khiển máy chủ 
+        <span class="text-transparent bg-clip-text bg-gradient-to-r from-yellow-400 to-pink-400">
+          Ubuntu từ xa
+        </span>
+      </h1>
+      <p class="text-xl text-blue-100 mb-8 leading-relaxed">
+        Quản lý dịch vụ, thực thi lệnh, cấu hình file từ xa qua SSH từ giao diện đồ họa thân thiện.
+      </p>
+      <div class="flex flex-col sm:flex-row gap-4">
+        <a href="/register" class="group relative bg-white text-blue-600 px-8 py-4 rounded-xl font-semibold hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl hover:scale-105">
+          <span class="relative z-10">Bắt đầu miễn phí</span>
+          <div class="absolute inset-0 bg-gradient-to-r from-yellow-400 to-pink-400 rounded-xl opacity-0 group-hover:opacity-20 transition-opacity duration-300"></div>
+        </a>
+        <a href="#demo" class="border-2 border-white/30 text-white px-8 py-4 rounded-xl font-semibold hover:bg-white/10 transition-all duration-300 backdrop-blur-sm">
+          Xem demo
+        </a>
+      </div>
+    </div>
+    <div class="flex-1 relative" data-aos="fade-left">
+      <div class="relative">
+        <div class="aspect-[4/3] rounded-2xl shadow-2xl overflow-hidden hover:scale-105 transition-transform duration-500">
+          <img src="https://images.unsplash.com/photo-1558494949-ef010cbdcc31?q=80&w=1200&auto=format&fit=crop&ixlib=rb-4.1.0" alt="Ubuntu Server" class="w-full h-full object-cover" />
+          <!-- Floating UI elements positioned within image -->
+          <div class="absolute top-4 right-4 bg-green-500/90 backdrop-blur-sm text-white px-3 py-1.5 rounded-lg shadow-lg animate-bounce">
+            <span class="text-xs font-medium">Online</span>
+          </div>
+          <div class="absolute bottom-4 left-4 bg-white/90 backdrop-blur-sm p-3 rounded-lg shadow-lg">
+            <div class="flex items-center space-x-2">
+              <div class="w-2.5 h-2.5 bg-blue-500 rounded-full animate-pulse"></div>
+              <span class="text-xs text-gray-700 font-medium">Connecting...</span>
             </div>
           </div>
         </div>
       </div>
     </div>
-
-    <!-- Trusted logos strip -->
-    <div class="mt-10 relative z-10">
-      <div class="max-w-7xl mx-auto px-6">
-        <div class="bg-white/5 rounded-lg py-4 px-6 flex items-center justify-between gap-4 overflow-x-auto">
-          <div class="text-sm text-slate-300 mr-4">Được tin cậy bởi:</div>
-          <div class="flex items-center gap-6">
-            <img src="/images/logos/logo-1.png" alt="logo" class="h-8 opacity-80" />
-            <img src="/images/logos/logo-2.png" alt="logo" class="h-8 opacity-80" />
-            <img src="/images/logos/logo-3.png" alt="logo" class="h-8 opacity-80" />
-            <img src="/images/logos/logo-4.png" alt="logo" class="h-8 opacity-80" />
-          </div>
-        </div>
-      </div>
-    </div>
-  </section>
-
-  <!-- Enterprise features summary (inserted before standard Features) -->
-  <section id="enterprise-features" class="py-12 bg-white" data-aos="fade-up">
-    <div class="max-w-6xl mx-auto px-6">
-      <div class="text-center mb-8">
-        <h3 class="text-2xl font-semibold">Tính năng dành cho doanh nghiệp</h3>
-        <p class="text-gray-600 max-w-2xl mx-auto mt-2">Các chức năng nâng cao để đáp ứng yêu cầu vận hành, bảo mật và tuân thủ cho doanh nghiệp.</p>
-      </div>
-
-      <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div class="p-6 border rounded-lg" data-aos="fade-up" data-aos-delay="50">
-          <div class="font-semibold">SSO &amp; Identity</div>
-          <div class="text-sm text-gray-600 mt-2">Tích hợp SAML/OIDC, LDAP để quản lý danh tính tập trung.</div>
-        </div>
-        <div class="p-6 border rounded-lg" data-aos="fade-up" data-aos-delay="150">
-          <div class="font-semibold">RBAC &amp; Audit</div>
-          <div class="text-sm text-gray-600 mt-2">Phân quyền chi tiết và lưu giữ toàn bộ lịch sử truy cập để audit.</div>
-        </div>
-        <div class="p-6 border rounded-lg" data-aos="fade-up" data-aos-delay="250">
-          <div class="font-semibold">Compliance &amp; SIEM</div>
-          <div class="text-sm text-gray-600 mt-2">Xuất log, tích hợp SIEM và hỗ trợ tiêu chuẩn tuân thủ doanh nghiệp.</div>
-        </div>
-      </div>
-    </div>
-  </section>
+  </div>
+</section>
 
 <!-- Hero Section for Logged In Users -->
 <section th:if="${session.user != null}" class="relative pt-24 pb-16 bg-gradient-to-br from-green-600 via-emerald-600 to-teal-800 overflow-hidden" id="hero-logged-in">
@@ -228,7 +203,7 @@
     <div class="text-center mb-16">
       <h2 class="text-4xl font-bold text-gray-800 mb-4">Tính năng nổi bật</h2>
       <p class="text-xl text-gray-600 max-w-3xl mx-auto">
-        Các tính năng được thiết kế riêng cho nhu cầu quản trị hệ thống của doanh nghiệp vừa và lớn
+        Khám phá các tính năng mạnh mẽ giúp bạn quản lý máy chủ Ubuntu hiệu quả hơn
       </p>
     </div>
 
@@ -242,8 +217,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Quản lý tập trung đa máy chủ</h3>
-          <p class="text-gray-600 mb-6">Kết nối và giám sát hàng trăm máy chủ Linux & Windows từ một bảng điều khiển duy nhất..</p>
+          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Kết nối SSH Bảo mật</h3>
+          <p class="text-gray-600 mb-6">Kết nối máy chủ an toàn với mã hóa SSH tiêu chuẩn công nghiệp.</p>
           <ul class="space-y-2">
             <li class="flex items-center text-sm text-gray-600">
               <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
@@ -267,8 +242,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Phân quyền & kiểm soát truy cập</h3>
-          <p class="text-gray-600 mb-6">Quản lý người dùng theo vai trò (admin, kỹ thuật viên), theo dõi và audit thao tác.</p>
+          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Quản lý Dịch vụ</h3>
+          <p class="text-gray-600 mb-6">Điều khiển dịch vụ systemd với giao diện trực quan và dễ sử dụng.</p>
           <ul class="space-y-2">
             <li class="flex items-center text-sm text-gray-600">
               <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
@@ -291,8 +266,8 @@
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z"></path>
             </svg>
           </div>
-          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Giám sát & Báo cáo hoạt động</h3>
-          <p class="text-gray-600 mb-6">Biểu đồ hiệu suất, cảnh báo lỗi, log hệ thống giúp ra quyết định nhanh chóng.</p>
+          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Chỉnh sửa File</h3>
+          <p class="text-gray-600 mb-6">Editor tích hợp với syntax highlighting cho các file cấu hình.</p>
           <ul class="space-y-2">
             <li class="flex items-center text-sm text-gray-600">
               <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
@@ -302,53 +277,6 @@
               <span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>
               Auto-save
             </li>
-          </ul>
-        </div>
-      </div>
-      <!-- Feature Card 4: Automation -->
-      <div class="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="300">
-        <div class="absolute inset-0 bg-gradient-to-br from-yellow-200/10 to-amber-200/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div class="relative z-10">
-          <div class="w-16 h-16 bg-gradient-to-br from-yellow-400 to-amber-500 rounded-xl flex items-center justify-center mb-6">
-            <i class="fa-solid fa-robot text-white"></i>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Tự động hóa thao tác</h3>
-          <p class="text-gray-600 mb-6">Thực thi lệnh hàng loạt, triển khai phần mềm trên nhiều máy chủ với playbook và templates.</p>
-          <ul class="space-y-2">
-            <li class="flex items-center text-sm text-gray-600"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Playbooks &amp; templates</li>
-            <li class="flex items-center text-sm text-gray-600"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Approval workflows</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Feature Card 5: Scheduling & Backup -->
-      <div class="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="350">
-        <div class="absolute inset-0 bg-gradient-to-br from-sky-100/10 to-blue-100/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div class="relative z-10">
-          <div class="w-16 h-16 bg-gradient-to-br from-sky-500 to-blue-600 rounded-xl flex items-center justify-center mb-6">
-            <i class="fa-solid fa-calendar-check text-white"></i>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Lịch trình &amp; Backup tự động</h3>
-          <p class="text-gray-600 mb-6">Đặt lịch backup, reboot và cập nhật hệ thống theo lịch định kỳ, với cơ chế retry &amp; reporting.</p>
-          <ul class="space-y-2">
-            <li class="flex items-center text-sm text-gray-600"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Lịch tác vụ theo nhóm</li>
-            <li class="flex items-center text-sm text-gray-600"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Backup &amp; rollback</li>
-          </ul>
-        </div>
-      </div>
-
-      <!-- Feature Card 6: Reporting & Analytics -->
-      <div class="group relative bg-white rounded-2xl p-8 shadow-lg hover:shadow-2xl transition-all duration-300 hover:-translate-y-2" data-aos="fade-up" data-aos-delay="400">
-        <div class="absolute inset-0 bg-gradient-to-br from-indigo-100/10 to-purple-100/10 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-        <div class="relative z-10">
-          <div class="w-16 h-16 bg-gradient-to-br from-indigo-500 to-purple-600 rounded-xl flex items-center justify-center mb-6">
-            <i class="fa-solid fa-chart-line text-white"></i>
-          </div>
-          <h3 class="text-2xl font-semibold text-gray-800 mb-4">Báo cáo &amp; Phân tích</h3>
-          <p class="text-gray-600 mb-6">Tổng hợp log, cảnh báo và báo cáo định kỳ cho quản trị viên và bộ phận vận hành.</p>
-          <ul class="space-y-2">
-            <li class="flex items-center text-sm text-gray-600"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Custom dashboards</li>
-            <li class="flex items-center text-sm text-gray-600"><span class="w-2 h-2 bg-green-500 rounded-full mr-3"></span>Scheduled reports</li>
           </ul>
         </div>
       </div>
@@ -370,14 +298,14 @@
               </svg>
             </div>
             <div class="flex-1">
-              <h4 class="text-lg font-semibold text-gray-800 mb-3">Hệ thống này cần cài đặt gì trên máy chủ?</h4>
+              <h4 class="text-lg font-semibold text-gray-800 mb-3">Tôi cần cài gì trên máy chủ Ubuntu?</h4>
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
                   <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>
-                <p class="text-gray-600 flex-1">Không cần cài phần mềm phức tạp. Chỉ cần bật dịch vụ SSH (đối với Linux) hoặc WinRM (đối với Windows Server). Hệ thống sẽ kết nối an toàn qua giao thức chuẩn doanh nghiệp.</p>
+                <p class="text-gray-600 flex-1">Bạn chỉ cần cài đặt SSH server, phần mềm UControl sẽ kết nối và điều khiển từ xa.</p>
               </div>
             </div>
           </div>
@@ -392,14 +320,14 @@
               </svg>
             </div>
             <div class="flex-1">
-              <h4 class="text-lg font-semibold text-gray-800 mb-3">Có thể quản lý bao nhiêu máy chủ cùng lúc?</h4>
+              <h4 class="text-lg font-semibold text-gray-800 mb-3">UControl có thể điều khiển bao nhiêu máy chủ?</h4>
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
                   <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                   </svg>
                 </div>
-                <p class="text-gray-600 flex-1">Không giới hạn số lượng máy chủ. Hệ thống được thiết kế để mở rộng, cho phép quản lý hàng trăm đến hàng nghìn máy chủ tùy theo cấu hình phần cứng.</p>
+                <p class="text-gray-600 flex-1">Không giới hạn số lượng máy chủ, bạn có thể quản lý nhiều máy cùng lúc.</p>
               </div>
             </div>
           </div>
@@ -414,14 +342,14 @@
               </svg>
             </div>
             <div class="flex-1">
-              <h4 class="text-lg font-semibold text-gray-800 mb-3">Có thể sử dụng trên thiết bị di động hoặc ngoài văn phòng không?</h4>
+              <h4 class="text-lg font-semibold text-gray-800 mb-3">Tôi có thể dùng UControl trên điện thoại không?</h4>
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
                   <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path>
                   </svg>
                 </div>
-                <p class="text-gray-600 flex-1">Hệ thống hoạt động qua trình duyệt web, tương thích với cả máy tính và điện thoại. Quản trị viên có thể truy cập từ xa nếu được cấp quyền hợp lệ và có kết nối VPN nội bộ.</p>
+                <p class="text-gray-600 flex-1">Được. UControl hỗ trợ trình duyệt web, bạn có thể sử dụng trên cả máy tính và điện thoại mà không cần cài đặt phần mềm thêm.</p>
               </div>
             </div>
           </div>
@@ -436,14 +364,14 @@
               </svg>
             </div>
             <div class="flex-1">
-              <h4 class="text-lg font-semibold text-gray-800 mb-3">Dữ liệu và kết nối có an toàn không?</h4>
+              <h4 class="text-lg font-semibold text-gray-800 mb-3">UControl có an toàn không?</h4>
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
                   <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 7a2 2 0 012 2m4 0a6 6 0 01-7.743 5.743L11 17H9v2H7v2H4a1 1 0 01-1-1v-2.586a1 1 0 01.293-.707l5.964-5.964A6 6 0 1121 9z"></path>
                   </svg>
                 </div>
-                <p class="text-gray-600 flex-1">Toàn bộ kết nối giữa hệ thống và máy chủ đều sử dụng mã hóa SSH/WinRM. Thông tin đăng nhập được lưu trữ trong cơ sở dữ liệu PostgreSQL với lớp bảo mật cao và quyền truy cập được kiểm soát chặt chẽ.</p>
+                <p class="text-gray-600 flex-1">Có. UControl sử dụng giao thức SSH với mã hóa tiêu chuẩn công nghiệp, hỗ trợ xác thực bằng SSH key để đảm bảo kết nối bảo mật tuyệt đối.</p>
               </div>
             </div>
           </div>
@@ -465,7 +393,7 @@
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 10V3L4 14h7v7l9-11h-7z"></path>
                   </svg>
                 </div>
-                <p class="text-gray-600 flex-1">CTIT được tối ưu hóa để có tốc độ kết nối nhanh, phản hồi real-time và hỗ trợ kết nối đồng thời nhiều máy chủ.</p>
+                <p class="text-gray-600 flex-1">UControl được tối ưu hóa để có tốc độ kết nối nhanh, phản hồi real-time và hỗ trợ kết nối đồng thời nhiều máy chủ.</p>
               </div>
             </div>
           </div>
@@ -480,14 +408,14 @@
               </svg>
             </div>
             <div class="flex-1">
-              <h4 class="text-lg font-semibold text-gray-800 mb-3">Doanh nghiệp có được hỗ trợ kỹ thuật không?</h4>
+              <h4 class="text-lg font-semibold text-gray-800 mb-3">Có hỗ trợ kỹ thuật không?</h4>
               <div class="flex items-start space-x-3">
                 <div class="flex-shrink-0 w-6 h-6 bg-green-100 rounded-full flex items-center justify-center mt-1">
                   <svg class="w-4 h-4 text-green-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                     <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 8h2a2 2 0 012 2v6a2 2 0 01-2 2h-2v4l-4-4H9a2 2 0 01-2-2v-6a2 2 0 012-2h2m-4 0V6a2 2 0 012-2h6a2 2 0 012 2v2"></path>
                   </svg>
                 </div>
-                <p class="text-gray-600 flex-1">Có. Đội ngũ kỹ thuật cung cấp hỗ trợ 24/7 qua email, hotline và cổng hỗ trợ trực tuyến. Ngoài ra còn có tài liệu hướng dẫn và quy trình triển khai tiêu chuẩn.</p>
+                <p class="text-gray-600 flex-1">Có. Chúng tôi cung cấp hỗ trợ kỹ thuật 24/7 qua email, chat trực tuyến và tài liệu hướng dẫn chi tiết.</p>
               </div>
             </div>
           </div>
@@ -501,8 +429,8 @@
 <section class="py-20 bg-white">
   <div class="max-w-7xl mx-auto px-6">
     <div class="text-center mb-16">
-      <h2 class="text-4xl font-bold text-gray-800 mb-4">Khách hàng nói gì về chúng tôi</h2>
-      <p class="text-xl text-gray-600">Được tin cậy bởi các doanh nghiệp và kỹ sư hệ thống hàng đầu.</p>
+      <h2 class="text-4xl font-bold text-gray-800 mb-4">Người dùng nói gì?</h2>
+      <p class="text-xl text-gray-600">Phản hồi từ các admin và developer đang sử dụng UControl (Không ai thực sự trả lời, em nhét chữ :v)</p>
     </div>
 
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -512,12 +440,12 @@
             <span>⭐⭐⭐⭐⭐</span>
           </div>
         </div>
-        <p class="text-gray-700 mb-6 italic">"CTIT giúp tôi tiết kiệm rất nhiều thời gian khi quản lý hàng loạt máy chủ. Quy trình triển khai được tự động hoá, phù hợp cho môi trường production."</p>
+        <p class="text-gray-700 mb-6 italic">"UControl giúp tôi tiết kiệm rất nhiều thời gian khi quản lý các máy chủ Ubuntu. Giao diện thân thiện và dễ sử dụng."</p>
         <div class="flex items-center">
-          <img src="https://images.unsplash.com/photo-1558565701-31805fdd5c64?w=50&h=50&fit=crop" alt="Nguyễn Minh Hòa" class="w-12 h-12 rounded-full mr-4" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1558565701-31805fdd5c64?w=50&h=50&fit=crop" alt="User" class="w-12 h-12 rounded-full mr-4" />
           <div>
-            <h4 class="font-semibold text-gray-800">Nguyễn Minh Hòa</h4>
-            <p class="text-sm text-gray-600">Trưởng phòng CNTT, Công ty ABC</p>
+            <h4 class="font-semibold text-gray-800">Nguyễn Văn A</h4>
+            <p class="text-sm text-gray-600">DevOps Engineer</p>
           </div>
         </div>
       </div>
@@ -528,12 +456,12 @@
             <span>⭐⭐⭐⭐⭐</span>
           </div>
         </div>
-        <p class="text-gray-700 mb-6 italic">"Tính năng quản lý đa máy chủ rất hữu ích. Quản lý theo nhóm giúp chúng tôi tiết kiệm thời gian vận hành."</p>
+        <p class="text-gray-700 mb-6 italic">"Tính năng quản lý đa máy chủ rất hữu ích. Tôi có thể điều khiển 20+ server cùng lúc một cách dễ dàng."</p>
         <div class="flex items-center">
-          <img src="https://images.unsplash.com/photo-1581065178026-390bc4e78dad?w=50&h=50&fit=crop" alt="Phạm Thu Hà" class="w-12 h-12 rounded-full mr-4" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1581065178026-390bc4e78dad?w=50&h=50&fit=crop" alt="User" class="w-12 h-12 rounded-full mr-4" />
           <div>
-            <h4 class="font-semibold text-gray-800">Phạm Thu Hà</h4>
-            <p class="text-sm text-gray-600">System Engineer, Tập đoàn XYZ</p>
+            <h4 class="font-semibold text-gray-800">Trần Thị B</h4>
+            <p class="text-sm text-gray-600">System Admin</p>
           </div>
         </div>
       </div>
@@ -546,7 +474,7 @@
         </div>
         <p class="text-gray-700 mb-6 italic">"Editor tích hợp rất tiện lợi. Không cần SSH terminal nữa, mọi thứ đều có thể làm trên web."</p>
         <div class="flex items-center">
-          <img src="https://images.unsplash.com/photo-1635768229592-8c2532d33cb7?w=50&h=50&fit=crop" alt="Lê Văn C" class="w-12 h-12 rounded-full mr-4" loading="lazy" />
+          <img src="https://images.unsplash.com/photo-1635768229592-8c2532d33cb7?w=50&h=50&fit=crop" alt="User" class="w-12 h-12 rounded-full mr-4" />
           <div>
             <h4 class="font-semibold text-gray-800">Lê Văn C</h4>
             <p class="text-sm text-gray-600">Full-stack Developer</p>
@@ -574,16 +502,18 @@
         <p class="text-gray-600">Uptime (%)</p>
       </div>
       <div class="text-center" data-aos="fade-up" data-aos-delay="300">
-        <div class="text-4xl font-bold text-yellow-600 mb-2 counter" data-target="120">0</div>
-        <p class="text-gray-600">Khách hàng doanh nghiệp</p>
+        <div class="text-4xl font-bold text-yellow-600 mb-2 counter" data-target="24">0</div>
+        <p class="text-gray-600">Hỗ trợ 24/7</p>
       </div>
     </div>
   </div>
 </section>
 
   <!-- Contact & Footer -->
-  <footer>
-      <div th:replace="~{fragments/footer :: footer}"></div>
+  <footer class="bg-white border-t py-10" id="contact">
+    <div class="max-w-7xl mx-auto px-6 text-center">
+      <p class="text-gray-600">Liên hệ: ucontrol@example.com | Bản quyền © 2025 UControl</p>
+    </div>
   </footer>
 
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
