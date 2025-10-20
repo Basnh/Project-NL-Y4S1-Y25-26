@@ -2,6 +2,9 @@ package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
+import com.example.sshcontrol.sshcontrol.service.UserService;
+import com.example.sshcontrol.sshcontrol.util.ControllerHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -12,38 +15,29 @@ import java.util.ArrayList;
 
 @Controller
 public class ExecuteController {
+
+    @Autowired
+    private UserService userService;
     
     @GetMapping("/execute-page")
     public String executePage(HttpSession session, Model model) {
-        // Kiểm tra session
-        User user = (User) session.getAttribute("user");
-        
-        if (user == null) {
-            System.out.println("DEBUG: User not found in session, redirecting to login");
+        if (!ControllerHelper.isUserLoggedIn(session)) {
             return "redirect:/login";
         }
-        
-        System.out.println("DEBUG: User found in session: " + user.getUsername());
-        
-        model.addAttribute("user", user);
-        model.addAttribute("userServers", user.getServers()); // Tất cả máy chủ của user
+        ControllerHelper.updateUserAndModel(session, model, userService);
         model.addAttribute("selectedHosts", ""); // Không có hosts được chọn từ modal
-        
         return "execute-page";
     }
     
     @GetMapping("/execute-command")
     public String executeCommand(@RequestParam(required = false) String hosts, 
                                 HttpSession session, Model model) {
-        // Kiểm tra session
-        User user = (User) session.getAttribute("user");
-        
-        if (user == null) {
-            System.out.println("DEBUG: User not found in session, redirecting to login");
+        if (!ControllerHelper.isUserLoggedIn(session)) {
             return "redirect:/login";
         }
+        ControllerHelper.updateUserAndModel(session, model, userService);
         
-        System.out.println("DEBUG: User found in session: " + user.getUsername());
+        User user = ControllerHelper.getCurrentUser(session);
         System.out.println("DEBUG: Selected hosts: " + hosts);
         
         // Tìm thông tin chi tiết của các máy chủ được chọn
@@ -61,8 +55,6 @@ public class ExecuteController {
             }
         }
         
-        model.addAttribute("user", user);
-        model.addAttribute("userServers", user.getServers()); // Tất cả máy chủ của user
         model.addAttribute("selectedServers", selectedServers); // Máy chủ được chọn từ modal
         model.addAttribute("selectedHosts", hosts); // Raw hosts string
         

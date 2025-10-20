@@ -2,26 +2,26 @@ package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
-import com.example.sshcontrol.sshcontrol.service.UserService;
-import com.example.sshcontrol.sshcontrol.service.ServerService;
+import com.example.sshcontrol.service.UserService;
+import com.example.sshcontrol.repository.ServerRepository;
+import java.util.List;
+import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
-import jakarta.servlet.http.HttpSession;
-import java.util.List;
-import java.net.InetAddress;
-import java.net.Socket;
-import java.net.InetSocketAddress;
-import java.io.IOException;
-import java.util.Random;
+import javax.imageio.ImageIO;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import javax.imageio.ImageIO;
-import java.util.Base64;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Socket;
+import java.util.*;
+import java.awt.FontMetrics;
 
 @Controller
 public class AuthController {
@@ -29,23 +29,7 @@ public class AuthController {
     @Autowired
     private UserService userService;
     
-    @Autowired
-    private ServerService serverService;
-
-    // Trang chủ sử dụng index.html
-    @GetMapping("/")
-    public String home(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
-        if (user != null) {
-            // Refresh user data và servers
-            user = userService.findByUsername(user.getUsername());
-            session.setAttribute("user", user);
-            session.setAttribute("servers", user.getServers());
-        }
-        return "index"; // Trả về index.html template
-    }
-
-    // Hiển thị trang đăng nhập
+    // Hiển thị form đăng nhập
     @GetMapping("/login")
     public String showLoginPage() {
         return "login";
@@ -62,11 +46,18 @@ public class AuthController {
             session.setAttribute("user", user);
             session.setAttribute("servers", user.getServers());
             
-            return "redirect:/"; // Redirect về trang chủ thay vì dashboard
+            return "redirect:/"; // Redirect về trang chủ
         } else {
             model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
             return "login";
         }
+    }
+
+    // Đăng xuất
+    @PostMapping("/logout")
+    public String logout(HttpSession session) {
+        session.invalidate();
+        return "redirect:/";
     }
 
     // Hiển thị trang đăng ký
@@ -150,6 +141,7 @@ public class AuthController {
 
         // Tạo user mới
         User newUser = new User(username, password, fullName, email, phoneNumber);
+        newUser.setServers(new ArrayList<>()); // Khởi tạo danh sách server rỗng
         userService.save(newUser);
 
         // Xóa CAPTCHA khỏi session
@@ -158,6 +150,177 @@ public class AuthController {
 
         model.addAttribute("success", "Đăng ký thành công! Hãy đăng nhập.");
         return "login";
+    }
+
+    // Danh sách máy chủ
+    @GetMapping("/server-list")
+    public String serverList(Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) {
+            return "redirect:/login";
+        }
+    
+    model.addAttribute("servers", user.getServers());
+    return "server-list";
+    }
+
+    // Form đăng nhập SSH vào máy chủ
+    @GetMapping("/server-login")
+    public String showServerLogin(@RequestParam String ip, Model model, HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) return "redirect:/login";
+        Server server = user.getServers().stream()
+            .filter(s -> s.getIp().equals(ip))
+            .findFirst().orElse(null);
+        if (server == null) return "redirect:/server-list";
+        model.addAttribute("server", server);
+        return "server-login";
+    }
+
+    // Xử lý đăng nhập SSH vào máy chủ
+    @PostMapping("/server-login")
+    public String serverLogin(@RequestParam String ip,
+                              @RequestParam String sshUsername,
+                              @RequestParam String sshPassword,
+                              HttpSession session) {
+        session.setAttribute("host", ip);
+        session.setAttribute("username", sshUsername);
+        session.setAttribute("password", sshPassword);
+        return "redirect:/dashboard";
+    }
+
+    // Hiển thị form thêm máy chủ
+    @GetMapping("/add-server")
+    public String showAddServer(Model model) {
+        model.addAttribute("server", new Server());
+        return "add-server";
+    }
+
+    // Xử lý thêm máy chủ
+    @Autowired
+    private ServerRepository serverRepository;
+
+    @PostMapping("/add-server")
+    public String addServer(@ModelAttribute Server server, HttpSession session, Model model) {
+        User user = (User) session.getAttribute("user");
+        if (user == null) return "redirect:/login";
+
+        // Refresh user from database
+        user = userService.findByUsername(user.getUsername());
+        
+        // Kiểm tra trùng IP + SSH Username + Password trong database
+        boolean exists = serverRepository.findAll().stream()
+            .anyMatch(s -> s.getIp().equalsIgnoreCase(server.getIp()) &&
+                         s.getSshUsername().equalsIgnoreCase(server.getSshUsername()) &&
+                         s.getSshPassword().equals(server.getSshPassword()));
+        
+        if (exists) {
+            model.addAttribute("server", server);
+            model.addAttribute("error", "Máy chủ với IP, SSH Username và Password này đã tồn tại!");
+            return "add-server";
+        }
+
+        // Set user cho server và lưu vào database
+        server.setUser(user);
+        serverRepository.save(server);
+        
+        // Cập nhật session với user mới
+        session.setAttribute("user", user);
+        
+        return "redirect:/dashboard";
+    }
+
+    // Xóa máy chủ
+    @PostMapping("/delete-server")
+    public String deleteServer(@RequestParam String ip, HttpSession session, RedirectAttributes redirectAttributes) {
+        return handleServerDeletion(ip, session, redirectAttributes);
+    }
+
+    // Thêm method GET để xóa server
+    @GetMapping("/delete-server")
+    public String deleteServerGet(@RequestParam String ip, HttpSession session, RedirectAttributes redirectAttributes) {
+        return handleServerDeletion(ip, session, redirectAttributes);
+    }
+
+    // Helper method để xử lý xóa server
+    private String handleServerDeletion(String ip, HttpSession session, RedirectAttributes redirectAttributes) {
+        User sessionUser = (User) session.getAttribute("user");
+        if (sessionUser == null) {
+            return "redirect:/login";
+        }
+
+        User currentUser = userService.findByUsername(sessionUser.getUsername());
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        List<Server> userServers = serverRepository.findByUser(currentUser);
+        Server serverToDelete = userServers.stream()
+            .filter(s -> s.getIp().equals(ip))
+            .findFirst()
+            .orElse(null);
+
+        if (serverToDelete != null) {
+            serverRepository.delete(serverToDelete);
+            
+            // Refresh user data in session
+            currentUser = userService.findByUsername(currentUser.getUsername());
+            session.setAttribute("user", currentUser);
+            
+            redirectAttributes.addFlashAttribute("message", "Xóa máy chủ thành công!");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "Không tìm thấy máy chủ để xóa!");
+        }
+
+        return "redirect:/server-list";
+    }
+
+    // Hiển thị trang dashboard
+    @GetMapping("/dashboard")
+    public String dashboard(Model model, HttpSession session) {
+        User sessionUser = (User) session.getAttribute("user");
+        if (sessionUser == null) {
+            return "redirect:/login";
+        }
+
+        User currentUser = userService.findByUsername(sessionUser.getUsername());
+        if (currentUser == null) {
+            return "redirect:/login";
+        }
+
+        List<Server> servers = serverRepository.findByUser(currentUser);
+        servers.forEach(server -> {
+            boolean isOnline = checkServerStatus(server.getIp());
+            server.setOnline(isOnline);
+            serverRepository.save(server);
+        });
+
+        model.addAttribute("user", currentUser);
+        model.addAttribute("servers", servers);
+        return "dashboard";
+    }
+
+
+    private boolean checkServerStatus(String ip) {
+        try {
+            // Ping test
+            InetAddress address = InetAddress.getByName(ip);
+            boolean reachable = address.isReachable(3000); // 3 seconds timeout
+            
+            if (!reachable) {
+                return false;
+            }
+            
+            // SSH port test (port 22)
+            try (Socket socket = new Socket()) {
+                socket.connect(new InetSocketAddress(ip, 22), 3000);
+                return true;
+            } catch (IOException e) {
+                return false;
+            }
+        } catch (Exception e) {
+            return false;
+        }
     }
 
     // Generate CAPTCHA
@@ -244,118 +407,5 @@ public class AuthController {
     public String refreshCaptcha(HttpSession session) {
         generateCaptcha(session);
         return (String) session.getAttribute("captchaImage");
-    }
-
-    // Hiển thị dashboard
-    @GetMapping("/dashboard")
-    public String showDashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-        // Refresh user data
-        user = userService.findByUsername(user.getUsername());
-        session.setAttribute("user", user);
-        session.setAttribute("servers", user.getServers());
-        return "dashboard";
-    }
-
-    // Thêm server
-    @PostMapping("/add-server")
-    public String addServer(
-            @RequestParam String name,
-            @RequestParam String ip,
-            @RequestParam String username,
-            @RequestParam String password,
-            HttpSession session,
-            Model model) {
-
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-
-        // Refresh user data from database
-        user = userService.findByUsername(user.getUsername());
-
-        // Create new server
-        Server newServer = new Server(name, ip, username, password, user);
-        serverService.save(newServer);
-
-        // Update session with fresh data
-        user = userService.findByUsername(user.getUsername());
-        session.setAttribute("user", user);
-        session.setAttribute("servers", user.getServers());
-
-        return "redirect:/dashboard";
-    }
-
-    // Xóa server
-    @PostMapping("/remove-server")
-    public String removeServer(@RequestParam String ip, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return "redirect:/login";
-        }
-
-        // Refresh user data from database
-        user = userService.findByUsername(user.getUsername());
-
-        // Find and remove server
-        user.getServers().removeIf(server -> server.getIp().equals(ip));
-        userService.save(user);
-
-        // Update session
-        user = userService.findByUsername(user.getUsername());
-        session.setAttribute("user", user);
-        session.setAttribute("servers", user.getServers());
-
-        return "redirect:/dashboard";
-    }
-
-    // Logout
-    @PostMapping("/logout")
-    public String logout(HttpSession session) {
-        session.invalidate();
-        return "redirect:/";
-    }
-
-    // API get server
-    @GetMapping("/get-server")
-    @ResponseBody
-    public Server getServer(@RequestParam String ip, HttpSession session) {
-        User user = (User) session.getAttribute("user");
-        if (user == null) {
-            return null;
-        }
-
-        user = userService.findByUsername(user.getUsername());
-
-        return user.getServers().stream()
-                .filter(server -> server.getIp().equals(ip))
-                .findFirst()
-                .orElse(null);
-    }
-
-    // Check server status
-    @PostMapping("/check-server-status")
-    @ResponseBody
-    public boolean checkServerStatus(@RequestParam String ip) {
-        try {
-            InetAddress address = InetAddress.getByName(ip);
-            boolean reachable = address.isReachable(3000);
-            
-            if (!reachable) {
-                try (Socket socket = new Socket()) {
-                    socket.connect(new InetSocketAddress(ip, 22), 3000);
-                    return true;
-                } catch (IOException e) {
-                    return false;
-                }
-            }
-            return true;
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

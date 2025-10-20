@@ -3,6 +3,8 @@ package com.example.sshcontrol.sshcontrol;
 import com.example.sshcontrol.model.MultiSSHRequest;
 import com.example.sshcontrol.model.SSHRequest;
 import com.example.sshcontrol.service.SSHService;
+import com.example.sshcontrol.sshcontrol.service.UserService;
+import com.example.sshcontrol.sshcontrol.util.ControllerHelper;
 import com.example.sshcontrol.model.MultiServiceRequest;
 import com.example.sshcontrol.model.MultiConfigRequest;
 import com.example.sshcontrol.model.FileInfo;
@@ -25,27 +27,41 @@ public class SSHController {
 
     @Autowired
     private SSHService sshService;
+    
+    @Autowired
+    private UserService userService;
 
     // ===============================
     // MAIN PAGES
     // ===============================
 
-    @GetMapping("/ssh-dashboard") 
+    @GetMapping("/ssh-dashboard")
     public String sshDashboard(HttpSession session, Model model) {
-        User user = (User) session.getAttribute("user");
+        if (!ControllerHelper.isUserLoggedIn(session)) {
+            return "redirect:/login";
+        }
+        
+        User user = ControllerHelper.getCurrentUser(session);
         if (user == null) {
             return "redirect:/login";
         }
-        // Kiểm tra trạng thái online cho từng server
+        
+        // Get fresh user data and update model
+        ControllerHelper.updateUserAndModel(session, model, userService);
+        user = ControllerHelper.getCurrentUser(session);
+        
+        // Check online status for each server
         for (Server server : user.getServers()) {
             boolean isOnline = checkServerOnline(server);
             server.setOnline(isOnline);
         }
+        
+        // Add additional attributes specific to SSH dashboard
         model.addAttribute("remoteUser", user.getUsername());
         model.addAttribute("studentName", user.getUsername());
         model.addAttribute("studentEmail", user.getUsername() != null ? user.getUsername() : "");
-        model.addAttribute("serverList", user.getServers());
-        return "dashboard"; // hoặc template phù hợp
+        
+        return "dashboard";
     }
 
     @GetMapping("/logout")

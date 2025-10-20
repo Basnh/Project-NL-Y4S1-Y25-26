@@ -1,7 +1,13 @@
 package com.example.sshcontrol.sshcontrol.controller;
+
+import com.example.sshcontrol.model.User;
+import com.example.sshcontrol.sshcontrol.service.UserService;
+import com.example.sshcontrol.sshcontrol.util.ControllerHelper;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import jakarta.servlet.http.HttpSession;
 
 import java.io.File;
 import java.util.Arrays;
@@ -10,11 +16,18 @@ import java.util.List;
 @Controller
 public class VMController {
 
+    @Autowired
+    private UserService userService;
+
     // Thay đổi đường dẫn nếu cần
     private static final String VBOX_PATH = "C:\\Program Files\\Oracle\\VirtualBox\\VBoxManage.exe";
 
     @GetMapping("/vm-control")
-    public String showVMControlPage() {
+    public String showVMControlPage(HttpSession session, Model model) {
+        if (!ControllerHelper.isUserLoggedIn(session)) {
+            return "redirect:/login";
+        }
+        ControllerHelper.updateUserAndModel(session, model, userService);
         return "vm-control";
     }
 

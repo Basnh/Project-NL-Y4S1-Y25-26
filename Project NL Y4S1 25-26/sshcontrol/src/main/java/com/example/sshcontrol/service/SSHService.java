@@ -15,6 +15,29 @@ import java.util.concurrent.Future;
 @Service
 public class SSHService {
 
+    public boolean testConnection(String host, String username, String password) {
+        JSch jsch = new JSch();
+        Session session = null;
+        
+        try {
+            session = jsch.getSession(username, host, 22);
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+            
+            // Thiết lập timeout 10 giây
+            session.connect(10000);
+            
+            return session.isConnected();
+        } catch (Exception e) {
+            // Log lỗi hoặc xử lý tùy theo yêu cầu
+            return false;
+        } finally {
+            if (session != null && session.isConnected()) {
+                session.disconnect();
+            }
+        }
+    }
+
     public String executeCommand(String host, String user, String password, String command) {
         StringBuilder output = new StringBuilder();
         try {
