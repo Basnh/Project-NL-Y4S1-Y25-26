@@ -3,6 +3,7 @@ package com.example.sshcontrol.sshcontrol.controller;
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.service.UserService;
+import com.example.sshcontrol.service.SystemStatsService;
 import com.example.sshcontrol.repository.ServerRepository;
 import java.util.List;
 import jakarta.servlet.http.HttpSession;
@@ -25,45 +26,40 @@ import java.awt.FontMetrics;
 
 @Controller
 public class AuthController {
-
     @Autowired
     private UserService userService;
-    
-    // Hiển thị form đăng nhập
+
+    // Hiển thị form đăng nhập và tạo CAPTCHA mới
     @GetMapping("/login")
-    public String showLoginPage() {
-        return "login";
-    }
-
-    // Xử lý đăng nhập
-    @PostMapping("/login")
-    public String login(@RequestParam String username, @RequestParam String password, 
-                       HttpSession session, Model model) {
-        User user = userService.findByUsername(username);
-
-        if (user != null && user.getPassword().equals(password)) {
-            user = userService.findByUsername(username);
-            session.setAttribute("user", user);
-            session.setAttribute("servers", user.getServers());
-            
-            return "redirect:/"; // Redirect về trang chủ
-        } else {
-            model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
-            return "login";
+    public String showLoginPage(HttpSession session, Model model) {
+        if (session.getAttribute("user") != null) {
+            return "redirect:/";
         }
+        
+        Map<String, String> captcha = generateCaptcha();
+        System.out.println("Generated CAPTCHA - Text: " + captcha.get("text"));
+        System.out.println("Generated CAPTCHA - Image exists: " + (captcha.get("image") != null));
+        
+        model.addAttribute("captchaImage", captcha.get("image"));
+        session.setAttribute("captcha", captcha.get("text"));
+        return "login";
     }
 
     // Đăng xuất
     @PostMapping("/logout")
     public String logout(HttpSession session) {
-        session.invalidate();
+        if (session != null) {
+            session.invalidate();
+        }
         return "redirect:/";
     }
 
     // Hiển thị trang đăng ký
     @GetMapping("/register")
     public String showRegisterPage(HttpSession session, Model model) {
-        generateCaptcha(session);
+        Map<String, String> captcha = generateCaptcha();
+        model.addAttribute("captchaImage", captcha.get("image"));
+        session.setAttribute("captcha", captcha.get("text"));
         return "register";
     }
 
@@ -82,59 +78,77 @@ public class AuthController {
         // Kiểm tra CAPTCHA
         String sessionCaptcha = (String) session.getAttribute("captcha");
         if (sessionCaptcha == null || !sessionCaptcha.equalsIgnoreCase(captcha)) {
-            generateCaptcha(session); // Tạo CAPTCHA mới
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Mã CAPTCHA không đúng!");
             return "register";
         }
 
         // Validation cơ bản
         if (username == null || username.trim().isEmpty()) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Tên đăng nhập không được để trống!");
             return "register";
         }
         
         if (fullName == null || fullName.trim().isEmpty()) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Họ tên không được để trống!");
             return "register";
         }
         
         if (email == null || email.trim().isEmpty()) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Email không được để trống!");
             return "register";
         }
         
         // Validation email format
         if (!email.matches("^[^\\s@]+@[^\\s@]+\\.[^\\s@]+$")) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Email không đúng định dạng!");
             return "register";
         }
         
         if (password == null || password.length() < 6) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Mật khẩu phải có ít nhất 6 ký tự!");
             return "register";
         }
         
         if (!password.equals(confirmPassword)) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Mật khẩu xác nhận không khớp!");
             return "register";
         }
 
         // Kiểm tra username đã tồn tại
         if (userService.existsByUsername(username)) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Tên đăng nhập đã tồn tại!");
             return "register";
         }
 
         // Kiểm tra email đã tồn tại
         if (userService.existsByEmail(email)) {
-            generateCaptcha(session);
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
             model.addAttribute("error", "Email đã được sử dụng!");
             return "register";
         }
@@ -276,6 +290,9 @@ public class AuthController {
     }
 
     // Hiển thị trang dashboard
+    @Autowired
+    private SystemStatsService systemStatsService;
+
     @GetMapping("/dashboard")
     public String dashboard(Model model, HttpSession session) {
         User sessionUser = (User) session.getAttribute("user");
@@ -295,8 +312,20 @@ public class AuthController {
             serverRepository.save(server);
         });
 
+        // Get system stats
+        Map<String, Object> stats = systemStatsService.getSystemStats(servers);
+
         model.addAttribute("user", currentUser);
         model.addAttribute("servers", servers);
+        model.addAttribute("totalServers", stats.get("totalServers"));
+        model.addAttribute("activeServers", stats.get("activeServers"));
+        model.addAttribute("serverUpPercentage", stats.get("serverUpPercentage"));
+        model.addAttribute("avgCpuUsage", stats.get("avgCpuUsage")); 
+        model.addAttribute("avgRamUsage", stats.get("avgRamUsage"));
+        model.addAttribute("minUptime", stats.get("minUptime"));
+        model.addAttribute("maxUptime", stats.get("maxUptime")); 
+        model.addAttribute("avgUptime", stats.get("avgUptime"));
+        
         return "dashboard";
     }
 
@@ -324,16 +353,25 @@ public class AuthController {
     }
 
     // Generate CAPTCHA
-    private void generateCaptcha(HttpSession session) {
+    private Map<String, String> generateCaptcha() {
+        Map<String, String> result = new HashMap<>();
         String captchaText = generateRandomString(5);
-        session.setAttribute("captcha", captchaText);
+        result.put("text", captchaText);
         
         try {
             String captchaImage = generateCaptchaImage(captchaText);
-            session.setAttribute("captchaImage", captchaImage);
+            if (captchaImage != null && !captchaImage.isEmpty()) {
+                result.put("image", captchaImage);
+                System.out.println("CAPTCHA image generated successfully");
+            } else {
+                System.out.println("Failed to generate CAPTCHA image");
+            }
         } catch (IOException e) {
+            System.err.println("Error generating CAPTCHA image: " + e.getMessage());
             e.printStackTrace();
         }
+        
+        return result;
     }
 
     // Generate random string for CAPTCHA
@@ -402,10 +440,60 @@ public class AuthController {
     }
 
     // API để refresh CAPTCHA
-    @PostMapping("/refresh-captcha")
+    @PostMapping(value = "/refresh-captcha", produces = "application/json")
     @ResponseBody
-    public String refreshCaptcha(HttpSession session) {
-        generateCaptcha(session);
-        return (String) session.getAttribute("captchaImage");
+    public Map<String, String> refreshCaptcha(HttpSession session) {
+        Map<String, String> captcha = generateCaptcha();
+        session.setAttribute("captcha", captcha.get("text"));
+        return captcha;
     }
-}
+
+    // Cập nhật method login để kiểm tra CAPTCHA
+    @PostMapping("/login")
+    public String login(@RequestParam String username, 
+                       @RequestParam String password,
+                       @RequestParam String captcha,
+                       HttpSession session, 
+                       Model model) {
+        // Kiểm tra CAPTCHA
+        String sessionCaptcha = (String) session.getAttribute("captcha");
+        if (sessionCaptcha == null || !sessionCaptcha.equalsIgnoreCase(captcha)) {
+            Map<String, String> newCaptcha = generateCaptcha();
+            model.addAttribute("captchaImage", newCaptcha.get("image"));
+            session.setAttribute("captcha", newCaptcha.get("text"));
+            model.addAttribute("captchaError", "Mã xác thực không chính xác!");
+            return "login";
+        }
+
+        User user = userService.findByUsername(username);
+
+        if (user != null && user.getPassword().equals(password)) {
+            session.setAttribute("user", user);
+            session.setAttribute("servers", user.getServers());
+            
+            // Xóa CAPTCHA cũ sau khi đăng nhập thành công
+            session.removeAttribute("captcha");
+            session.removeAttribute("captchaImage");
+            
+            return "redirect:/";
+        } else {
+            model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
+            return "login";
+        }
+    }
+
+    // Hiển thị trang chính
+        @GetMapping("/")
+        public String showHomePage(Model model, HttpSession session) {
+            if (session.getAttribute("user") != null) {
+                Map<String, Object> stats = new HashMap<>();
+                stats.put("totalServers", 0);
+                stats.put("activeServers", 0);
+                stats.put("uptime", "99.9%");
+                stats.put("performance", 90);
+                stats.put("cpuLoad", 0);
+                model.addAttribute("statistics", stats);
+            }
+            return "index";
+        }
+    }
