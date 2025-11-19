@@ -1,0 +1,351 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Thực thi lệnh</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/executepage.css">
+    <link rel="stylesheet" href="/layout.css">
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+<main class="flex-1">
+    <div class="container mx-auto px-4 py-8">
+        <div class="max-w-4xl mx-auto">
+            <!-- Header -->
+            <div th:replace="~{fragments/header :: header('Thực thi lệnh từ xa', 'fas fa-terminal')}"></div>
+
+            <!-- Server Selection -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-server mr-2"></i>Chọn máy chủ để thực thi:
+                </h2>
+                
+                <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3 mb-4">
+                    <div th:each="server : ${userServers}" 
+                         class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg"
+                         th:data-server-ip="${server.ip}"
+                         th:data-server-name="${server.name}"
+                         th:data-server-username="${server.sshUsername}"
+                         th:data-server-password="${server.sshPassword}"
+                         th:data-server-online="${server.online}"
+                         onclick="selectServer(this)">
+                        <div class="flex items-center flex-1">
+                            <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
+                            <div class="flex-1">
+                                <div class="font-medium text-gray-800" th:text="${server.name}"></div>
+                                <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+                                <div class="text-xs text-gray-500 mt-1">
+                                    <i class="fas fa-user mr-1"></i>User: <span th:text="${server.sshUsername}"></span>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="flex items-center gap-3">
+                            <span th:if="${server.online}" class="status-online px-3 py-1 text-xs rounded-full">
+                                <i class="fas fa-circle mr-1"></i>Online
+                            </span>
+                            <span th:unless="${server.online}" class="status-offline px-3 py-1 text-xs rounded-full">
+                                <i class="fas fa-circle mr-1"></i>Offline
+                            </span>
+                            <div class="selected-indicator hidden">
+                                <i class="fas fa-check-circle text-white text-xl"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                
+                <div th:if="${userServers == null or userServers.isEmpty()}" class="text-gray-500 text-center py-8">
+                    <i class="fas fa-server text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-lg mb-2">Bạn chưa thêm máy chủ nào.</p>
+                    <a href="/add-server" class="inline-block px-6 py-2 btn-primary text-white rounded-lg transition">
+                        <i class="fas fa-plus mr-2"></i>Thêm máy chủ mới
+                    </a>
+                </div>
+                
+                <!-- Selected Server Info -->
+                <div id="selectedServerInfo" class="hidden mt-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded">
+                    <div class="flex items-center">
+                        <i class="fas fa-info-circle text-blue-600 mr-2"></i>
+                        <span class="text-blue-800 font-medium">Máy chủ được chọn:</span>
+                        <span id="selectedServerName" class="ml-2 text-blue-700"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Command Input -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-code mr-2"></i>Nhập lệnh:
+                </h2>
+                
+                <!-- Command Tips -->
+                <div class="bg-yellow-50 border-l-4 border-yellow-400 p-4 mb-4">
+                    <div class="flex">
+                        <div class="flex-shrink-0">
+                            <i class="fas fa-lightbulb text-yellow-400"></i>
+                        </div>
+                        <div class="ml-3">
+                            <h3 class="text-sm font-medium text-yellow-800 mb-2">Mẹo sử dụng lệnh:</h3>
+                            <ul class="text-sm text-yellow-700 space-y-1">
+                                <li>• <strong>Đối với các lệnh sudo:</strong> Chỉ cần gõ <code class="bg-yellow-100 px-1 rounded">sudo command</code> - hệ thống sẽ tự động thêm mật khẩu cho bạn!</li>
+                                <li>• <strong>Ví dụ:</strong> <code class="bg-yellow-100 px-1 rounded">sudo systemctl status ssh</code> (không cần echo password)</li>
+                                <li>• <strong>Lệnh thông thường:</strong> <code class="bg-yellow-100 px-1 rounded">ls -la, ps aux, df -h, free -m</code></li>
+                                <li>• <strong>Tính năng mới:</strong> Mật khẩu SSH được lấy tự động từ thông tin máy chủ đã lưu</li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="space-y-4">
+                    <div class="relative">
+                        <textarea id="commandInput" 
+                                  class="w-full p-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-blue-500 disabled:bg-gray-100 disabled:cursor-not-allowed" 
+                                  rows="4" 
+                                  placeholder="Vui lòng chọn máy chủ trước khi nhập lệnh..."
+                                  disabled></textarea>
+                        <div class="absolute top-2 right-2 text-xs text-gray-400">
+                            Ctrl + Enter để thực thi
+                        </div>
+                    </div>
+                    <div class="flex gap-2">
+                        <button id="executeBtn" onclick="executeCommand()" 
+                                class="px-6 py-2 btn-primary text-white rounded-lg transition disabled:bg-gray-400 disabled:cursor-not-allowed"
+                                disabled>
+                            <i class="fas fa-play mr-2"></i>Thực thi
+                        </button>
+                        <button onclick="clearResults()" 
+                                class="px-6 py-2 btn-secondary text-white rounded-lg transition">
+                            <i class="fas fa-eraser mr-2"></i>Xóa kết quả
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Results -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-lg font-semibold mb-4">
+                    <i class="fas fa-terminal mr-2"></i>Kết quả:
+                </h2>
+                <div id="results" class="bg-gray-900 text-green-400 p-4 rounded-lg font-mono text-sm min-h-[300px] overflow-auto">
+                    <div class="text-gray-500">Chưa có kết quả...</div>
+                </div>
+            </div>
+
+            <!-- Navigation Buttons -->
+            <div class="text-center space-x-4">
+                <a th:href="@{/dashboard}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-indigo-600 hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-indigo-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-tachometer-alt mr-2"></i> Quay về Dashboard
+                </a>
+                <a th:href="@{/server-list}" class="inline-flex items-center px-6 py-3 border border-transparent text-base font-medium rounded-md shadow-sm text-white bg-gray-600 hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-gray-500 transition duration-200 ease-in-out">
+                    <i class="fas fa-list mr-2"></i> Danh sách máy chủ
+                </a>
+            </div>
+        </div>
+    </div>
+</main>
+
+    <script>
+        let selectedServer = null;
+        
+        function selectServer(element) {
+            // Remove previous selection
+            document.querySelectorAll('.server-card').forEach(card => {
+                card.classList.remove('selected');
+                card.querySelector('.selected-indicator').classList.add('hidden');
+            });
+            
+            // Add selection to clicked server
+            element.classList.add('selected');
+            element.querySelector('.selected-indicator').classList.remove('hidden');
+            
+            // Get server info
+            selectedServer = {
+                ip: element.dataset.serverIp,
+                name: element.dataset.serverName,
+                username: element.dataset.serverUsername,
+                password: element.dataset.serverPassword,
+                online: element.dataset.serverOnline === 'true'
+            };
+            
+            // Update selected server info
+            const selectedInfo = document.getElementById('selectedServerInfo');
+            const selectedName = document.getElementById('selectedServerName');
+            
+            selectedName.textContent = `${selectedServer.name} (${selectedServer.ip})`;
+            selectedInfo.classList.remove('hidden');
+            
+            // Enable command input and execute button
+            const commandInput = document.getElementById('commandInput');
+            const executeBtn = document.getElementById('executeBtn');
+            
+            commandInput.disabled = false;
+            commandInput.placeholder = `Nhập lệnh SSH cho ${selectedServer.name}... (Ví dụ: ls -la, ps aux, df -h)`;
+            executeBtn.disabled = false;
+            
+            // Add pulse animation to selected server
+            element.classList.add('pulse-animation');
+            setTimeout(() => {
+                element.classList.remove('pulse-animation');
+            }, 2000);
+            
+            // Focus on command input
+            commandInput.focus();
+        }
+        
+        function processCommand(command) {
+            if (!selectedServer || !selectedServer.password) {
+                return command;
+            }
+            
+            // Tự động thêm mật khẩu cho lệnh sudo
+            if (command.trim().startsWith('sudo ')) {
+                // Nếu đã có echo password, không thay đổi
+                if (command.includes('echo ') && command.includes('sudo -S')) {
+                    return command;
+                }
+                
+                // Thay đổi "sudo command" thành "echo 'password' | sudo -S command"
+                const sudoCommand = command.trim().substring(5); // Bỏ "sudo "
+                return `echo '${selectedServer.password}' | sudo -S ${sudoCommand}`;
+            }
+            
+            return command;
+        }
+        
+        async function executeCommand() {
+            if (!selectedServer) {
+                alert('Vui lòng chọn máy chủ trước!');
+                return;
+            }
+            
+            const command = document.getElementById('commandInput').value;
+            const resultsDiv = document.getElementById('results');
+            
+            if (!command.trim()) {
+                alert('Vui lòng nhập lệnh!');
+                return;
+            }
+            
+            // Xử lý lệnh để tự động thêm mật khẩu cho sudo
+            const processedCommand = processCommand(command);
+            
+            // Check if server is online
+            if (!selectedServer.online) {
+                resultsDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: Máy chủ ${selectedServer.name} (${selectedServer.ip}) đang offline
+                    </div>
+                `;
+                return;
+            }
+            
+            // Show loading
+            resultsDiv.innerHTML = `
+                <div class="text-yellow-400">
+                    <i class="fas fa-spinner fa-spin mr-2"></i>Đang thực thi lệnh trên ${selectedServer.name}...
+                </div>
+            `;
+            
+            try {
+                const response = await fetch('/api/execute-command', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify({
+                        command: processedCommand,
+                        hosts: [selectedServer.ip]
+                    })
+                });
+                
+                const result = await response.json();
+                
+                if (result.success && result.results && result.results.length > 0) {
+                    displayResults(result.results, command); // Truyền lệnh gốc để hiển thị
+                } else {
+                    resultsDiv.innerHTML = `
+                        <div class="text-red-400">
+                            <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi: ${result.error || 'Không có kết quả trả về'}
+                        </div>
+                    `;
+                }
+                
+            } catch (error) {
+                resultsDiv.innerHTML = `
+                    <div class="text-red-400">
+                        <i class="fas fa-exclamation-triangle mr-2"></i>Lỗi kết nối: ${error.message}
+                    </div>
+                `;
+            }
+        }
+        
+        function displayResults(results, originalCommand = null) {
+            const resultsDiv = document.getElementById('results');
+            const result = results[0]; // Chỉ có 1 server được chọn
+            
+            const statusColor = result.success ? 'text-green-400' : 'text-red-400';
+            const statusIcon = result.success ? 'fas fa-check-circle' : 'fas fa-times-circle';
+            
+            // Hiển thị lệnh gốc thay vì lệnh đã xử lý (để ẩn mật khẩu)
+            const displayCommand = originalCommand || result.command;
+            
+            let html = `
+                <div class="mb-4">
+                    <div class="flex items-center mb-2">
+                        <i class="${statusIcon} ${statusColor} mr-2"></i>
+                        <span class="text-white font-semibold">${result.server} (${result.ip})</span>
+                    </div>
+                    
+                    <div class="text-green-400 mb-2">$ ${displayCommand}</div>
+                    
+                    ${result.output ? `
+                        <div class="text-white mb-2">
+                            <div class="text-gray-400 text-sm mb-1">Output:</div>
+                            <pre class="whitespace-pre-wrap bg-gray-800 p-2 rounded">${result.output}</pre>
+                        </div>
+                    ` : ''}
+                    
+                    ${result.error ? `
+                        <div class="text-red-400 mb-2">
+                            <div class="text-gray-400 text-sm mb-1">Error:</div>
+                            <pre class="whitespace-pre-wrap bg-gray-800 p-2 rounded">${result.error}</pre>
+                        </div>
+                    ` : ''}
+                    
+                    <div class="text-gray-400 text-sm">
+                        <i class="fas fa-info-circle mr-1"></i>Exit Status: ${result.exitStatus}
+                    </div>
+                </div>
+            `;
+            
+            resultsDiv.innerHTML = html;
+        }
+        
+        function clearResults() {
+            document.getElementById('results').innerHTML = '<div class="text-gray-500">Chưa có kết quả...</div>';
+        }
+        
+        // Thêm event listener cho Enter key
+        document.getElementById('commandInput').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter' && e.ctrlKey) {
+                executeCommand();
+            }
+        });
+        
+        // Auto-select server from URL if available
+        const urlParams = new URLSearchParams(window.location.search);
+        const hostFromUrl = urlParams.get('hosts');
+        
+        if (hostFromUrl) {
+            const serverCard = document.querySelector(`[data-server-ip="${hostFromUrl}"]`);
+            if (serverCard) {
+                selectServer(serverCard);
+            }
+        }
+    </script>
+</body>
+<footer>
+    <div th:replace="~{fragments/footer :: footer}"></div>
+</footer>
+</html>

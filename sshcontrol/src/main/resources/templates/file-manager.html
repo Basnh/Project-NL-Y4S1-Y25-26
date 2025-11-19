@@ -1,0 +1,1405 @@
+<!DOCTYPE html>
+<html lang="vi" xmlns:th="http://www.thymeleaf.org">
+<head>
+  <meta charset="UTF-8">
+  <title>Trình quản lý File - UControl</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/styles/atom-one-dark.min.css">
+  <link rel="stylesheet" href="/layout.css">
+  <link rel="stylesheet" href="/filemanager.css">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
+  <style>
+    .file-manager-container {
+      display: flex;
+      height: 70vh;
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .sidebar {
+      width: 250px;
+      background-color: #2d2d2d;
+      color: #e0e0e0;
+      overflow-y: auto;
+      border-right: 1px solid #1a1a1a;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #404040;
+      font-weight: bold;
+      background-color: #1a1a1a;
+    }
+    
+    .folder-tree {
+      padding: 10px 0;
+    }
+    
+    .folder-item {
+      padding: 8px 15px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .folder-item:hover {
+      background-color: #3a3a3a;
+    }
+    
+    .folder-item.active {
+      background-color: #0066cc;
+      color: white;
+    }
+    
+    .folder-item-icon {
+      width: 16px;
+      text-align: center;
+    }
+    
+    .folder-item-toggle {
+      width: 16px;
+      text-align: center;
+      cursor: pointer;
+    }
+    
+    .folder-tree-nested {
+      display: none;
+      margin-left: 0;
+    }
+    
+    .folder-tree-nested.show {
+      display: block;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .toolbar {
+      background-color: #f9f9f9;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-input {
+      flex: 1;
+      min-width: 300px;
+      padding: 8px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .toolbar-btn {
+      padding: 6px 12px;
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    
+    .toolbar-btn:hover {
+      background-color: #e5e7eb;
+      border-color: #9ca3af;
+    }
+    
+    .toolbar-btn:active {
+      background-color: #d1d5db;
+    }
+    
+    .file-list-container {
+      flex: 1;
+      overflow: auto;
+      background-color: white;
+    }
+    
+    .file-list {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .file-list th {
+      background-color: #f0f0f0;
+      border-bottom: 2px solid #d0d0d0;
+      padding: 10px;
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      user-select: none;
+    }
+    
+    .file-list td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .file-list tr:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .file-list tr.selected {
+      background-color: #cce4ff;
+    }
+    
+    .file-item-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    
+    .file-item-name:hover {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+    
+    .status-bar {
+      background-color: #f0f0f0;
+      border-top: 1px solid #d0d0d0;
+      padding: 8px 20px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .breadcrumb {
+      background-color: #fafafa;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 8px 20px;
+      font-size: 12px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    
+    .breadcrumb-item {
+      cursor: pointer;
+      color: #0066cc;
+    }
+    
+    .breadcrumb-item:hover {
+      text-decoration: underline;
+    }
+    
+    .breadcrumb-separator {
+      color: #999;
+    }
+    
+    .context-menu {
+      display: none;
+      position: fixed;
+      background-color: #f9f9f9;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+      min-width: 200px;
+    }
+    
+    .context-menu.show {
+      display: block;
+    }
+    
+    .context-menu-item {
+      padding: 8px 15px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .context-menu-item:hover {
+      background-color: #e8e8e8;
+    }
+    
+    .context-menu-divider {
+      height: 1px;
+      background-color: #e0e0e0;
+      margin: 4px 0;
+    }
+    
+    /* Enhanced Editor Styles */
+    #fileModal .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #f9f9f9;
+    }
+    
+    #fileModal .editor-toolbar {
+      display: flex;
+      gap: 5px;
+      padding: 10px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #fafafa;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .editor-toolbar-group {
+      display: flex;
+      gap: 3px;
+      border-right: 1px solid #d0d0d0;
+      padding-right: 8px;
+      margin-right: 8px;
+    }
+    
+    .editor-toolbar-group:last-child {
+      border-right: none;
+    }
+    
+    .editor-btn {
+      padding: 5px 8px;
+      background-color: #e8e8e8;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      min-width: 32px;
+      text-align: center;
+    }
+    
+    .editor-btn:hover {
+      background-color: #d0d0d0;
+    }
+    
+    .editor-btn:active {
+      background-color: #b8b8b8;
+    }
+    
+    .editor-btn.primary {
+      background-color: #0066cc;
+      color: white;
+      border-color: #0052a3;
+    }
+    
+    .editor-btn.primary:hover {
+      background-color: #0052a3;
+    }
+    
+    .editor-info {
+      display: flex;
+      gap: 15px;
+      font-size: 12px;
+      color: #666;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .editor-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      background-color: #f5f5f5;
+    }
+    
+    .line-numbers {
+      background-color: #f0f0f0;
+      color: #999;
+      padding: 10px 0;
+      text-align: right;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      border-right: 1px solid #d0d0d0;
+      user-select: none;
+      overflow: hidden;
+      min-width: 45px;
+      white-space: pre;
+      padding-right: 8px;
+    }
+    
+    .editor-textarea-wrapper {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background-color: #1e1e1e;
+    }
+    
+    #codeHighlight {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 10px 10px 10px 50px;
+      border: none;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      overflow: hidden;
+      pointer-events: none;
+      white-space: pre;
+      word-wrap: normal;
+      z-index: 1;
+    }
+    
+    #fileContent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 10px 10px 10px 50px;
+      border: none;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background-color: transparent;
+      color: transparent;
+      caret-color: #d4d4d4;
+      resize: none;
+      outline: none;
+      z-index: 2;
+      overflow: auto;
+    }
+    
+    #fileContent::selection {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Action buttons in table */
+    .file-actions-buttons {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .action-btn {
+      padding: 4px 8px;
+      background-color: transparent;
+      border: none;
+      color: #0066cc;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    
+    .action-btn:hover {
+      background-color: #e3f2fd;
+      color: #0052a3;
+    }
+    
+    .action-btn.delete:hover {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+    
+    /* File Info Panel */
+    .file-info-panel {
+      background-color: #f5f5f5;
+      border-top: 1px solid #d0d0d0;
+      padding: 12px 15px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #555;
+    }
+    
+    .file-info-row {
+      display: flex;
+      margin-bottom: 4px;
+      gap: 10px;
+    }
+    
+    .file-info-label {
+      font-weight: 600;
+      min-width: 80px;
+      color: #333;
+    }
+    
+    .file-info-value {
+      color: #666;
+      word-break: break-all;
+      font-family: monospace;
+    }
+    
+    /* Enhanced Context Menu */
+    .context-menu {
+      display: none;
+      position: fixed;
+      background-color: white;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      min-width: 200px;
+      max-width: 280px;
+    }
+    
+    .context-menu.show {
+      display: block;
+      animation: fadeIn 0.15s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .context-menu-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    
+    .context-menu-item:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .context-menu-item i {
+      width: 16px;
+      text-align: center;
+      color: #666;
+    }
+    
+    .context-menu-item.danger {
+      color: #d32f2f;
+    }
+    
+    .context-menu-item.danger:hover {
+      background-color: #ffebee;
+    }
+    
+    .context-menu-item.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .context-menu-divider {
+      height: 1px;
+      background-color: #e8e8e8;
+      margin: 4px 0;
+    }
+    
+    .context-menu-shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      color: #999;
+      font-family: monospace;
+    }
+  </style>
+</head>
+<body class="bg-gray-100 text-gray-800 m-0 p-0">
+  <main class="flex-1">
+    <div class="container mx-auto px-4 py-8">
+      <div class="max-w-7xl mx-auto">
+        <!-- Header -->
+        <div th:replace="~{fragments/header :: header('Trình quản lý File', 'fas fa-folder-open')}"></div>
+
+        <!-- File Manager -->
+        <div class="file-manager-container">
+      <!-- Sidebar - Thư mục -->
+      <div class="sidebar">
+      <div class="sidebar-header">
+        <i class="fas fa-server mr-2"></i>Máy chủ
+      </div>
+      <div id="serverSelector" class="p-4 border-b border-gray-600">
+        <select id="serverSelect" class="w-full px-3 py-2 bg-gray-700 text-white border border-gray-600 rounded text-sm" onchange="selectServerFromDropdown()">
+          <option value="">-- Chọn máy chủ --</option>
+          <option th:each="server : ${servers}" th:value="${server.ip}" th:text="${server.name + ' (' + server.ip + ')'}"></option>
+        </select>
+      </div>
+      
+      <div class="folder-tree" id="folderTree">
+        <div class="folder-item" onclick="loadFolderContents('/')">
+          <div class="folder-item-icon"><i class="fas fa-home"></i></div>
+          <div>Trang chủ</div>
+        </div>
+        <div class="folder-item" onclick="loadFolderContents('/root')">
+          <div class="folder-item-icon"><i class="fas fa-lock"></i></div>
+          <div>Root</div>
+        </div>
+        <div class="folder-item" onclick="loadFolderContents('/home')">
+          <div class="folder-item-icon"><i class="fas fa-folder"></i></div>
+          <div>Home</div>
+        </div>
+        <div class="folder-item" onclick="loadFolderContents('/etc')">
+          <div class="folder-item-icon"><i class="fas fa-cog"></i></div>
+          <div>etc</div>
+        </div>
+        <div class="folder-item" onclick="loadFolderContents('/var')">
+          <div class="folder-item-icon"><i class="fas fa-database"></i></div>
+          <div>var</div>
+        </div>
+        <div class="folder-item" onclick="loadFolderContents('/tmp')">
+          <div class="folder-item-icon"><i class="fas fa-trash"></i></div>
+          <div>tmp</div>
+        </div>
+        <div class="folder-item" onclick="loadFolderContents('/opt')">
+          <div class="folder-item-icon"><i class="fas fa-folder"></i></div>
+          <div>opt</div>
+        </div>
+      </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="main-content">
+      <!-- Toolbar -->
+      <div class="toolbar">
+        <button class="toolbar-btn" onclick="goBack()" title="Quay lại">
+          <i class="fas fa-arrow-left"></i>
+        </button>
+        <button class="toolbar-btn" onclick="goForward()" title="Tiến tới">
+          <i class="fas fa-arrow-right"></i>
+        </button>
+        <button class="toolbar-btn" onclick="refreshFolder()" title="Làm mới">
+          <i class="fas fa-sync-alt"></i>
+        </button>
+        <input type="text" id="pathInput" class="toolbar-input" th:value="${currentPath} ?: '/'" placeholder="Nhập đường dẫn...">
+        <button class="toolbar-btn" onclick="goToPath()" title="Đi tới">
+          <i class="fas fa-arrow-right"></i> Đi
+        </button>
+        <button class="toolbar-btn" onclick="showNewFolderDialog()" title="Thư mục mới">
+          <i class="fas fa-folder-plus"></i>
+        </button>
+      </div>
+      
+      <!-- Breadcrumb -->
+      <div class="breadcrumb" id="breadcrumb">
+        <i class="fas fa-home"></i>
+        <span class="breadcrumb-item" onclick="loadFolderContents('/')">/</span>
+      </div>
+      
+      <!-- File List -->
+      <div class="file-list-container">
+        <table class="file-list" id="fileTable">
+          <thead>
+            <tr>
+              <th style="width: 35%;">Tên</th>
+              <th style="width: 12%;">Loại</th>
+              <th style="width: 12%;">Kích thước</th>
+              <th style="width: 18%;">Sửa đổi</th>
+              <th style="width: 23%;">Hành động</th>
+            </tr>
+          </thead>
+          <tbody id="fileTableBody">
+            <tr>
+              <td colspan="5" style="text-align: center; padding: 40px; color: #999;">
+                <i class="fas fa-folder-open" style="font-size: 32px; margin-bottom: 10px;"></i><br>
+                Vui lòng chọn máy chủ và thư mục để hiển thị file
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+      
+      <!-- Status Bar -->
+      <div class="status-bar">
+        <span id="statusText">Sẵn sàng</span>
+      </div>
+      </div>
+    </div>
+        </div>
+      </div>
+    </div>
+  </div>  <!-- Context Menu -->
+  <div class="context-menu" id="contextMenu">
+    <div class="context-menu-item" onclick="cutFile()">
+      <i class="fas fa-cut"></i> Cắt
+      <span class="context-menu-shortcut">Ctrl+X</span>
+    </div>
+    <div class="context-menu-item" onclick="copyFile()">
+      <i class="fas fa-copy"></i> Sao chép
+      <span class="context-menu-shortcut">Ctrl+C</span>
+    </div>
+    <div class="context-menu-item" onclick="pasteFile()" id="pasteOption">
+      <i class="fas fa-paste"></i> Dán
+      <span class="context-menu-shortcut">Ctrl+V</span>
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" onclick="renameFile()">
+      <i class="fas fa-pen"></i> Đổi tên
+    </div>
+    <div class="context-menu-item" onclick="downloadFile()">
+      <i class="fas fa-download"></i> Tải xuống
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item danger" onclick="deleteFile()">
+      <i class="fas fa-trash"></i> Xóa
+    </div>
+    <div class="context-menu-divider"></div>
+    <div class="context-menu-item" onclick="showFileProperties()">
+      <i class="fas fa-info-circle"></i> Thuộc tính
+    </div>
+  </div>
+  
+  <!-- File Edit Modal -->
+  <div id="fileModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white w-screen h-screen sm:w-11/12 sm:h-5/6 sm:rounded-lg shadow-xl flex flex-col overflow-hidden">
+      <!-- Modal Header -->
+      <div class="modal-header">
+        <h3 class="font-semibold text-lg" id="modalTitle">Chỉnh sửa tập tin</h3>
+        <div class="flex items-center gap-3">
+          <span id="editorInfo" class="text-xs text-gray-500"></span>
+          <button onclick="closeModal()" class="text-gray-600 hover:text-gray-800">
+            <i class="fas fa-times text-xl"></i>
+          </button>
+        </div>
+      </div>
+      
+      <!-- Editor Toolbar -->
+      <div class="editor-toolbar">
+        <div class="editor-toolbar-group">
+          <button class="editor-btn" onclick="editorUndo()" title="Hoàn tác (Ctrl+Z)">
+            <i class="fas fa-undo"></i>
+          </button>
+          <button class="editor-btn" onclick="editorRedo()" title="Làm lại (Ctrl+Y)">
+            <i class="fas fa-redo"></i>
+          </button>
+        </div>
+        
+        <div class="editor-toolbar-group">
+          <button class="editor-btn" onclick="editorCut()" title="Cắt (Ctrl+X)">
+            <i class="fas fa-cut"></i>
+          </button>
+          <button class="editor-btn" onclick="editorCopy()" title="Sao chép (Ctrl+C)">
+            <i class="fas fa-copy"></i>
+          </button>
+          <button class="editor-btn" onclick="editorPaste()" title="Dán (Ctrl+V)">
+            <i class="fas fa-paste"></i>
+          </button>
+        </div>
+        
+        <div class="editor-toolbar-group">
+          <button class="editor-btn" onclick="selectAll()" title="Chọn tất cả (Ctrl+A)">
+            <i class="fas fa-check-double"></i>
+          </button>
+          <button class="editor-btn" onclick="findReplace()" title="Tìm & Thay thế">
+            <i class="fas fa-search"></i>
+          </button>
+        </div>
+        
+        <div class="editor-info">
+          <span>Dòng: <span id="lineCount">1</span> | Cột: <span id="colCount">1</span></span>
+        </div>
+      </div>
+      
+      <!-- Editor Content -->
+      <div class="editor-container">
+        <div class="line-numbers" id="lineNumbers"></div>
+        <div class="editor-textarea-wrapper">
+          <pre id="codeHighlight"><code id="highlightCode"></code></pre>
+          <textarea id="fileContent" spellcheck="false"></textarea>
+        </div>
+      </div>
+      
+      <!-- File Info Panel -->
+      <div class="file-info-panel" id="fileInfoPanel">
+        <div class="file-info-row">
+          <span class="file-info-label">File:</span>
+          <span class="file-info-value" id="infFileName">N/A</span>
+        </div>
+        <div class="file-info-row">
+          <span class="file-info-label">Loại:</span>
+          <span class="file-info-value" id="infoFileType">Text</span>
+        </div>
+        <div class="file-info-row">
+          <span class="file-info-label">Kích thước:</span>
+          <span class="file-info-value" id="infoFileSize">0 B</span>
+        </div>
+        <div class="file-info-row">
+          <span class="file-info-label">Đường dẫn:</span>
+          <span class="file-info-value" id="infoFilePath">N/A</span>
+        </div>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
+        <span id="fileSize" class="text-sm text-gray-600"></span>
+        <div class="flex gap-2">
+          <button onclick="closeModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            Hủy
+          </button>
+          <button onclick="saveFile()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <i class="fas fa-save mr-1"></i>Lưu
+          </button>
+        </div>
+      </div>
+    </div>
+  </div>
+  
+  <script>
+    let currentPath = '/';
+    let selectedServer = null;
+    let navigationHistory = ['/'];
+    let historyIndex = 0;
+    let contextMenuFile = null;
+    let clipboard = { action: null, path: null }; // For cut/copy/paste
+
+    // Add event listener for textarea to update editor info
+    document.addEventListener('DOMContentLoaded', function() {
+      const textarea = document.getElementById('fileContent');
+      
+      textarea.addEventListener('input', function() {
+        updateLineNumbers();
+        updateEditorInfo();
+      });
+      
+      textarea.addEventListener('click', updateEditorInfo);
+      textarea.addEventListener('keyup', updateEditorInfo);
+      textarea.addEventListener('scroll', function() {
+        document.getElementById('lineNumbers').scrollTop = textarea.scrollTop;
+        document.getElementById('codeHighlight').scrollTop = textarea.scrollTop;
+        document.getElementById('codeHighlight').scrollLeft = textarea.scrollLeft;
+      });
+      
+      document.addEventListener('click', function(e) {
+        if (!e.target.closest('.context-menu') && !e.target.closest('[data-context-menu]')) {
+          document.getElementById('contextMenu').classList.remove('show');
+        }
+      });
+    });
+
+    function selectServerFromDropdown() {
+      selectedServer = document.getElementById('serverSelect').value;
+      if (selectedServer) {
+        loadFolderContents('/');
+      }
+    }
+
+    function loadFolderContents(path) {
+      if (!selectedServer) {
+        alert('Vui lòng chọn máy chủ!');
+        return;
+      }
+
+      currentPath = path;
+      document.getElementById('pathInput').value = path;
+      updateBreadcrumb(path);
+      updateFolderTree();
+
+      // Fetch folder contents
+      fetch('/file-manager/api/list', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ serverId: selectedServer, path: path })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          displayFiles(data.files || []);
+          updateStatus(`${data.files ? data.files.length : 0} mục - Đường dẫn: ${path}`);
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không thể tải thư mục'));
+          updateStatus('Lỗi tải thư mục');
+        }
+      })
+      .catch(err => {
+        alert('Lỗi kết nối: ' + err);
+        updateStatus('Lỗi kết nối');
+      });
+    }
+
+    function displayFiles(files) {
+      const tbody = document.getElementById('fileTableBody');
+      tbody.innerHTML = '';
+
+      if (!files || files.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="5" style="text-align: center; padding: 40px; color: #999;"><i class="fas fa-folder-open" style="font-size: 24px;"></i><br>Thư mục trống</td></tr>';
+        return;
+      }
+
+      files.forEach(file => {
+        const row = document.createElement('tr');
+        row.setAttribute('data-file', file.name);
+        row.setAttribute('data-path', file.path);
+        row.setAttribute('data-type', file.type);
+
+        const dateStr = file.modified ? new Date(file.modified).toLocaleString('vi-VN') : 'N/A';
+        const sizeStr = file.size ? formatFileSize(file.size) : '-';
+        const typeStr = file.type === 'dir' ? 'Thư mục' : 'Tập tin';
+        const icon = file.type === 'dir' ? 'fa-folder text-yellow-500' : 'fa-file text-gray-400';
+
+        row.innerHTML = `
+          <td>
+            <div class="file-item-name" ondblclick="fileDoubleClick('${file.path}', '${file.type}')">
+              <i class="fas ${icon}"></i>
+              <span>${escapeHtml(file.name)}</span>
+            </div>
+          </td>
+          <td>${typeStr}</td>
+          <td>${sizeStr}</td>
+          <td>${dateStr}</td>
+          <td>
+            <div class="file-actions-buttons">
+              ${file.type === 'dir' ? '' : '<button class="action-btn" onclick="editFileQuick(\'' + file.path.replace(/'/g, "\\'") + '\')" title="Chỉnh sửa"><i class="fas fa-edit"></i></button>'}
+              ${file.type === 'dir' ? '' : '<button class="action-btn" onclick="downloadFileQuick(\'' + escapeHtml(file.path).replace(/'/g, "\\'") + '\')" title="Tải xuống"><i class="fas fa-download"></i></button>'}
+              <button class="action-btn" onclick="showContextMenu(event, '${escapeHtml(file.path).replace(/'/g, "\\'")}', '${file.type}')" title="Thêm tùy chọn"><i class="fas fa-ellipsis-h"></i></button>
+              <button class="action-btn delete" onclick="deleteFileQuick('${escapeHtml(file.path).replace(/'/g, "\\'")}')" title="Xóa"><i class="fas fa-trash"></i></button>
+            </div>
+          </td>
+        `;
+        row.addEventListener('contextmenu', function(e) {
+          e.preventDefault();
+          showContextMenu(e, file.path, file.type);
+        });
+        tbody.appendChild(row);
+      });
+    }
+
+    function fileDoubleClick(path, type) {
+      if (type === 'dir') {
+        navigationHistory = navigationHistory.slice(0, historyIndex + 1);
+        navigationHistory.push(path);
+        historyIndex++;
+        loadFolderContents(path);
+      } else {
+        editFile(path);
+      }
+    }
+
+    function showContextMenu(e, filePath, fileType) {
+      e.preventDefault();
+      contextMenuFile = { path: filePath, type: fileType };
+
+      const menu = document.getElementById('contextMenu');
+      menu.style.left = e.clientX + 'px';
+      menu.style.top = e.clientY + 'px';
+      menu.classList.add('show');
+      
+      // Enable/disable paste option based on clipboard
+      const pasteOption = document.getElementById('pasteOption');
+      if (clipboard.action && clipboard.path) {
+        pasteOption.classList.remove('disabled');
+      } else {
+        pasteOption.classList.add('disabled');
+      }
+    }
+
+    function updateBreadcrumb(path) {
+      const parts = path.split('/').filter(p => p);
+      let html = '<i class="fas fa-home"></i> <span class="breadcrumb-item" onclick="loadFolderContents(\'/\')">Root</span>';
+      let currentBreadPath = '';
+
+      parts.forEach((part, index) => {
+        currentBreadPath += '/' + part;
+        html += ' <span class="breadcrumb-separator">/</span> ';
+        html += `<span class="breadcrumb-item" onclick="loadFolderContents('${currentBreadPath}')">${escapeHtml(part)}</span>`;
+      });
+
+      document.getElementById('breadcrumb').innerHTML = html;
+    }
+
+    function updateFolderTree() {
+      const folders = document.querySelectorAll('.folder-item');
+      folders.forEach(folder => {
+        folder.classList.remove('active');
+        if (folder.textContent.trim().includes(currentPath.split('/').pop() || 'Trang chủ')) {
+          folder.classList.add('active');
+        }
+      });
+    }
+
+    function goToPath() {
+      const path = document.getElementById('pathInput').value || '/';
+      loadFolderContents(path);
+    }
+
+    function goBack() {
+      if (historyIndex > 0) {
+        historyIndex--;
+        loadFolderContents(navigationHistory[historyIndex]);
+      }
+    }
+
+    function goForward() {
+      if (historyIndex < navigationHistory.length - 1) {
+        historyIndex++;
+        loadFolderContents(navigationHistory[historyIndex]);
+      }
+    }
+
+    function refreshFolder() {
+      loadFolderContents(currentPath);
+    }
+
+    function downloadFile() {
+      if (!contextMenuFile) return;
+      downloadFileQuick(contextMenuFile.path);
+    }
+
+    function cutFile() {
+      if (!contextMenuFile) return;
+      clipboard = { action: 'cut', path: contextMenuFile.path };
+      updateStatus('Đã cắt: ' + contextMenuFile.path.split('/').pop());
+      document.getElementById('contextMenu').classList.remove('show');
+    }
+
+    function copyFile() {
+      if (!contextMenuFile) return;
+      clipboard = { action: 'copy', path: contextMenuFile.path };
+      updateStatus('Đã sao chép: ' + contextMenuFile.path.split('/').pop());
+      document.getElementById('contextMenu').classList.remove('show');
+    }
+
+    function pasteFile() {
+      if (!clipboard.action || !clipboard.path) {
+        alert('Không có gì để dán');
+        return;
+      }
+
+      const newPath = (currentPath.endsWith('/') ? currentPath : currentPath + '/') + clipboard.path.split('/').pop();
+
+      if (clipboard.action === 'copy') {
+        // For copy: read source and write to destination
+        fetch('/file-manager/api/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ serverId: selectedServer, path: clipboard.path })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            // Write to new location
+            fetch('/file-manager/api/write', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ serverId: selectedServer, path: newPath, content: data.content })
+            })
+            .then(r => r.json())
+            .then(data => {
+              if (data.success) {
+                alert('Sao chép thành công!');
+                loadFolderContents(currentPath);
+              } else {
+                alert('Lỗi: ' + (data.error || 'Không thể sao chép file'));
+              }
+            });
+          }
+        });
+      } else if (clipboard.action === 'cut') {
+        // For cut: read, write, then delete original
+        fetch('/file-manager/api/read', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ serverId: selectedServer, path: clipboard.path })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            fetch('/file-manager/api/write', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              credentials: 'include',
+              body: JSON.stringify({ serverId: selectedServer, path: newPath, content: data.content })
+            })
+            .then(r => r.json())
+            .then(data => {
+              if (data.success) {
+                // Delete original
+                fetch('/file-manager/api/delete', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  credentials: 'include',
+                  body: JSON.stringify({ serverId: selectedServer, path: clipboard.path })
+                })
+                .then(r => r.json())
+                .then(data => {
+                  if (data.success) {
+                    clipboard = { action: null, path: null };
+                    alert('Di chuyển thành công!');
+                    loadFolderContents(currentPath);
+                  }
+                });
+              }
+            });
+          }
+        });
+      }
+
+      document.getElementById('contextMenu').classList.remove('show');
+    }
+
+    function showFileProperties() {
+      if (!contextMenuFile) return;
+      const fileName = contextMenuFile.path.split('/').pop();
+      const message = `Tên: ${fileName}\nĐường dẫn: ${contextMenuFile.path}\nLoại: ${contextMenuFile.type === 'dir' ? 'Thư mục' : 'Tập tin'}`;
+      alert(message);
+      document.getElementById('contextMenu').classList.remove('show');
+    }
+
+    function editFile(filePath = null) {
+      const path = filePath || contextMenuFile.path;
+      if (contextMenuFile && contextMenuFile.type === 'dir') return;
+
+      fetch('/file-manager/api/read', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ serverId: selectedServer, path: path })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          const content = data.content || '';
+          document.getElementById('modalTitle').textContent = 'Chỉnh sửa: ' + path.split('/').pop();
+          document.getElementById('fileContent').value = content;
+          document.getElementById('fileContent').dataset.filePath = path;
+          document.getElementById('fileContent').dataset.originalContent = content;
+          
+          // Update file info
+          updateFileInfo(path, content);
+          updateLineNumbers();
+          updateEditorInfo();
+          document.getElementById('fileModal').classList.remove('hidden');
+          document.getElementById('contextMenu').classList.remove('show');
+          document.getElementById('fileContent').focus();
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không thể đọc file'));
+        }
+      })
+      .catch(err => alert('Lỗi: ' + err));
+    }
+
+    function updateFileInfo(filePath, content) {
+      const fileName = filePath.split('/').pop();
+      const fileSize = new Blob([content]).size;
+      const fileType = getFileType(fileName);
+      
+      document.getElementById('infFileName').textContent = fileName;
+      document.getElementById('infoFileType').textContent = fileType;
+      document.getElementById('infoFileSize').textContent = formatFileSize(fileSize);
+      document.getElementById('infoFilePath').textContent = filePath;
+    }
+
+    function getFileType(fileName) {
+      const ext = fileName.split('.').pop().toLowerCase();
+      const types = {
+        'txt': 'Text',
+        'php': 'PHP',
+        'html': 'HTML',
+        'css': 'CSS',
+        'js': 'JavaScript',
+        'json': 'JSON',
+        'xml': 'XML',
+        'sql': 'SQL',
+        'sh': 'Shell Script',
+        'conf': 'Config',
+        'cfg': 'Config',
+        'properties': 'Properties',
+        'yml': 'YAML',
+        'yaml': 'YAML',
+        'md': 'Markdown',
+        'java': 'Java',
+        'py': 'Python',
+        'cpp': 'C++',
+        'c': 'C',
+        'h': 'Header'
+      };
+      return types[ext] || 'Text File';
+    }
+
+    function editFileQuick(filePath) {
+      editFile(filePath);
+    }
+
+    function downloadFileQuick(filePath) {
+      window.location.href = `/file-manager/api/download?serverId=${selectedServer}&path=${encodeURIComponent(filePath)}`;
+    }
+
+    function deleteFileQuick(filePath) {
+      if (!confirm(`Bạn có chắc muốn xóa "${filePath.split('/').pop()}"?`)) return;
+      fetch('/file-manager/api/delete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ serverId: selectedServer, path: filePath })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          loadFolderContents(currentPath);
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không thể xóa file'));
+        }
+      })
+      .catch(err => alert('Lỗi: ' + err));
+    }
+
+    function saveFile() {
+      const filePath = document.getElementById('fileContent').dataset.filePath;
+      const content = document.getElementById('fileContent').value;
+
+      fetch('/file-manager/api/write', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ serverId: selectedServer, path: filePath, content: content })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          alert('Lưu file thành công!');
+          closeModal();
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không thể lưu file'));
+        }
+      })
+      .catch(err => alert('Lỗi: ' + err));
+    }
+
+    function renameFile() {
+      if (!contextMenuFile) return;
+      const newName = prompt('Nhập tên mới:', contextMenuFile.path.split('/').pop());
+      if (!newName) return;
+
+      const newPath = contextMenuFile.path.substring(0, contextMenuFile.path.lastIndexOf('/') + 1) + newName;
+
+      fetch('/file-manager/api/rename', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ serverId: selectedServer, oldPath: contextMenuFile.path, newPath: newPath })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          loadFolderContents(currentPath);
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không thể đổi tên file'));
+        }
+      })
+      .catch(err => alert('Lỗi: ' + err));
+    }
+
+    function deleteFile() {
+      if (!contextMenuFile) return;
+      deleteFileQuick(contextMenuFile.path);
+    }
+
+    function showNewFolderDialog() {
+      const folderName = prompt('Nhập tên thư mục mới:');
+      if (!folderName) return;
+
+      const newPath = (currentPath.endsWith('/') ? currentPath : currentPath + '/') + folderName;
+
+      fetch('/file-manager/api/mkdir', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ serverId: selectedServer, path: newPath })
+      })
+      .then(r => r.json())
+      .then(data => {
+        if (data.success) {
+          loadFolderContents(currentPath);
+        } else {
+          alert('Lỗi: ' + (data.error || 'Không thể tạo thư mục'));
+        }
+      })
+      .catch(err => alert('Lỗi: ' + err));
+    }
+
+    function closeModal() {
+      document.getElementById('fileModal').classList.add('hidden');
+      document.getElementById('fileContent').value = '';
+      document.getElementById('fileContent').dataset.filePath = '';
+      document.getElementById('fileContent').dataset.originalContent = '';
+    }
+
+    function updateLineNumbers() {
+      const textarea = document.getElementById('fileContent');
+      const lines = textarea.value.split('\n').length;
+      let lineNumbersHtml = '';
+      for (let i = 1; i <= Math.max(lines, 1); i++) {
+        lineNumbersHtml += i + '\n';
+      }
+      document.getElementById('lineNumbers').textContent = lineNumbersHtml;
+      
+      // Sync scrolling between line numbers and textarea
+      const lineNumbersDiv = document.getElementById('lineNumbers');
+      lineNumbersDiv.scrollTop = textarea.scrollTop;
+    }
+
+    function updateEditorInfo() {
+      const textarea = document.getElementById('fileContent');
+      const content = textarea.value;
+      const lines = content.split('\n').length;
+      const bytes = new Blob([content]).size;
+      
+      document.getElementById('lineCount').textContent = lines;
+      document.getElementById('fileSize').textContent = `${lines} dòng • ${formatFileSize(bytes)}`;
+      
+      // Update column position
+      const selectionStart = textarea.selectionStart;
+      const beforeCursor = content.substring(0, selectionStart);
+      const lastNewlineIndex = beforeCursor.lastIndexOf('\n');
+      const colCount = selectionStart - lastNewlineIndex;
+      document.getElementById('colCount').textContent = colCount;
+      
+      // Sync syntax highlighting scroll
+      updateSyntaxHighlight();
+    }
+
+    function updateSyntaxHighlight() {
+      const textarea = document.getElementById('fileContent');
+      const highlightCode = document.getElementById('highlightCode');
+      const codeHighlight = document.getElementById('codeHighlight');
+      const fileName = document.getElementById('fileContent').dataset.filePath || '';
+      
+      highlightCode.textContent = textarea.value;
+      
+      // Detect language from filename
+      let language = 'plaintext';
+      const ext = fileName.split('.').pop().toLowerCase();
+      const langMap = {
+        'php': 'php', 'html': 'html', 'css': 'css', 'js': 'javascript',
+        'json': 'json', 'xml': 'xml', 'sql': 'sql', 'sh': 'bash',
+        'conf': 'conf', 'cfg': 'ini', 'properties': 'properties',
+        'yml': 'yaml', 'yaml': 'yaml', 'md': 'markdown', 'java': 'java',
+        'py': 'python', 'cpp': 'cpp', 'c': 'c', 'h': 'c'
+      };
+      language = langMap[ext] || 'plaintext';
+      
+      highlightCode.className = language;
+      hljs.highlightElement(highlightCode);
+      
+      // Sync scroll positions
+      codeHighlight.scrollTop = textarea.scrollTop;
+      codeHighlight.scrollLeft = textarea.scrollLeft;
+    }
+
+    function editorUndo() {
+      // Simple undo: restore to original content
+      const original = document.getElementById('fileContent').dataset.originalContent;
+      if (original !== undefined) {
+        document.getElementById('fileContent').value = original;
+        updateLineNumbers();
+        updateEditorInfo();
+      }
+    }
+
+    function editorRedo() {
+      // Placeholder for redo functionality
+      updateEditorInfo();
+    }
+
+    function editorCut() {
+      const textarea = document.getElementById('fileContent');
+      if (textarea.selectionStart === textarea.selectionEnd) {
+        return; // Nothing selected
+      }
+      document.execCommand('cut');
+      updateLineNumbers();
+      updateEditorInfo();
+    }
+
+    function editorCopy() {
+      const textarea = document.getElementById('fileContent');
+      if (textarea.selectionStart !== textarea.selectionEnd) {
+        textarea.select();
+        document.execCommand('copy');
+        textarea.setSelectionRange(textarea.selectionEnd, textarea.selectionEnd);
+      }
+    }
+
+    function editorPaste() {
+      const textarea = document.getElementById('fileContent');
+      textarea.focus();
+      document.execCommand('paste');
+      updateLineNumbers();
+      updateEditorInfo();
+    }
+
+    function selectAll() {
+      const textarea = document.getElementById('fileContent');
+      textarea.select();
+      updateEditorInfo();
+    }
+
+    function findReplace() {
+      const searchTerm = prompt('Tìm kiếm:');
+      if (!searchTerm) return;
+      
+      const textarea = document.getElementById('fileContent');
+      const content = textarea.value;
+      
+      if (content.includes(searchTerm)) {
+        const replaceTerm = prompt('Thay thế bằng:');
+        if (replaceTerm !== null) {
+          textarea.value = content.replaceAll(searchTerm, replaceTerm);
+          updateLineNumbers();
+          updateEditorInfo();
+        }
+      } else {
+        alert('Không tìm thấy: ' + searchTerm);
+      }
+    }
+
+    function updateStatus(text) {
+      document.getElementById('statusText').textContent = text;
+    }
+
+    function formatFileSize(bytes) {
+      if (bytes === 0) return '0 B';
+      const k = 1024;
+      const sizes = ['B', 'KB', 'MB', 'GB'];
+      const i = Math.floor(Math.log(bytes) / Math.log(k));
+      return Math.round(bytes / Math.pow(k, i) * 100) / 100 + ' ' + sizes[i];
+    }
+
+    function escapeHtml(text) {
+      const div = document.createElement('div');
+      div.textContent = text;
+      return div.innerHTML;
+    }
+  </script>
+  </div>
+  </main>
+
+  <!-- Footer -->
+  <footer class="bg-gray-100 border-t border-gray-300 text-center py-4">
+    <p class="text-gray-600 text-sm">© 2025 UControl - Hệ thống quản lý máy chủ Ubuntu. Tất cả quyền được bảo lưu.</p>
+  </footer>
+</body>
+</html>

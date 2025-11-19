@@ -1,0 +1,513 @@
+    .file-manager-container {
+      display: flex;
+      height: 70vh;
+      background-color: white;
+      border-radius: 0.75rem;
+      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+      overflow: hidden;
+      margin-top: 1.5rem;
+      margin-bottom: 2rem;
+    }
+    
+    .sidebar {
+      width: 250px;
+      background-color: #2d2d2d;
+      color: #e0e0e0;
+      overflow-y: auto;
+      border-right: 1px solid #1a1a1a;
+    }
+    
+    .sidebar-header {
+      padding: 20px;
+      border-bottom: 1px solid #404040;
+      font-weight: bold;
+      background-color: #1a1a1a;
+    }
+    
+    .folder-tree {
+      padding: 10px 0;
+    }
+    
+    .folder-item {
+      padding: 8px 15px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+    
+    .folder-item:hover {
+      background-color: #3a3a3a;
+    }
+    
+    .folder-item.active {
+      background-color: #0066cc;
+      color: white;
+    }
+    
+    .folder-item-icon {
+      width: 16px;
+      text-align: center;
+    }
+    
+    .folder-item-toggle {
+      width: 16px;
+      text-align: center;
+      cursor: pointer;
+    }
+    
+    .folder-tree-nested {
+      display: none;
+      margin-left: 0;
+    }
+    
+    .folder-tree-nested.show {
+      display: block;
+    }
+    
+    .main-content {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+    }
+    
+    .toolbar {
+      background-color: #f9f9f9;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+    
+    .toolbar-input {
+      flex: 1;
+      min-width: 300px;
+      padding: 8px 12px;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      font-family: monospace;
+      font-size: 12px;
+    }
+    
+    .toolbar-btn {
+      padding: 6px 12px;
+      background-color: #f3f4f6;
+      border: 1px solid #d1d5db;
+      border-radius: 0.375rem;
+      cursor: pointer;
+      transition: all 0.2s;
+      font-size: 13px;
+    }
+    
+    .toolbar-btn:hover {
+      background-color: #e5e7eb;
+      border-color: #9ca3af;
+    }
+    
+    .toolbar-btn:active {
+      background-color: #d1d5db;
+    }
+    
+    .file-list-container {
+      flex: 1;
+      overflow: auto;
+      background-color: white;
+    }
+    
+    .file-list {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+    
+    .file-list th {
+      background-color: #f0f0f0;
+      border-bottom: 2px solid #d0d0d0;
+      padding: 10px;
+      text-align: left;
+      font-weight: 600;
+      position: sticky;
+      top: 0;
+      user-select: none;
+    }
+    
+    .file-list td {
+      padding: 8px 10px;
+      border-bottom: 1px solid #e8e8e8;
+    }
+    
+    .file-list tr:hover {
+      background-color: #f5f5f5;
+    }
+    
+    .file-list tr.selected {
+      background-color: #cce4ff;
+    }
+    
+    .file-item-name {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      cursor: pointer;
+    }
+    
+    .file-item-name:hover {
+      color: #0066cc;
+      text-decoration: underline;
+    }
+    
+    .status-bar {
+      background-color: #f0f0f0;
+      border-top: 1px solid #d0d0d0;
+      padding: 8px 20px;
+      font-size: 12px;
+      color: #666;
+    }
+    
+    .breadcrumb {
+      background-color: #fafafa;
+      border-bottom: 1px solid #d0d0d0;
+      padding: 8px 20px;
+      font-size: 12px;
+      display: flex;
+      gap: 5px;
+      align-items: center;
+    }
+    
+    .breadcrumb-item {
+      cursor: pointer;
+      color: #0066cc;
+    }
+    
+    .breadcrumb-item:hover {
+      text-decoration: underline;
+    }
+    
+    .breadcrumb-separator {
+      color: #999;
+    }
+    
+    .context-menu {
+      display: none;
+      position: fixed;
+      background-color: #f9f9f9;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+      z-index: 1000;
+      min-width: 200px;
+    }
+    
+    .context-menu.show {
+      display: block;
+    }
+    
+    .context-menu-item {
+      padding: 8px 15px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.2s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    
+    .context-menu-item:hover {
+      background-color: #e8e8e8;
+    }
+    
+    .context-menu-divider {
+      height: 1px;
+      background-color: #e0e0e0;
+      margin: 4px 0;
+    }
+    
+    /* Enhanced Editor Styles */
+    #fileModal .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 15px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #f9f9f9;
+    }
+    
+    #fileModal .editor-toolbar {
+      display: flex;
+      gap: 5px;
+      padding: 10px 15px;
+      border-bottom: 1px solid #e0e0e0;
+      background-color: #fafafa;
+      flex-wrap: wrap;
+      align-items: center;
+    }
+    
+    .editor-toolbar-group {
+      display: flex;
+      gap: 3px;
+      border-right: 1px solid #d0d0d0;
+      padding-right: 8px;
+      margin-right: 8px;
+    }
+    
+    .editor-toolbar-group:last-child {
+      border-right: none;
+    }
+    
+    .editor-btn {
+      padding: 5px 8px;
+      background-color: #e8e8e8;
+      border: 1px solid #bbb;
+      border-radius: 3px;
+      cursor: pointer;
+      font-size: 12px;
+      transition: all 0.2s;
+      min-width: 32px;
+      text-align: center;
+    }
+    
+    .editor-btn:hover {
+      background-color: #d0d0d0;
+    }
+    
+    .editor-btn:active {
+      background-color: #b8b8b8;
+    }
+    
+    .editor-btn.primary {
+      background-color: #0066cc;
+      color: white;
+      border-color: #0052a3;
+    }
+    
+    .editor-btn.primary:hover {
+      background-color: #0052a3;
+    }
+    
+    .editor-info {
+      display: flex;
+      gap: 15px;
+      font-size: 12px;
+      color: #666;
+      align-items: center;
+      margin-left: auto;
+    }
+    
+    .editor-container {
+      display: flex;
+      flex: 1;
+      overflow: hidden;
+      background-color: #f5f5f5;
+    }
+    
+    .line-numbers {
+      background-color: #f0f0f0;
+      color: #999;
+      padding: 10px 0;
+      text-align: right;
+      font-family: monospace;
+      font-size: 12px;
+      line-height: 1.6;
+      border-right: 1px solid #d0d0d0;
+      user-select: none;
+      overflow: hidden;
+      min-width: 45px;
+      white-space: pre;
+      padding-right: 8px;
+    }
+    
+    .editor-textarea-wrapper {
+      flex: 1;
+      overflow: auto;
+      position: relative;
+      background-color: #1e1e1e;
+    }
+    
+    #codeHighlight {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 10px 10px 10px 50px;
+      border: none;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background-color: #1e1e1e;
+      color: #d4d4d4;
+      overflow: hidden;
+      pointer-events: none;
+      white-space: pre;
+      word-wrap: normal;
+      z-index: 1;
+    }
+    
+    #fileContent {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      margin: 0;
+      padding: 10px 10px 10px 50px;
+      border: none;
+      font-family: 'Courier New', monospace;
+      font-size: 13px;
+      line-height: 1.6;
+      background-color: transparent;
+      color: transparent;
+      caret-color: #d4d4d4;
+      resize: none;
+      outline: none;
+      z-index: 2;
+      overflow: auto;
+    }
+    
+    #fileContent::selection {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+    
+    /* Action buttons in table */
+    .file-actions-buttons {
+      display: flex;
+      gap: 4px;
+      align-items: center;
+    }
+    
+    .action-btn {
+      padding: 4px 8px;
+      background-color: transparent;
+      border: none;
+      color: #0066cc;
+      cursor: pointer;
+      border-radius: 3px;
+      transition: all 0.2s;
+      font-size: 12px;
+      display: inline-flex;
+      align-items: center;
+      gap: 3px;
+    }
+    
+    .action-btn:hover {
+      background-color: #e3f2fd;
+      color: #0052a3;
+    }
+    
+    .action-btn.delete:hover {
+      background-color: #ffebee;
+      color: #d32f2f;
+    }
+    
+    /* File Info Panel */
+    .file-info-panel {
+      background-color: #f5f5f5;
+      border-top: 1px solid #d0d0d0;
+      padding: 12px 15px;
+      max-height: 120px;
+      overflow-y: auto;
+      font-size: 12px;
+      line-height: 1.6;
+      color: #555;
+    }
+    
+    .file-info-row {
+      display: flex;
+      margin-bottom: 4px;
+      gap: 10px;
+    }
+    
+    .file-info-label {
+      font-weight: 600;
+      min-width: 80px;
+      color: #333;
+    }
+    
+    .file-info-value {
+      color: #666;
+      word-break: break-all;
+      font-family: monospace;
+    }
+    
+    /* Enhanced Context Menu */
+    .context-menu {
+      display: none;
+      position: fixed;
+      background-color: white;
+      border: 1px solid #d0d0d0;
+      border-radius: 4px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+      z-index: 1000;
+      min-width: 200px;
+      max-width: 280px;
+    }
+    
+    .context-menu.show {
+      display: block;
+      animation: fadeIn 0.15s ease-out;
+    }
+    
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(-5px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+    
+    .context-menu-item {
+      padding: 8px 12px;
+      cursor: pointer;
+      user-select: none;
+      transition: background-color 0.15s;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+    
+    .context-menu-item:hover {
+      background-color: #f0f0f0;
+    }
+    
+    .context-menu-item i {
+      width: 16px;
+      text-align: center;
+      color: #666;
+    }
+    
+    .context-menu-item.danger {
+      color: #d32f2f;
+    }
+    
+    .context-menu-item.danger:hover {
+      background-color: #ffebee;
+    }
+    
+    .context-menu-item.disabled {
+      color: #ccc;
+      cursor: not-allowed;
+      pointer-events: none;
+    }
+    
+    .context-menu-divider {
+      height: 1px;
+      background-color: #e8e8e8;
+      margin: 4px 0;
+    }
+    
+    .context-menu-shortcut {
+      margin-left: auto;
+      font-size: 11px;
+      color: #999;
+      font-family: monospace;
+    }

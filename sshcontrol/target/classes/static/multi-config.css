@@ -1,0 +1,7 @@
+#tabHostList button.active {
+    background: #4f46e5;
+    color: #fff;
+}
+#tabHostList button {
+    transition: background 0.2s, color 0.2s;
+}

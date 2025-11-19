@@ -1,0 +1,703 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Đăng ký</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/layout.css">
+    <style>
+        body { background-color: #f3f4f6; }
+        
+        .password-strength-bar {
+            height: 3px;
+            background-color: #e5e7eb;
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 4px;
+        }
+        
+        .password-strength-fill {
+            height: 100%;
+            transition: all 0.3s ease;
+            border-radius: 2px;
+        }
+        
+        .strength-weak { background-color: #ef4444; }
+        .strength-fair { background-color: #f59e0b; }
+        .strength-good { background-color: #10b981; }
+        .strength-strong { background-color: #059669; }
+        
+        .input-valid {
+            border-color: #10b981 !important;
+            box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.2) !important;
+        }
+        
+        .input-invalid {
+            border-color: #ef4444 !important;
+            box-shadow: 0 0 0 2px rgba(239, 68, 68, 0.2) !important;
+        }
+        
+        .requirement {
+            display: flex;
+            align-items: center;
+            margin: 2px 0;
+            font-size: 0.75rem;
+        }
+        
+        .requirement-icon {
+            margin-right: 6px;
+            width: 12px;
+        }
+        
+        .requirement.valid { color: #10b981; }
+        .requirement.invalid { color: #6b7280; }
+        
+        .captcha-image {
+            border: 1px solid #d1d5db;
+            border-radius: 6px;
+            background: #f9fafb;
+        }
+        
+        .info-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border-radius: 12px;
+            padding: 2rem;
+        }
+        
+        .feature-item {
+            display: flex;
+            align-items: center;
+            margin: 0.75rem 0;
+        }
+        
+        .feature-icon {
+            width: 40px;
+            height: 40px;
+            background: rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin-right: 1rem;
+        }
+    </style>
+</head>
+<body class="font-sans antialiased min-h-screen flex flex-col">
+    <main class="flex-1 flex items-center justify-center py-6">
+        <div class="container mx-auto px-4 max-w-7xl">
+            <div class="grid lg:grid-cols-2 gap-16 items-start">
+                
+                <!-- Left Side - Information Panel -->
+                <div class="hidden lg:block space-y-8">
+                    <!-- Welcome Section -->
+                    <div class="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-8 text-white shadow-xl">
+                        <div class="text-center mb-8">
+                            <div class="w-20 h-20 bg-white/10 rounded-2xl flex items-center justify-center mx-auto mb-6">
+                                <i class="fas fa-terminal text-4xl"></i>
+                            </div>
+                            <h2 class="text-3xl font-bold mb-3">SSH Control System</h2>
+                            <p class="text-lg text-white/90">Giải pháp quản lý máy chủ SSH chuyên nghiệp</p>
+                        </div>
+                        
+                        <div class="grid grid-cols-2 gap-6">
+                            <div class="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
+                                <div class="text-3xl mb-2 text-white/90">500+</div>
+                                <div class="text-sm text-white/80">Khách hàng tin dùng</div>
+                            </div>
+                            <div class="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
+                                <div class="text-3xl mb-2 text-white/90">99.9%</div>
+                                <div class="text-sm text-white/80">Uptime đảm bảo</div>
+                            </div>
+                            <div class="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
+                                <div class="text-3xl mb-2 text-white/90">24/7</div>
+                                <div class="text-sm text-white/80">Hỗ trợ kỹ thuật</div>
+                            </div>
+                            <div class="bg-white/10 rounded-xl p-5 backdrop-blur-sm">
+                                <div class="text-3xl mb-2 text-white/90">45%</div>
+                                <div class="text-sm text-white/80">Tiết kiệm chi phí</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Features Section -->
+                    <div class="bg-white rounded-2xl p-8 shadow-lg">
+                        <h3 class="text-xl font-bold text-gray-800 mb-6">Tính năng nổi bật</h3>
+                        
+                        <div class="space-y-6">
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-blue-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-server text-blue-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-1">Quản lý đa máy chủ</h4>
+                                    <p class="text-gray-600 text-sm leading-relaxed">
+                                        Quản lý tập trung nhiều máy chủ SSH từ một giao diện duy nhất, 
+                                        tiết kiệm thời gian và công sức.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-shield-alt text-green-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-1">Bảo mật đa lớp</h4>
+                                    <p class="text-gray-600 text-sm leading-relaxed">
+                                        Mã hóa end-to-end, xác thực đa yếu tố và 
+                                        giám sát bảo mật liên tục 24/7.
+                                    </p>
+                                </div>
+                            </div>
+                            
+                            <div class="flex items-start space-x-4">
+                                <div class="flex-shrink-0 w-12 h-12 bg-purple-100 rounded-xl flex items-center justify-center">
+                                    <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                                </div>
+                                <div>
+                                    <h4 class="font-semibold text-gray-800 mb-1">Giám sát thời gian thực</h4>
+                                    <p class="text-gray-600 text-sm leading-relaxed">
+                                        Theo dõi hiệu suất máy chủ, tài nguyên hệ thống và 
+                                        cảnh báo sớm các vấn đề.
+                                    </p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Customer Quote -->
+                        <div class="mt-8 p-6 bg-gray-50 rounded-xl border border-gray-100">
+                            <div class="flex items-center mb-4">
+                                <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center mr-4">
+                                    <i class="fas fa-quote-right text-blue-600"></i>
+                                </div>
+                                <div>
+                                    <div class="font-semibold text-gray-800">Nguyễn Văn A</div>
+                                    <div class="text-sm text-gray-500">Giám đốc CNTT - Tech Corp</div>
+                                </div>
+                            </div>
+                            <p class="text-gray-600 text-sm italic">
+                                "Hệ thống đã giúp chúng tôi tiết kiệm hơn 45% chi phí vận hành 
+                                và tăng hiệu suất quản lý máy chủ lên đáng kể."
+                            </p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Right Side - Registration Form -->
+                <div class="bg-white shadow-xl rounded-2xl p-8">
+                    <div class="text-center mb-8">
+                        <h2 class="text-3xl font-bold text-gray-800 mb-3">Tạo tài khoản mới</h2>
+                        <p class="text-gray-600">Bắt đầu trải nghiệm quản lý máy chủ chuyên nghiệp</p>
+                    </div>
+                    
+                    <!-- Progress Steps -->
+                    <div class="mb-8">
+                        <div class="flex justify-between text-sm text-gray-600 mb-2">
+                            <span>Tiến độ đăng ký</span>
+                            <span id="progress-text" class="font-medium">0%</span>
+                        </div>
+                        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+                            <div id="progress-bar" 
+                                 class="h-full bg-gradient-to-r from-blue-500 to-indigo-600 rounded-full transition-all duration-300 ease-out"
+                                 style="width: 0%">
+                            </div>
+                        </div>
+                        <div class="flex justify-between mt-2 text-xs">
+                            <span class="text-blue-600">
+                                <i class="fas fa-user-circle mr-1"></i>
+                                Thông tin
+                            </span>
+                            <span class="text-gray-400">
+                                <i class="fas fa-key mr-1"></i>
+                                Bảo mật
+                            </span>
+                            <span class="text-gray-400">
+                                <i class="fas fa-check-circle mr-1"></i>
+                                Xác thực
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <!-- Error Messages -->
+                    <div th:if="${error}" class="mb-3 p-2 bg-red-100 border border-red-400 text-red-700 rounded text-sm" role="alert">
+                        <i class="fas fa-exclamation-triangle mr-1"></i>
+                        <span th:text="${error}"></span>
+                    </div>
+                    
+                    <form id="registerForm" th:action="@{/register}" method="POST" novalidate>
+                        
+                        <!-- Two Column Layout for Form Fields -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            
+                            <!-- Full Name -->
+                            <div class="mb-3">
+                                <label for="fullName" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                    Họ và tên <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="text" 
+                                           id="fullName" 
+                                           name="fullName" 
+                                           placeholder="Nguyễn Văn A"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm" 
+                                           required>
+                                    <i class="fas fa-user-tag absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <div id="fullName-status" class="absolute right-2 top-2.5"></div>
+                                </div>
+                                <div id="fullName-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                            </div>
+
+                            <!-- Username -->
+                            <div class="mb-3">
+                                <label for="username" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                    Tên đăng nhập <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="text" 
+                                           id="username" 
+                                           name="username" 
+                                           placeholder="username123"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm" 
+                                           required
+                                           minlength="3"
+                                           maxlength="20"
+                                           pattern="^[a-zA-Z0-9_]+$">
+                                    <i class="fas fa-user absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <div id="username-status" class="absolute right-2 top-2.5"></div>
+                                </div>
+                                <div id="username-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                            </div>
+
+                            <!-- Email -->
+                            <div class="mb-3">
+                                <label for="email" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                    Email <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="email" 
+                                           id="email" 
+                                           name="email" 
+                                           placeholder="example@email.com"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm"
+                                           required>
+                                    <i class="fas fa-envelope absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <div id="email-status" class="absolute right-2 top-2.5"></div>
+                                </div>
+                                <div id="email-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                            </div>
+
+                            <!-- Phone Number -->
+                            <div class="mb-3">
+                                <label for="phoneNumber" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                    Số điện thoại
+                                </label>
+                                <div class="relative">
+                                    <input type="tel" 
+                                           id="phoneNumber" 
+                                           name="phoneNumber" 
+                                           placeholder="0123456789"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm"
+                                           pattern="^[0-9]{10,11}$">
+                                    <i class="fas fa-phone absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <div id="phoneNumber-status" class="absolute right-2 top-2.5"></div>
+                                </div>
+                                <div id="phoneNumber-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password Section (Full Width) -->
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- Password -->
+                            <div class="mb-3">
+                                <label for="password" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                    Mật khẩu <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="password" 
+                                           id="password" 
+                                           name="password" 
+                                           placeholder="Nhập mật khẩu"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm" 
+                                           required
+                                           minlength="6">
+                                    <i class="fas fa-lock absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <button type="button" id="togglePassword" class="absolute right-2 top-2.5 text-gray-400 hover:text-gray-600">
+                                        <i id="eyeIcon" class="fas fa-eye text-sm"></i>
+                                    </button>
+                                </div>
+                                <div class="password-strength-bar">
+                                    <div id="strength-fill" class="password-strength-fill" style="width: 0%"></div>
+                                </div>
+                                <div id="strength-text" class="text-xs mt-1 text-gray-500">Độ mạnh mật khẩu</div>
+                            </div>
+                            
+                            <!-- Confirm Password -->
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                    Xác nhận mật khẩu <span class="text-red-500">*</span>
+                                </label>
+                                <div class="relative">
+                                    <input type="password" 
+                                           id="confirmPassword" 
+                                           name="confirmPassword" 
+                                           placeholder="Nhập lại mật khẩu"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm" 
+                                           required>
+                                    <i class="fas fa-lock absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <div id="confirm-status" class="absolute right-2 top-2.5"></div>
+                                </div>
+                                <div id="confirm-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                            </div>
+                        </div>
+
+                        <!-- Password Requirements (Compact) -->
+                        <div class="mb-3 grid grid-cols-2 gap-1 text-xs">
+                            <div id="req-length" class="requirement invalid">
+                                <i class="fas fa-times requirement-icon"></i>
+                                6+ ký tự
+                            </div>
+                            <div id="req-uppercase" class="requirement invalid">
+                                <i class="fas fa-times requirement-icon"></i>
+                                Chữ hoa
+                            </div>
+                            <div id="req-lowercase" class="requirement invalid">
+                                <i class="fas fa-times requirement-icon"></i>
+                                Chữ thường
+                            </div>
+                            <div id="req-number" class="requirement invalid">
+                                <i class="fas fa-times requirement-icon"></i>
+                                Có số
+                            </div>
+                        </div>
+
+                        <!-- CAPTCHA (Compact) -->
+                        <div class="mb-3">
+                            <label for="captcha" class="block text-gray-700 font-semibold mb-1 text-sm">
+                                Mã xác thực <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex items-center space-x-2 mb-2">
+                                <img th:if="${captchaImage}" 
+                                     th:src="'data:image/png;base64,' + ${captchaImage}"
+                                     id="captchaImage"
+                                     class="captcha-image" 
+                                     alt="CAPTCHA"
+                                     style="height: 40px; width: 120px;">
+                                <button type="button" 
+                                        id="refreshCaptcha"
+                                        class="px-2 py-2 bg-gray-200 text-gray-700 rounded hover:bg-gray-300 transition">
+                                    <i class="fas fa-sync-alt text-sm"></i>
+                                </button>
+                                <div class="relative flex-1">
+                                    <input type="text" 
+                                           id="captcha" 
+                                           name="captcha" 
+                                           placeholder="Nhập mã"
+                                           class="w-full pl-8 pr-8 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition text-sm" 
+                                           required
+                                           maxlength="5">
+                                    <i class="fas fa-shield-alt absolute left-2 top-2.5 text-gray-400 text-sm"></i>
+                                    <div id="captcha-status" class="absolute right-2 top-2.5"></div>
+                                </div>
+                            </div>
+                            <div id="captcha-error" class="text-red-500 text-xs mt-1 hidden"></div>
+                        </div>
+
+                        <!-- Terms -->
+                        <div class="mb-4">
+                            <label class="flex items-center text-sm">
+                                <input type="checkbox" id="terms" class="mr-2 w-3 h-3 text-indigo-600 border-gray-300 rounded focus:ring-indigo-500" required>
+                                <span class="text-gray-700">
+                                    Tôi đồng ý với 
+                                    <a href="#" class="text-indigo-600 hover:text-indigo-800 underline">Điều khoản</a> 
+                                    và 
+                                    <a href="#" class="text-indigo-600 hover:text-indigo-800 underline">Chính sách</a>
+                                </span>
+                            </label>
+                        </div>
+                        
+                        <!-- Submit Button -->
+                        <button type="submit" 
+                                id="submitBtn"
+                                class="w-full px-6 py-3 bg-gradient-to-r from-blue-600 to-indigo-600 text-white font-semibold rounded-xl hover:from-blue-700 hover:to-indigo-700 transition duration-300 ease-in-out transform hover:scale-[1.02] disabled:opacity-60 disabled:cursor-not-allowed disabled:transform-none disabled:hover:scale-100 flex items-center justify-center space-x-2">
+                            <span id="btn-text">Tạo tài khoản ngay</span>
+                            <i class="fas fa-arrow-right transition-transform group-hover:translate-x-1"></i>
+                        </button>
+                    </form>
+
+                    <!-- Social Links -->
+                    <div class="my-8 relative">
+                        <div class="absolute inset-0 flex items-center">
+                            <div class="w-full border-t border-gray-200"></div>
+                        </div>
+                        <div class="relative flex justify-center text-sm">
+                            <span class="px-4 bg-white text-gray-500">hoặc đăng ký với</span>
+                        </div>
+                    </div>
+
+                    <div class="grid grid-cols-3 gap-4 mb-8">
+                        <button class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition duration-150">
+                            <i class="fab fa-google text-red-500"></i>
+                        </button>
+                        <button class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition duration-150">
+                            <i class="fab fa-facebook-f text-blue-600"></i>
+                        </button>
+                        <button class="flex items-center justify-center px-4 py-2 border border-gray-300 rounded-xl hover:bg-gray-50 transition duration-150">
+                            <i class="fab fa-github text-gray-800"></i>
+                        </button>
+                    </div>
+
+                    <div class="space-y-4">
+                        <div class="text-center">
+                            <span class="text-gray-600">Đã có tài khoản? </span>
+                            <a th:href="@{/login}" 
+                               class="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition duration-150">
+                                Đăng nhập ngay
+                            </a>
+                        </div>
+                        <div class="flex justify-center">
+                            <a th:href="@{/}" 
+                               class="inline-flex items-center px-4 py-2 text-gray-700 bg-gray-50 hover:bg-gray-100 rounded-xl transition duration-150 text-sm">
+                                <i class="fas fa-arrow-left mr-2"></i>
+                                Quay lại trang chủ
+                            </a>
+                        </div>
+                    </div>
+
+                    <!-- Trust Indicators -->
+                    <div class="mt-8 pt-6 border-t border-gray-100">
+                        <div class="flex items-center justify-center space-x-6 text-sm text-gray-500">
+                            <div class="flex items-center">
+                                <i class="fas fa-shield-alt text-green-500 mr-2"></i>
+                                SSL Bảo mật
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-lock text-green-500 mr-2"></i>
+                                Mã hóa dữ liệu
+                            </div>
+                            <div class="flex items-center">
+                                <i class="fas fa-user-shield text-green-500 mr-2"></i>
+                                Bảo vệ quyền riêng tư
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        // Same JavaScript as before but more compact
+        const form = document.getElementById('registerForm');
+        const fullNameInput = document.getElementById('fullName');
+        const usernameInput = document.getElementById('username');
+        const emailInput = document.getElementById('email');
+        const phoneNumberInput = document.getElementById('phoneNumber');
+        const passwordInput = document.getElementById('password');
+        const confirmPasswordInput = document.getElementById('confirmPassword');
+        const captchaInput = document.getElementById('captcha');
+        const termsCheckbox = document.getElementById('terms');
+        const submitBtn = document.getElementById('submitBtn');
+        const progressBar = document.getElementById('progress-bar');
+        const progressText = document.getElementById('progress-text');
+
+        // Password toggle
+        document.getElementById('togglePassword').onclick = function() {
+            const type = passwordInput.type === 'password' ? 'text' : 'password';
+            passwordInput.type = type;
+            document.getElementById('eyeIcon').className = type === 'password' ? 'fas fa-eye' : 'fas fa-eye-slash';
+        };
+
+        // CAPTCHA refresh
+        document.getElementById('refreshCaptcha').onclick = function() {
+            fetch('/refresh-captcha', { method: 'POST' })
+                .then(response => response.json())
+                .then(data => {
+                    if (data.image) {
+                        document.getElementById('captchaImage').src = 'data:image/png;base64,' + data.image;
+                        captchaInput.value = '';
+                        clearFieldStatus('captcha');
+                        updateProgress();
+                    } else {
+                        console.error('No image data received from server');
+                    }
+                })
+                .catch(error => console.error('Error refreshing CAPTCHA:', error));
+        };
+
+        // Compact field validations
+        fullNameInput.addEventListener('input', function() {
+            const isValid = this.value.trim().length >= 2;
+            updateFieldStatus('fullName', isValid, '');
+            updateProgress();
+        });
+
+        usernameInput.addEventListener('input', function() {
+            const isValid = /^[a-zA-Z0-9_]{3,20}$/.test(this.value);
+            updateFieldStatus('username', isValid, '');
+            updateProgress();
+        });
+
+        emailInput.addEventListener('input', function() {
+            const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(this.value);
+            updateFieldStatus('email', isValid, '');
+            updateProgress();
+        });
+
+        phoneNumberInput.addEventListener('input', function() {
+            if (this.value === '') {
+                clearFieldStatus('phoneNumber');
+            } else {
+                const isValid = /^[0-9]{10,11}$/.test(this.value);
+                updateFieldStatus('phoneNumber', isValid, '');
+            }
+            updateProgress();
+        });
+
+        passwordInput.addEventListener('input', function() {
+            checkPasswordStrength(this.value);
+            checkPasswordMatch();
+            updateProgress();
+        });
+
+        confirmPasswordInput.addEventListener('input', function() {
+            checkPasswordMatch();
+            updateProgress();
+        });
+
+        captchaInput.addEventListener('input', function() {
+            const isValid = this.value.length === 5;
+            if (this.value.length === 0) {
+                clearFieldStatus('captcha');
+            } else {
+                updateFieldStatus('captcha', isValid, '');
+            }
+            updateProgress();
+        });
+
+        termsCheckbox.addEventListener('change', updateProgress);
+
+        function updateFieldStatus(fieldName, isValid, message) {
+            const input = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + '-error');
+            const statusDiv = document.getElementById(fieldName + '-status');
+
+            input.classList.remove('input-valid', 'input-invalid');
+            
+            if (isValid) {
+                input.classList.add('input-valid');
+                if (errorDiv) errorDiv.classList.add('hidden');
+                statusDiv.innerHTML = '<i class="fas fa-check text-green-500 text-xs"></i>';
+            } else {
+                input.classList.add('input-invalid');
+                if (errorDiv && message) {
+                    errorDiv.textContent = message;
+                    errorDiv.classList.remove('hidden');
+                }
+                statusDiv.innerHTML = '<i class="fas fa-times text-red-500 text-xs"></i>';
+            }
+        }
+
+        function clearFieldStatus(fieldName) {
+            const input = document.getElementById(fieldName);
+            const errorDiv = document.getElementById(fieldName + '-error');
+            const statusDiv = document.getElementById(fieldName + '-status');
+
+            input.classList.remove('input-valid', 'input-invalid');
+            if (errorDiv) errorDiv.classList.add('hidden');
+            statusDiv.innerHTML = '';
+        }
+
+        function checkPasswordStrength(password) {
+            const requirements = {
+                length: password.length >= 6,
+                uppercase: /[A-Z]/.test(password),
+                lowercase: /[a-z]/.test(password),
+                number: /\d/.test(password)
+            };
+
+            Object.keys(requirements).forEach(req => {
+                const element = document.getElementById('req-' + req);
+                const icon = element.querySelector('i');
+                
+                if (requirements[req]) {
+                    element.classList.remove('invalid');
+                    element.classList.add('valid');
+                    icon.className = 'fas fa-check requirement-icon';
+                } else {
+                    element.classList.remove('valid');
+                    element.classList.add('invalid');
+                    icon.className = 'fas fa-times requirement-icon';
+                }
+            });
+
+            const score = Object.values(requirements).filter(Boolean).length;
+            const strengthFill = document.getElementById('strength-fill');
+            const strengthText = document.getElementById('strength-text');
+
+            let width, className, text;
+            
+            if (score === 0) {
+                width = 0; className = ''; text = 'Độ mạnh mật khẩu';
+            } else if (score <= 1) {
+                width = 25; className = 'strength-weak'; text = 'Yếu';
+            } else if (score <= 2) {
+                width = 50; className = 'strength-fair'; text = 'Trung bình';
+            } else if (score <= 3) {
+                width = 75; className = 'strength-good'; text = 'Tốt';
+            } else {
+                width = 100; className = 'strength-strong'; text = 'Mạnh';
+            }
+
+            strengthFill.style.width = width + '%';
+            strengthFill.className = 'password-strength-fill ' + className;
+            strengthText.textContent = text;
+        }
+
+        function checkPasswordMatch() {
+            const password = passwordInput.value;
+            const confirmPassword = confirmPasswordInput.value;
+            
+            if (confirmPassword === '') {
+                clearFieldStatus('confirm');
+                return;
+            }
+
+            const isMatch = password === confirmPassword;
+            updateFieldStatus('confirm', isMatch, '');
+        }
+
+        function updateProgress() {
+            const checks = [
+                fullNameInput.value.trim().length >= 2,
+                usernameInput.value.length >= 3 && /^[a-zA-Z0-9_]+$/.test(usernameInput.value),
+                /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailInput.value),
+                passwordInput.value.length >= 6,
+                passwordInput.value === confirmPasswordInput.value && confirmPasswordInput.value !== '',
+                captchaInput.value.length === 5,
+                termsCheckbox.checked
+            ];
+
+            const progress = checks.filter(Boolean).length;
+            const percentage = (progress / checks.length) * 100;
+            
+            progressBar.style.width = percentage + '%';
+            progressText.textContent = Math.round(percentage) + '%';
+            
+            submitBtn.disabled = progress !== checks.length;
+        }
+
+        form.addEventListener('submit', function(e) {
+            document.getElementById('btn-text').textContent = 'Đang xử lý...';
+            submitBtn.disabled = true;
+        });
+
+        updateProgress();
+    </script>
+</body>
+</html>
