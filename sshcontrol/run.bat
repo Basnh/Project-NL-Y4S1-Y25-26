@@ -1,6 +1,7 @@
 @echo off
 REM SSH Control System - Start/Stop Script
 REM This batch file is used to run and stop the SSH Control application
+REM Updated to support Maven Spring Boot runtime
 
 setlocal enabledelayedexpansion
 
@@ -11,149 +12,110 @@ echo ============================================
 echo     SSH CONTROL SYSTEM - MENU
 echo ============================================
 echo.
-echo 1. Start the application
-echo 2. Stop the application
-echo 3. Restart the application
-echo 4. Check system logs
-echo 5. Stop application (Graceful shutdown)
-echo 6. Exit
+echo 1. Start application (Maven Spring Boot)
+echo 2. Build and Start application
+echo 3. Stop the application
+echo 4. Restart the application
+echo 5. Check system status
+echo 6. Clean and rebuild
+echo 7. Exit
 echo.
-set /p choice="Please select an option (1-6): "
+set /p choice="Please select an option (1-7): "
 
-if "%choice%"=="1" goto start_app
-if "%choice%"=="2" goto stop_app
-if "%choice%"=="3" goto restart_app
-if "%choice%"=="4" goto check_logs
-if "%choice%"=="5" goto shutdown_system
-if "%choice%"=="6" goto exit_menu
+if "%choice%"=="1" goto start_mvn
+if "%choice%"=="2" goto build_and_start
+if "%choice%"=="3" goto stop_app
+if "%choice%"=="4" goto restart_app
+if "%choice%"=="5" goto check_status
+if "%choice%"=="6" goto clean_build
+if "%choice%"=="7" goto exit_menu
 echo Invalid choice. Please try again.
 timeout /t 2 /nobreak
 goto menu
 
-:start_app
+:start_mvn
 cls
 echo.
-echo Starting SSH Control application...
+echo ============================================
+echo     STARTING APPLICATION (Maven Spring Boot)
+echo ============================================
 echo.
 cd /d "%~dp0"
-if exist "target\sshcontrol-0.0.1-SNAPSHOT.jar.original" (
-    echo Application is starting in background...
-    echo.
-    echo Launching application...
-    timeout /t 2 /nobreak
-    start "" java -jar target\sshcontrol-0.0.1-SNAPSHOT.jar.original
-    echo.
-    echo Application started successfully! Access it at http://localhost:8080
-    echo.
-    timeout /t 3 /nobreak
-    goto menu
-) else (
-    echo Error: JAR file not found. Please build the project first.
+echo Current directory: %CD%
+echo.
+echo Checking Maven installation...
+where mvn >nul 2>&1
+if errorlevel 1 (
+    echo Error: Maven is not installed or not in PATH
+    echo Please install Maven and add it to system PATH
     echo.
     pause
     goto menu
 )
-
-:stop_app
-cls
+echo Maven found successfully!
 echo.
-echo Stopping SSH Control application...
+echo Starting application with: mvn spring-boot:run
 echo.
-taskkill /FI "WINDOWTITLE eq SSH*" /T /F 2>nul
+timeout /t 2 /nobreak
+call mvn spring-boot:run
 if errorlevel 1 (
-    echo Attempting to stop Java process...
-    taskkill /IM java.exe /F 2>nul
-    if errorlevel 1 (
-        echo No running SSH Control process found.
-    ) else (
-        echo Application stopped successfully.
-    )
-) else (
-    echo Application stopped successfully.
+    echo.
+    echo Error: Failed to start application
+    echo.
+    pause
 )
-echo.
-pause
 goto menu
 
-:restart_app
+:build_and_start
 cls
 echo.
-echo Restarting SSH Control application...
+echo ============================================
+echo     BUILD AND START APPLICATION
+echo ============================================
 echo.
+cd /d "%~dp0"
+echo Current directory: %CD%
+echo.
+echo Stopping any running instances...
 taskkill /IM java.exe /F 2>nul
 timeout /t 2 /nobreak
-cd /d "%~dp0"
-if exist "target\sshcontrol-0.0.1-SNAPSHOT.jar.original" (
-    echo Application is restarting in background...
-    echo.
-    echo Launching application...
-    timeout /t 2 /nobreak
-    start "" java -jar target\sshcontrol-0.0.1-SNAPSHOT.jar.original
-    echo.
-    echo Application restarted successfully! Access it at http://localhost:8080
-    echo.
-    timeout /t 3 /nobreak
-    goto menu
-) else (
-    echo Error: JAR file not found. Please build the project first.
+echo.
+echo Checking Maven installation...
+where mvn >nul 2>&1
+if errorlevel 1 (
+    echo Error: Maven is not installed or not in PATH
+    echo Please install Maven and add it to system PATH
     echo.
     pause
     goto menu
 )
-
-:check_logs
-cls
+echo Maven found successfully!
 echo.
-echo ============================================
-echo     SYSTEM LOGS
-echo ============================================
-echo.
-echo Getting latest logs from running Java process...
-echo.
-REM Get the PID of running java process
-for /f "tokens=2" %%a in ('tasklist /FI "IMAGENAME eq java.exe" /FO TABLE ^| findstr java') do (
-    set PID=%%a
+echo Building project...
+call mvn clean package -DskipTests
+if errorlevel 1 (
+    echo.
+    echo Error: Build failed
+    echo.
+    pause
+    goto menu
 )
-
-if defined PID (
-    echo Found Java process with PID: %PID%
+echo.
+echo Build completed successfully!
+echo.
+echo Starting application with: mvn spring-boot:run
+echo.
+timeout /t 2 /nobreak
+call mvn spring-boot:run
+if errorlevel 1 (
     echo.
-    echo Note: To view real-time logs, check the Java console window.
+    echo Error: Failed to start application
     echo.
-    echo Log file information:
-    echo - Application logs are displayed in the Java console window
-    echo - Database: PostgreSQL connection logs available
-    echo.
-) else (
-    echo No running Java process found.
-    echo.
-    echo Please start the application first (option 1).
-    echo.
+    pause
 )
-
-echo Checking application files...
-echo.
-if exist "target\sshcontrol-0.0.1-SNAPSHOT.jar.original" (
-    echo [OK] JAR file exists: target\sshcontrol-0.0.1-SNAPSHOT.jar.original
-    for /f %%a in ('dir /b target\sshcontrol-0.0.1-SNAPSHOT.jar.original') do echo File size: %%~za bytes
-) else (
-    echo [ERROR] JAR file not found
-)
-
-echo.
-if exist "src\main\resources\application.properties" (
-    echo [OK] Configuration file exists
-) else (
-    echo [ERROR] Configuration file not found
-)
-
-echo.
-echo Application running on: http://localhost:8080
-echo.
-pause
 goto menu
 
-:shutdown_system
+:stop_app
 cls
 echo.
 echo ============================================
@@ -162,15 +124,9 @@ echo ============================================
 echo.
 echo Stopping SSH Control application...
 echo.
-taskkill /FI "WINDOWTITLE eq SSH*" /T /F 2>nul
+taskkill /IM java.exe /F 2>nul
 if errorlevel 1 (
-    echo Attempting to stop Java process...
-    taskkill /IM java.exe /F 2>nul
-    if errorlevel 1 (
-        echo No running SSH Control process found.
-    ) else (
-        echo Application stopped successfully!
-    )
+    echo No running Java process found.
 ) else (
     echo Application stopped successfully!
 )
@@ -178,35 +134,124 @@ echo.
 pause
 goto menu
 
-:restart_system
+:restart_app
 cls
 echo.
 echo ============================================
 echo     RESTART APPLICATION
 echo ============================================
 echo.
-echo Restarting SSH Control application...
-echo.
+cd /d "%~dp0"
+echo Stopping any running instances...
 taskkill /IM java.exe /F 2>nul
 timeout /t 2 /nobreak
-cd /d "%~dp0"
-if exist "target\sshcontrol-0.0.1-SNAPSHOT.jar.original" (
-    echo Application is restarting in background...
+echo.
+echo Starting application with: mvn spring-boot:run
+echo.
+timeout /t 2 /nobreak
+call mvn spring-boot:run
+if errorlevel 1 (
     echo.
-    echo Launching application...
-    timeout /t 2 /nobreak
-    start "" java -jar target\sshcontrol-0.0.1-SNAPSHOT.jar.original
+    echo Error: Failed to restart application
     echo.
-    echo Application restarted successfully! Access it at http://localhost:8080
+    pause
+)
+goto menu
+
+:check_status
+cls
+echo.
+echo ============================================
+echo     SYSTEM STATUS
+echo ============================================
+echo.
+tasklist /FI "IMAGENAME eq java.exe" >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [OK] Application is running
     echo.
-    timeout /t 3 /nobreak
-    goto menu
+    tasklist /FI "IMAGENAME eq java.exe" /FO TABLE
+    echo.
+    echo Access application at: http://localhost:8080
 ) else (
-    echo Error: JAR file not found. Please build the project first.
+    echo [STOPPED] Application is not running
+)
+echo.
+echo Checking project files...
+echo.
+if exist "pom.xml" (
+    echo [OK] Maven configuration (pom.xml) found
+) else (
+    echo [ERROR] pom.xml not found
+)
+echo.
+if exist "src\main\resources\application.properties" (
+    echo [OK] Application configuration found
+) else (
+    echo [ERROR] application.properties not found
+)
+echo.
+where mvn >nul 2>&1
+if %errorlevel% equ 0 (
+    echo [OK] Maven is installed and available
+) else (
+    echo [WARNING] Maven not found in PATH
+)
+echo.
+pause
+goto menu
+
+:clean_build
+cls
+echo.
+echo ============================================
+echo     CLEAN AND REBUILD PROJECT
+echo ============================================
+echo.
+cd /d "%~dp0"
+echo Current directory: %CD%
+echo.
+echo Stopping any running instances...
+taskkill /IM java.exe /F 2>nul
+timeout /t 2 /nobreak
+echo.
+echo Checking Maven installation...
+where mvn >nul 2>&1
+if errorlevel 1 (
+    echo Error: Maven is not installed or not in PATH
     echo.
     pause
     goto menu
 )
+echo Maven found successfully!
+echo.
+echo Running clean package build...
+call mvn clean package -DskipTests
+if errorlevel 1 (
+    echo.
+    echo Error: Build failed
+    echo.
+    pause
+    goto menu
+)
+echo.
+echo Build completed successfully!
+echo.
+echo Would you like to start the application now? (Y/N)
+set /p start_choice="Enter choice: "
+if /i "%start_choice%"=="Y" (
+    echo.
+    echo Starting application with: mvn spring-boot:run
+    echo.
+    timeout /t 2 /nobreak
+    call mvn spring-boot:run
+    if errorlevel 1 (
+        echo.
+        echo Error: Failed to start application
+        echo.
+        pause
+    )
+)
+goto menu
 
 :exit_menu
 cls
@@ -216,3 +261,4 @@ echo.
 timeout /t 1 /nobreak
 endlocal
 exit /b 0
+

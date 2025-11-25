@@ -9,521 +9,6 @@
   <link rel="stylesheet" href="/layout.css">
   <link rel="stylesheet" href="/filemanager.css">
   <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.8.0/highlight.min.js"></script>
-  <style>
-    .file-manager-container {
-      display: flex;
-      height: 70vh;
-      background-color: white;
-      border-radius: 0.75rem;
-      box-shadow: 0 10px 25px rgba(0,0,0,0.1);
-      overflow: hidden;
-      margin-top: 1.5rem;
-      margin-bottom: 2rem;
-    }
-    
-    .sidebar {
-      width: 250px;
-      background-color: #2d2d2d;
-      color: #e0e0e0;
-      overflow-y: auto;
-      border-right: 1px solid #1a1a1a;
-    }
-    
-    .sidebar-header {
-      padding: 20px;
-      border-bottom: 1px solid #404040;
-      font-weight: bold;
-      background-color: #1a1a1a;
-    }
-    
-    .folder-tree {
-      padding: 10px 0;
-    }
-    
-    .folder-item {
-      padding: 8px 15px;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-    
-    .folder-item:hover {
-      background-color: #3a3a3a;
-    }
-    
-    .folder-item.active {
-      background-color: #0066cc;
-      color: white;
-    }
-    
-    .folder-item-icon {
-      width: 16px;
-      text-align: center;
-    }
-    
-    .folder-item-toggle {
-      width: 16px;
-      text-align: center;
-      cursor: pointer;
-    }
-    
-    .folder-tree-nested {
-      display: none;
-      margin-left: 0;
-    }
-    
-    .folder-tree-nested.show {
-      display: block;
-    }
-    
-    .main-content {
-      flex: 1;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-    }
-    
-    .toolbar {
-      background-color: #f9f9f9;
-      border-bottom: 1px solid #d0d0d0;
-      padding: 12px 20px;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      flex-wrap: wrap;
-    }
-    
-    .toolbar-input {
-      flex: 1;
-      min-width: 300px;
-      padding: 8px 12px;
-      border: 1px solid #d0d0d0;
-      border-radius: 4px;
-      font-family: monospace;
-      font-size: 12px;
-    }
-    
-    .toolbar-btn {
-      padding: 6px 12px;
-      background-color: #f3f4f6;
-      border: 1px solid #d1d5db;
-      border-radius: 0.375rem;
-      cursor: pointer;
-      transition: all 0.2s;
-      font-size: 13px;
-    }
-    
-    .toolbar-btn:hover {
-      background-color: #e5e7eb;
-      border-color: #9ca3af;
-    }
-    
-    .toolbar-btn:active {
-      background-color: #d1d5db;
-    }
-    
-    .file-list-container {
-      flex: 1;
-      overflow: auto;
-      background-color: white;
-    }
-    
-    .file-list {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 13px;
-    }
-    
-    .file-list th {
-      background-color: #f0f0f0;
-      border-bottom: 2px solid #d0d0d0;
-      padding: 10px;
-      text-align: left;
-      font-weight: 600;
-      position: sticky;
-      top: 0;
-      user-select: none;
-    }
-    
-    .file-list td {
-      padding: 8px 10px;
-      border-bottom: 1px solid #e8e8e8;
-    }
-    
-    .file-list tr:hover {
-      background-color: #f5f5f5;
-    }
-    
-    .file-list tr.selected {
-      background-color: #cce4ff;
-    }
-    
-    .file-item-name {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      cursor: pointer;
-    }
-    
-    .file-item-name:hover {
-      color: #0066cc;
-      text-decoration: underline;
-    }
-    
-    .status-bar {
-      background-color: #f0f0f0;
-      border-top: 1px solid #d0d0d0;
-      padding: 8px 20px;
-      font-size: 12px;
-      color: #666;
-    }
-    
-    .breadcrumb {
-      background-color: #fafafa;
-      border-bottom: 1px solid #d0d0d0;
-      padding: 8px 20px;
-      font-size: 12px;
-      display: flex;
-      gap: 5px;
-      align-items: center;
-    }
-    
-    .breadcrumb-item {
-      cursor: pointer;
-      color: #0066cc;
-    }
-    
-    .breadcrumb-item:hover {
-      text-decoration: underline;
-    }
-    
-    .breadcrumb-separator {
-      color: #999;
-    }
-    
-    .context-menu {
-      display: none;
-      position: fixed;
-      background-color: #f9f9f9;
-      border: 1px solid #d0d0d0;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.15);
-      z-index: 1000;
-      min-width: 200px;
-    }
-    
-    .context-menu.show {
-      display: block;
-    }
-    
-    .context-menu-item {
-      padding: 8px 15px;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.2s;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-    
-    .context-menu-item:hover {
-      background-color: #e8e8e8;
-    }
-    
-    .context-menu-divider {
-      height: 1px;
-      background-color: #e0e0e0;
-      margin: 4px 0;
-    }
-    
-    /* Enhanced Editor Styles */
-    #fileModal .modal-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 15px;
-      border-bottom: 1px solid #e0e0e0;
-      background-color: #f9f9f9;
-    }
-    
-    #fileModal .editor-toolbar {
-      display: flex;
-      gap: 5px;
-      padding: 10px 15px;
-      border-bottom: 1px solid #e0e0e0;
-      background-color: #fafafa;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-    
-    .editor-toolbar-group {
-      display: flex;
-      gap: 3px;
-      border-right: 1px solid #d0d0d0;
-      padding-right: 8px;
-      margin-right: 8px;
-    }
-    
-    .editor-toolbar-group:last-child {
-      border-right: none;
-    }
-    
-    .editor-btn {
-      padding: 5px 8px;
-      background-color: #e8e8e8;
-      border: 1px solid #bbb;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 12px;
-      transition: all 0.2s;
-      min-width: 32px;
-      text-align: center;
-    }
-    
-    .editor-btn:hover {
-      background-color: #d0d0d0;
-    }
-    
-    .editor-btn:active {
-      background-color: #b8b8b8;
-    }
-    
-    .editor-btn.primary {
-      background-color: #0066cc;
-      color: white;
-      border-color: #0052a3;
-    }
-    
-    .editor-btn.primary:hover {
-      background-color: #0052a3;
-    }
-    
-    .editor-info {
-      display: flex;
-      gap: 15px;
-      font-size: 12px;
-      color: #666;
-      align-items: center;
-      margin-left: auto;
-    }
-    
-    .editor-container {
-      display: flex;
-      flex: 1;
-      overflow: hidden;
-      background-color: #f5f5f5;
-    }
-    
-    .line-numbers {
-      background-color: #f0f0f0;
-      color: #999;
-      padding: 10px 0;
-      text-align: right;
-      font-family: monospace;
-      font-size: 12px;
-      line-height: 1.6;
-      border-right: 1px solid #d0d0d0;
-      user-select: none;
-      overflow: hidden;
-      min-width: 45px;
-      white-space: pre;
-      padding-right: 8px;
-    }
-    
-    .editor-textarea-wrapper {
-      flex: 1;
-      overflow: auto;
-      position: relative;
-      background-color: #1e1e1e;
-    }
-    
-    #codeHighlight {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 10px 10px 10px 50px;
-      border: none;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      background-color: #1e1e1e;
-      color: #d4d4d4;
-      overflow: hidden;
-      pointer-events: none;
-      white-space: pre;
-      word-wrap: normal;
-      z-index: 1;
-    }
-    
-    #fileContent {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      margin: 0;
-      padding: 10px 10px 10px 50px;
-      border: none;
-      font-family: 'Courier New', monospace;
-      font-size: 13px;
-      line-height: 1.6;
-      background-color: transparent;
-      color: transparent;
-      caret-color: #d4d4d4;
-      resize: none;
-      outline: none;
-      z-index: 2;
-      overflow: auto;
-    }
-    
-    #fileContent::selection {
-      background-color: rgba(255, 255, 255, 0.2);
-    }
-    
-    /* Action buttons in table */
-    .file-actions-buttons {
-      display: flex;
-      gap: 4px;
-      align-items: center;
-    }
-    
-    .action-btn {
-      padding: 4px 8px;
-      background-color: transparent;
-      border: none;
-      color: #0066cc;
-      cursor: pointer;
-      border-radius: 3px;
-      transition: all 0.2s;
-      font-size: 12px;
-      display: inline-flex;
-      align-items: center;
-      gap: 3px;
-    }
-    
-    .action-btn:hover {
-      background-color: #e3f2fd;
-      color: #0052a3;
-    }
-    
-    .action-btn.delete:hover {
-      background-color: #ffebee;
-      color: #d32f2f;
-    }
-    
-    /* File Info Panel */
-    .file-info-panel {
-      background-color: #f5f5f5;
-      border-top: 1px solid #d0d0d0;
-      padding: 12px 15px;
-      max-height: 120px;
-      overflow-y: auto;
-      font-size: 12px;
-      line-height: 1.6;
-      color: #555;
-    }
-    
-    .file-info-row {
-      display: flex;
-      margin-bottom: 4px;
-      gap: 10px;
-    }
-    
-    .file-info-label {
-      font-weight: 600;
-      min-width: 80px;
-      color: #333;
-    }
-    
-    .file-info-value {
-      color: #666;
-      word-break: break-all;
-      font-family: monospace;
-    }
-    
-    /* Enhanced Context Menu */
-    .context-menu {
-      display: none;
-      position: fixed;
-      background-color: white;
-      border: 1px solid #d0d0d0;
-      border-radius: 4px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.2);
-      z-index: 1000;
-      min-width: 200px;
-      max-width: 280px;
-    }
-    
-    .context-menu.show {
-      display: block;
-      animation: fadeIn 0.15s ease-out;
-    }
-    
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(-5px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-    
-    .context-menu-item {
-      padding: 8px 12px;
-      cursor: pointer;
-      user-select: none;
-      transition: background-color 0.15s;
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      font-size: 13px;
-    }
-    
-    .context-menu-item:hover {
-      background-color: #f0f0f0;
-    }
-    
-    .context-menu-item i {
-      width: 16px;
-      text-align: center;
-      color: #666;
-    }
-    
-    .context-menu-item.danger {
-      color: #d32f2f;
-    }
-    
-    .context-menu-item.danger:hover {
-      background-color: #ffebee;
-    }
-    
-    .context-menu-item.disabled {
-      color: #ccc;
-      cursor: not-allowed;
-      pointer-events: none;
-    }
-    
-    .context-menu-divider {
-      height: 1px;
-      background-color: #e8e8e8;
-      margin: 4px 0;
-    }
-    
-    .context-menu-shortcut {
-      margin-left: auto;
-      font-size: 11px;
-      color: #999;
-      font-family: monospace;
-    }
-  </style>
 </head>
 <body class="bg-gray-100 text-gray-800 m-0 p-0">
   <main class="flex-1">
@@ -598,6 +83,9 @@
         <button class="toolbar-btn" onclick="showNewFolderDialog()" title="Thư mục mới">
           <i class="fas fa-folder-plus"></i>
         </button>
+        <button class="toolbar-btn" onclick="showUploadDialog()" title="Tải file lên">
+          <i class="fas fa-upload"></i>
+        </button>
       </div>
       
       <!-- Breadcrumb -->
@@ -666,6 +154,64 @@
     <div class="context-menu-divider"></div>
     <div class="context-menu-item" onclick="showFileProperties()">
       <i class="fas fa-info-circle"></i> Thuộc tính
+    </div>
+  </div>
+  
+  <!-- Upload Modal -->
+  <div id="uploadModal" class="hidden fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+    <div class="bg-white w-11/12 sm:w-full sm:max-w-md rounded-lg shadow-xl overflow-hidden">
+      <!-- Modal Header -->
+      <div class="flex items-center justify-between border-b border-gray-200 bg-blue-600 text-white px-6 py-4">
+        <h3 class="font-semibold text-lg">Tải file lên</h3>
+        <button onclick="closeUploadModal()" class="text-white hover:opacity-75">
+          <i class="fas fa-times text-xl"></i>
+        </button>
+      </div>
+      
+      <!-- Modal Content -->
+      <div class="p-6">
+        <div class="mb-4">
+          <label class="block text-sm font-medium text-gray-700 mb-2">Thư mục đích:</label>
+          <div class="p-3 bg-gray-100 rounded text-sm text-gray-700 break-all" id="uploadDestPath">/</div>
+        </div>
+        
+        <div class="mb-6">
+          <label class="block text-sm font-medium text-gray-700 mb-3">Chọn file:</label>
+          <div class="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center cursor-pointer hover:border-blue-400 hover:bg-blue-50 transition" id="uploadDropZone">
+            <input type="file" id="uploadFileInput" class="hidden" onchange="handleFileSelect()" multiple>
+            <i class="fas fa-cloud-upload-alt text-3xl text-gray-400 mb-2"></i>
+            <p class="text-gray-600">Kéo thả file vào đây hoặc <span class="text-blue-600 font-semibold cursor-pointer" onclick="document.getElementById('uploadFileInput').click()">chọn file</span></p>
+            <p class="text-xs text-gray-500 mt-2">Hỗ trợ tải lên nhiều file</p>
+          </div>
+          <div id="uploadFileList" class="mt-4 max-h-40 overflow-y-auto"></div>
+        </div>
+        
+        <!-- Progress Bar -->
+        <div id="uploadProgress" class="hidden mb-4">
+          <div class="flex justify-between text-sm mb-2">
+            <span>Đang tải lên...</span>
+            <span id="uploadProgressText">0%</span>
+          </div>
+          <div class="w-full bg-gray-200 rounded-full h-2">
+            <div id="uploadProgressBar" class="bg-blue-600 h-2 rounded-full" style="width: 0%"></div>
+          </div>
+        </div>
+      </div>
+      
+      <!-- Modal Footer -->
+      <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-6 py-3 gap-2">
+        <button onclick="clearFileList()" class="px-4 py-2 text-gray-700 hover:bg-gray-200 rounded">
+          Xóa
+        </button>
+        <div class="flex gap-2">
+          <button onclick="closeUploadModal()" class="px-4 py-2 bg-gray-200 text-gray-800 rounded hover:bg-gray-300">
+            Hủy
+          </button>
+          <button onclick="uploadFiles()" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+            <i class="fas fa-upload mr-1"></i>Tải lên
+          </button>
+        </div>
+      </div>
     </div>
   </div>
   
@@ -748,6 +294,9 @@
           <span class="file-info-value" id="infoFilePath">N/A</span>
         </div>
       </div>
+      <button class="info-toggle-btn" onclick="toggleFileInfo()" title="Thông tin file">
+        <i class="fas fa-info-circle"></i>
+      </button>
       
       <!-- Modal Footer -->
       <div class="flex items-center justify-between border-t border-gray-200 bg-gray-50 px-4 py-3">
@@ -1093,6 +642,8 @@
           updateEditorInfo();
           document.getElementById('fileModal').classList.remove('hidden');
           document.getElementById('contextMenu').classList.remove('show');
+          // Ensure file info panel is closed by default
+          document.getElementById('fileInfoPanel').classList.remove('show');
           document.getElementById('fileContent').focus();
         } else {
           alert('Lỗi: ' + (data.error || 'Không thể đọc file'));
@@ -1376,6 +927,11 @@
       }
     }
 
+    function toggleFileInfo() {
+      const panel = document.getElementById('fileInfoPanel');
+      panel.classList.toggle('show');
+    }
+
     function updateStatus(text) {
       document.getElementById('statusText').textContent = text;
     }
@@ -1392,6 +948,186 @@
       const div = document.createElement('div');
       div.textContent = text;
       return div.innerHTML;
+    }
+
+    // ============ UPLOAD FUNCTIONS ============
+    let uploadedFiles = [];
+
+    function showUploadDialog() {
+      if (!selectedServer) {
+        alert('Vui lòng chọn máy chủ trước!');
+        return;
+      }
+      
+      uploadedFiles = [];
+      document.getElementById('uploadFileList').innerHTML = '';
+      document.getElementById('uploadProgress').classList.add('hidden');
+      document.getElementById('uploadModal').classList.remove('hidden');
+      document.getElementById('uploadDestPath').textContent = currentPath || '/';
+      
+      // Setup drag and drop
+      const dropZone = document.getElementById('uploadDropZone');
+      dropZone.addEventListener('dragover', (e) => {
+        e.preventDefault();
+        dropZone.classList.add('border-blue-400', 'bg-blue-50');
+      });
+      
+      dropZone.addEventListener('dragleave', () => {
+        dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+      });
+      
+      dropZone.addEventListener('drop', (e) => {
+        e.preventDefault();
+        dropZone.classList.remove('border-blue-400', 'bg-blue-50');
+        const files = e.dataTransfer.files;
+        handleFiles(files);
+      });
+      
+      dropZone.addEventListener('click', () => {
+        document.getElementById('uploadFileInput').click();
+      });
+    }
+
+    function closeUploadModal() {
+      document.getElementById('uploadModal').classList.add('hidden');
+      uploadedFiles = [];
+    }
+
+    function handleFileSelect() {
+      const files = document.getElementById('uploadFileInput').files;
+      handleFiles(files);
+    }
+
+    function handleFiles(files) {
+      for (let file of files) {
+        if (!uploadedFiles.find(f => f.name === file.name)) {
+          uploadedFiles.push(file);
+        }
+      }
+      displayUploadFileList();
+    }
+
+    function displayUploadFileList() {
+      const list = document.getElementById('uploadFileList');
+      list.innerHTML = '';
+      
+      if (uploadedFiles.length === 0) {
+        list.innerHTML = '<p class="text-sm text-gray-500">Chưa chọn file nào</p>';
+        return;
+      }
+      
+      const ul = document.createElement('ul');
+      ul.className = 'space-y-2';
+      
+      uploadedFiles.forEach((file, index) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center justify-between p-2 bg-gray-50 rounded text-sm';
+        li.innerHTML = `
+          <div class="flex items-center gap-2">
+            <i class="fas fa-file text-gray-400"></i>
+            <div>
+              <div class="font-medium text-gray-700">${escapeHtml(file.name)}</div>
+              <div class="text-xs text-gray-500">${formatFileSize(file.size)}</div>
+            </div>
+          </div>
+          <button type="button" onclick="removeUploadFile(${index})" class="text-red-600 hover:text-red-800">
+            <i class="fas fa-times"></i>
+          </button>
+        `;
+        ul.appendChild(li);
+      });
+      
+      list.appendChild(ul);
+    }
+
+    function removeUploadFile(index) {
+      uploadedFiles.splice(index, 1);
+      displayUploadFileList();
+    }
+
+    function clearFileList() {
+      uploadedFiles = [];
+      displayUploadFileList();
+    }
+
+    function uploadFiles() {
+      if (uploadedFiles.length === 0) {
+        alert('Vui lòng chọn ít nhất một file!');
+        return;
+      }
+
+      const destPath = document.getElementById('uploadDestPath').textContent;
+      
+      // Show progress
+      document.getElementById('uploadProgress').classList.remove('hidden');
+      let completed = 0;
+
+      uploadedFiles.forEach((file, index) => {
+        const formData = new FormData();
+        formData.append('file', file);
+        formData.append('serverId', selectedServer);
+        formData.append('destinationPath', destPath);
+
+        fetch('/file-manager/api/upload', {
+          method: 'POST',
+          credentials: 'include',
+          body: formData
+        })
+        .then(r => r.json())
+        .then(data => {
+          completed++;
+          const progress = Math.round((completed / uploadedFiles.length) * 100);
+          document.getElementById('uploadProgressBar').style.width = progress + '%';
+          document.getElementById('uploadProgressText').textContent = progress + '%';
+
+          if (completed === uploadedFiles.length) {
+            setTimeout(() => {
+              alert('Tải file lên thành công!');
+              closeUploadModal();
+              loadFolderContents(currentPath);
+              updateStatus(`Tải ${uploadedFiles.length} file lên thành công`);
+            }, 500);
+          }
+        })
+        .catch(err => {
+          console.error('Upload error:', err);
+          completed++;
+          if (completed === uploadedFiles.length) {
+            alert('Một số file không thể tải lên. Vui lòng thử lại.');
+          }
+        });
+      });
+    }
+
+    function showNewFolderDialog() {
+      if (!selectedServer) {
+        alert('Vui lòng chọn máy chủ trước!');
+        return;
+      }
+      
+      const folderName = prompt('Nhập tên thư mục mới:');
+      if (folderName) {
+        const newPath = currentPath.endsWith('/') 
+          ? currentPath + folderName 
+          : currentPath + '/' + folderName;
+
+        fetch('/file-manager/api/mkdir', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          credentials: 'include',
+          body: JSON.stringify({ serverId: selectedServer, path: newPath })
+        })
+        .then(r => r.json())
+        .then(data => {
+          if (data.success) {
+            updateStatus('Tạo thư mục thành công');
+            loadFolderContents(currentPath);
+          } else {
+            alert('Lỗi: ' + (data.error || 'Không thể tạo thư mục'));
+          }
+        })
+        .catch(err => alert('Lỗi kết nối: ' + err));
+      }
     }
   </script>
   </div>

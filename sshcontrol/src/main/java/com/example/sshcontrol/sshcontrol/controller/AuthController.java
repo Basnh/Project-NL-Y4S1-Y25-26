@@ -4,6 +4,7 @@ import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.service.UserService;
 import com.example.sshcontrol.service.SystemStatsService;
+import com.example.sshcontrol.service.ActivityLogService;
 import com.example.sshcontrol.repository.ServerRepository;
 import java.util.List;
 import jakarta.servlet.http.HttpSession;
@@ -29,6 +30,9 @@ public class AuthController {
     @Autowired
     private UserService userService;
 
+    @Autowired
+    private ActivityLogService activityLogService;
+
     // Hiển thị form đăng nhập và tạo CAPTCHA mới
     @GetMapping("/login")
     public String showLoginPage(HttpSession session, Model model) {
@@ -48,6 +52,11 @@ public class AuthController {
     // Đăng xuất
     @PostMapping("/logout")
     public String logout(HttpSession session) {
+        User user = (User) session.getAttribute("user");
+        if (user != null) {
+            activityLogService.logActivity(user, "LOGOUT", "Người dùng đã đăng xuất");
+        }
+        
         if (session != null) {
             session.invalidate();
         }
@@ -286,32 +295,65 @@ public class AuthController {
 
     // Helper method để xử lý xóa server
     private String handleServerDeletion(String ip, HttpSession session, RedirectAttributes redirectAttributes) {
-        User sessionUser = (User) session.getAttribute("user");
-        if (sessionUser == null) {
-            return "redirect:/login";
-        }
+        try {
+            User sessionUser = (User) session.getAttribute("user");
+            if (sessionUser == null) {
+                redirectAttributes.addFlashAttribute("error", "Phiên làm việc hết hạn!");
+                return "redirect:/login";
+            }
 
-        User currentUser = userService.findByUsername(sessionUser.getUsername());
-        if (currentUser == null) {
-            return "redirect:/login";
-        }
+            // Nạp lại user từ database để có servers mới nhất
+            User currentUser = userService.findByUsername(sessionUser.getUsername());
+            if (currentUser == null) {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy người dùng!");
+                return "redirect:/login";
+            }
 
-        List<Server> userServers = serverRepository.findByUser(currentUser);
-        Server serverToDelete = userServers.stream()
-            .filter(s -> s.getIp() != null && s.getIp().equals(ip))
-            .findFirst()
-            .orElse(null);
+            // Tìm server trong danh sách của user
+            Server serverToDelete = null;
+            if (currentUser.getServers() != null) {
+                serverToDelete = currentUser.getServers().stream()
+                    .filter(s -> s.getIp() != null && s.getIp().equals(ip))
+                    .findFirst()
+                    .orElse(null);
+            }
 
-        if (serverToDelete != null) {
-            serverRepository.delete(serverToDelete);
-            
-            // Refresh user data in session
-            currentUser = userService.findByUsername(currentUser.getUsername());
-            session.setAttribute("user", currentUser);
-            
-            redirectAttributes.addFlashAttribute("message", "Xóa máy chủ thành công!");
-        } else {
-            redirectAttributes.addFlashAttribute("error", "Không tìm thấy máy chủ để xóa!");
+            if (serverToDelete != null) {
+                try {
+                    // **QUAN TRỌNG**: Xóa server từ user.servers list trước
+                    currentUser.getServers().remove(serverToDelete);
+                    
+                    // Sau đó xóa từ database
+                    serverRepository.delete(serverToDelete);
+                    serverRepository.flush(); // Đảm bảo lưu vào DB
+                    
+                    // Lưu user (để cập nhật relationship)
+                    userService.save(currentUser);
+                    
+                    // Ghi nhận hoạt động
+                    activityLogService.logActivity(currentUser, "SERVER_DELETE", 
+                        "Xóa máy chủ: " + serverToDelete.getName() + " (" + ip + ")");
+                    
+                    // Refresh user data in session
+                    currentUser = userService.findByUsername(currentUser.getUsername());
+                    session.setAttribute("user", currentUser);
+                    
+                    redirectAttributes.addFlashAttribute("message", "Xóa máy chủ thành công!");
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    
+                    // Ghi nhận lỗi
+                    activityLogService.logActivity(currentUser, "SERVER_DELETE_FAILED", 
+                        "Lỗi khi xóa máy chủ: " + ip, null, "FAILED");
+                    
+                    redirectAttributes.addFlashAttribute("error", "Lỗi khi xóa máy chủ: " + e.getMessage());
+                }
+            } else {
+                redirectAttributes.addFlashAttribute("error", "Không tìm thấy máy chủ với IP: " + ip);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+            redirectAttributes.addFlashAttribute("error", "Lỗi hệ thống: " + e.getMessage());
         }
 
         return "redirect:/server-list";
@@ -499,12 +541,20 @@ public class AuthController {
             session.setAttribute("user", user);
             session.setAttribute("servers", user.getServers());
             
+            // Ghi nhận hoạt động đăng nhập
+            activityLogService.logActivity(user, "LOGIN", "Người dùng đã đăng nhập từ trình duyệt");
+            
             // Xóa CAPTCHA cũ sau khi đăng nhập thành công
             session.removeAttribute("captcha");
             session.removeAttribute("captchaImage");
             
             return "redirect:/";
         } else {
+            // Ghi nhận đăng nhập thất bại
+            if (user != null) {
+                activityLogService.logActivity(user, "LOGIN_FAILED", "Cố gắng đăng nhập thất bại - mật khẩu sai", null, "FAILED");
+            }
+            
             model.addAttribute("error", "Tên đăng nhập hoặc mật khẩu không đúng!");
             return "login";
         }
@@ -514,13 +564,22 @@ public class AuthController {
         @GetMapping("/")
         public String showHomePage(Model model, HttpSession session) {
             if (session.getAttribute("user") != null) {
+                User currentUser = (User) session.getAttribute("user");
+                List<Server> userServers = serverRepository.findByUser(currentUser);
+                
+                // Tính toán dữ liệu thực tế
+                int totalServers = userServers.size();
+                int activeServers = (int) userServers.stream()
+                    .filter(server -> server.isOnline()).count();
+                
                 Map<String, Object> stats = new HashMap<>();
-                stats.put("totalServers", 0);
-                stats.put("activeServers", 0);
+                stats.put("totalServers", totalServers);
+                stats.put("activeServers", activeServers);
                 stats.put("uptime", "99.9%");
-                stats.put("performance", 90);
-                stats.put("cpuLoad", 0);
+                stats.put("performance", totalServers > 0 ? (activeServers * 100 / totalServers) : 0);
+                stats.put("cpuLoad", 45); // Có thể cập nhật từ hệ thống monitoring thực
                 model.addAttribute("statistics", stats);
+                model.addAttribute("userServersCount", totalServers);
             }
             return "index";
         }

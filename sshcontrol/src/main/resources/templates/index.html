@@ -233,7 +233,7 @@
             </div>
           </div>
           <div class="mt-4">
-            <a href="/monitoring" class="text-sm text-blue-400 hover:text-blue-300 flex items-center">
+            <a href="/server-list" class="text-sm text-blue-400 hover:text-blue-300 flex items-center">
               Giám sát chi tiết
               <i class="fas fa-arrow-right ml-2"></i>
             </a>
@@ -262,7 +262,7 @@
             </span>
             <i class="fas fa-chevron-right text-gray-400"></i>
           </a>
-          <a href="/monitoring" class="flex items-center justify-between p-3 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition-all">
+          <a href="/server-list" class="flex items-center justify-between p-3 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition-all">
             <span class="text-white flex items-center">
               <i class="fas fa-chart-line mr-2"></i>
               Giám sát
@@ -669,20 +669,39 @@
 <section class="py-16 bg-white">
   <div class="max-w-7xl mx-auto px-6">
     <div class="grid grid-cols-2 md:grid-cols-4 gap-8">
-      <div class="text-center" data-aos="fade-up">
-        <div class="text-4xl font-bold text-blue-600 mb-2 counter" data-target="1000">0</div>
+      <!-- Only show statistics for logged in users -->
+      <div class="text-center" data-aos="fade-up" th:if="${session.user != null}">
+        <div class="text-4xl font-bold text-blue-600 mb-2" th:text="${statistics != null ? statistics.totalServers : 0}">0</div>
+        <p class="text-gray-600">Máy chủ của bạn</p>
+      </div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="100" th:if="${session.user != null}">
+        <div class="text-4xl font-bold text-green-600 mb-2" th:text="${statistics != null ? statistics.activeServers : 0}">0</div>
+        <p class="text-gray-600">Máy chủ hoạt động</p>
+      </div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="200" th:if="${session.user != null}">
+        <div class="text-4xl font-bold text-purple-600 mb-2" th:text="${statistics != null ? statistics.performance : 0}">0</div>
+        <p class="text-gray-600">Tỷ lệ hoạt động (%)</p>
+      </div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="300" th:if="${session.user != null}">
+        <div class="text-4xl font-bold text-yellow-600 mb-2" th:text="${statistics != null ? statistics.cpuLoad : 0}">0</div>
+        <p class="text-gray-600">Tải CPU trung bình (%)</p>
+      </div>
+
+      <!-- Guest users see company statistics -->
+      <div class="text-center" data-aos="fade-up" th:if="${session.user == null}">
+        <div class="text-4xl font-bold text-blue-600 mb-2">1000+</div>
         <p class="text-gray-600">Máy chủ được quản lý</p>
       </div>
-      <div class="text-center" data-aos="fade-up" data-aos-delay="100">
-        <div class="text-4xl font-bold text-green-600 mb-2 counter" data-target="500">0</div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="100" th:if="${session.user == null}">
+        <div class="text-4xl font-bold text-green-600 mb-2">500</div>
         <p class="text-gray-600">Người dùng hoạt động</p>
       </div>
-      <div class="text-center" data-aos="fade-up" data-aos-delay="200">
-        <div class="text-4xl font-bold text-purple-600 mb-2 counter" data-target="99">0</div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="200" th:if="${session.user == null}">
+        <div class="text-4xl font-bold text-purple-600 mb-2">99</div>
         <p class="text-gray-600">Uptime (%)</p>
       </div>
-      <div class="text-center" data-aos="fade-up" data-aos-delay="300">
-        <div class="text-4xl font-bold text-yellow-600 mb-2 counter" data-target="120">0</div>
+      <div class="text-center" data-aos="fade-up" data-aos-delay="300" th:if="${session.user == null}">
+        <div class="text-4xl font-bold text-yellow-600 mb-2">120</div>
         <p class="text-gray-600">Khách hàng doanh nghiệp</p>
       </div>
     </div>
@@ -697,77 +716,80 @@
   <script src="https://unpkg.com/aos@2.3.1/dist/aos.js"></script>
   <script>AOS.init();</script>
   <script>
-    // Counter animation
-function animateCounters() {
-  const counters = document.querySelectorAll('.counter');
-  counters.forEach(counter => {
-    const target = parseInt(counter.getAttribute('data-target'));
-    const count = parseInt(counter.innerText);
-    const increment = target / 100;
-    
-    if (count < target) {
-      counter.innerText = Math.ceil(count + increment);
-      setTimeout(() => animateCounters(), 20);
-    } else {
-      counter.innerText = target;
+    // Fetch real-time statistics for logged in users
+    function updateStatistics() {
+      const user = document.querySelector('[th\\:if*="session.user"]');
+      if (!user) return; // Not logged in
+      
+      fetch('/api/system-stats', {
+        method: 'GET',
+        credentials: 'include'
+      })
+      .then(response => response.json())
+      .then(data => {
+        if (data.error) {
+          console.log('Statistics fetch error:', data.error);
+          return;
+        }
+        
+        // Update statistics display if elements exist
+        const statElements = document.querySelectorAll('[data-stat-type]');
+        statElements.forEach(el => {
+          const type = el.getAttribute('data-stat-type');
+          const key = type.replace('stat-', '');
+          if (data[key] !== undefined) {
+            el.textContent = data[key];
+          }
+        });
+      })
+      .catch(error => console.log('Error fetching statistics:', error));
     }
-  });
-}
 
-// Trigger counter animation when in viewport
-const counterSection = document.querySelector('.counter');
-if (counterSection) {
-  const observer = new IntersectionObserver((entries) => {
-    entries.forEach(entry => {
-      if (entry.isIntersecting) {
-        animateCounters();
+    // Call on page load and refresh every 30 seconds
+    document.addEventListener('DOMContentLoaded', function() {
+      updateStatistics();
+      setInterval(updateStatistics, 30000); // Update every 30 seconds
+      
+      // Welcome message animation for logged in users
+      const heroLoggedIn = document.getElementById('hero-logged-in');
+      if (heroLoggedIn) {
+        // Add welcome message animation
+        const welcomeElements = heroLoggedIn.querySelectorAll('h1, p, .quick-stats');
+        welcomeElements.forEach((element, index) => {
+          element.style.animationDelay = `${index * 0.2}s`;
+          element.classList.add('welcome-message');
+        });
       }
     });
-  });
-  observer.observe(counterSection);
-}
 
-// Welcome message animation for logged in users
-document.addEventListener('DOMContentLoaded', function() {
-  const heroLoggedIn = document.getElementById('hero-logged-in');
-  if (heroLoggedIn) {
-    // Add welcome message animation
-    const welcomeElements = heroLoggedIn.querySelectorAll('h1, p, .quick-stats');
-    welcomeElements.forEach((element, index) => {
-      element.style.animationDelay = `${index * 0.2}s`;
-      element.classList.add('welcome-message');
-    });
-  }
-});
+    // Auto-redirect notification for logged in users
+    function showWelcomeNotification() {
+      const notification = document.createElement('div');
+      notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
+      notification.innerHTML = `
+        <div class="flex items-center space-x-2">
+          <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
+          </svg>
+          <span>Đăng nhập thành công!</span>
+        </div>
+      `;
+      
+      document.body.appendChild(notification);
+      
+      // Auto remove after 3 seconds
+      setTimeout(() => {
+        notification.style.transform = 'translateX(100%)';
+        setTimeout(() => {
+          document.body.removeChild(notification);
+        }, 300);
+      }, 3000);
+    }
 
-// Auto-redirect notification for logged in users
-function showWelcomeNotification() {
-  const notification = document.createElement('div');
-  notification.className = 'fixed top-20 right-4 bg-green-500 text-white px-6 py-3 rounded-lg shadow-lg z-50 transition-all duration-300';
-  notification.innerHTML = `
-    <div class="flex items-center space-x-2">
-      <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path>
-      </svg>
-      <span>Đăng nhập thành công!</span>
-    </div>
-  `;
-  
-  document.body.appendChild(notification);
-  
-  // Auto remove after 3 seconds
-  setTimeout(() => {
-    notification.style.transform = 'translateX(100%)';
-    setTimeout(() => {
-      document.body.removeChild(notification);
-    }, 300);
-  }, 3000);
-}
-
-// Show notification for logged in users
-if (document.getElementById('hero-logged-in')) {
-  setTimeout(showWelcomeNotification, 1000);
-}
+    // Show notification for logged in users
+    if (document.getElementById('hero-logged-in')) {
+      setTimeout(showWelcomeNotification, 1000);
+    }
   </script>
 </body>
 </html>

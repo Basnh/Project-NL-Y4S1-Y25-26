@@ -1,8 +1,6 @@
 package com.example.sshcontrol.service;
 
 import com.example.sshcontrol.model.Server;
-import com.example.sshcontrol.repository.ServerRepository;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import java.util.*;
 import java.io.BufferedReader;
@@ -11,9 +9,6 @@ import com.jcraft.jsch.*;
 
 @Service
 public class SystemStatsService {
-
-    @Autowired
-    private ServerRepository serverRepository;
 
     public Map<String, Object> getSystemStats(List<Server> servers) {
         Map<String, Object> stats = new HashMap<>();

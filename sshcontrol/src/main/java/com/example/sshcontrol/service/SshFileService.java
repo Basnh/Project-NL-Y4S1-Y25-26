@@ -49,6 +49,7 @@ public class SshFileService {
         ChannelSftp sftp = setupSftpChannel();
         List<String> files = new ArrayList<>();
         try {
+            @SuppressWarnings("unchecked")
             List<ChannelSftp.LsEntry> entries = sftp.ls(path);
             for (ChannelSftp.LsEntry entry : entries) {
                 if (!entry.getFilename().equals(".") && !entry.getFilename().equals("..")) {
@@ -66,6 +67,7 @@ public class SshFileService {
         ChannelSftp sftp = setupSftpChannel(serverIp, serverUsername, serverPassword);
         List<String> files = new ArrayList<>();
         try {
+            @SuppressWarnings("unchecked")
             List<ChannelSftp.LsEntry> entries = sftp.ls(path);
             for (ChannelSftp.LsEntry entry : entries) {
                 if (!entry.getFilename().equals(".") && !entry.getFilename().equals("..")) {

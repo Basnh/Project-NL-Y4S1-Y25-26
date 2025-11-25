@@ -38,6 +38,64 @@ public class SSHService {
         }
     }
 
+    /**
+     * Execute UFW command - send password + confirmation via ByteArrayInputStream
+     */
+    public String executeUFWCommand(String host, String user, String password, String command) {
+        StringBuilder output = new StringBuilder();
+        try {
+            JSch jsch = new JSch();
+            Session session = jsch.getSession(user, host, 22);
+            session.setPassword(password);
+            session.setConfig("StrictHostKeyChecking", "no");
+            session.connect(30000);
+
+            ChannelExec channel = (ChannelExec) session.openChannel("exec");
+            
+            // Convert to sudo -S to read password from stdin
+            String realCommand = command.replaceFirst("^sudo\\s", "sudo -S ");
+            // Wrap with bash to handle here-string for UFW prompt
+            String bashCommand = "bash -c '" + realCommand.replace("'", "'\\''") + " <<< y'";
+            
+            System.out.println("[SSH-UFW] Executing UFW command: " + command);
+            System.out.println("[SSH-UFW] Bash command: " + bashCommand);
+            
+            // Send password via stdin
+            String stdin = password + "\n";
+            ByteArrayInputStream inputStream = new ByteArrayInputStream(stdin.getBytes(StandardCharsets.UTF_8));
+            
+            channel.setInputStream(inputStream);
+            channel.setCommand(bashCommand);
+            channel.setErrStream(System.err);
+
+            InputStream in = channel.getInputStream();
+            channel.connect();
+
+            byte[] tmp = new byte[1024];
+            while (true) {
+                while (in.available() > 0) {
+                    int i = in.read(tmp, 0, 1024);
+                    if (i < 0) break;
+                    output.append(new String(tmp, 0, i));
+                }
+                if (channel.isClosed()) break;
+                Thread.sleep(100);
+            }
+            
+            int exitStatus = channel.getExitStatus();
+            System.out.println("[SSH-UFW] Command exit status: " + exitStatus);
+            System.out.println("[SSH-UFW] Command output:\n" + output.toString());
+            
+            channel.disconnect();
+            session.disconnect();
+        } catch (Exception e) {
+            output.append("[Lỗi SSH UFW] ").append(e.getMessage());
+            System.err.println("[SSH-UFW] Command error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        return output.toString();
+    }
+
     public String executeCommand(String host, String user, String password, String command) {
         StringBuilder output = new StringBuilder();
         try {

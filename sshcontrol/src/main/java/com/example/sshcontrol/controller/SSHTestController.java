@@ -18,6 +18,7 @@ public class SSHTestController {
     private SSHService sshService;
 
     // Class để map request JSON
+    @SuppressWarnings("unused")
     private static class SSHConnectionRequest {
         private String ip;
         private String username;

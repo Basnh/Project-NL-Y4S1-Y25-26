@@ -10,14 +10,11 @@ import org.springframework.stereotype.Service;
 
 
 import com.example.sshcontrol.repository.ServerRepository;
-import com.example.sshcontrol.repository.UserRepository;
 
 @Service
 public class StatisticsService {
     @Autowired
     private ServerRepository serverRepository;
-    @Autowired
-    private UserRepository userRepository;
 
     public Map<String, Object> getSystemStatistics() {
         Map<String, Object> stats = new HashMap<>();

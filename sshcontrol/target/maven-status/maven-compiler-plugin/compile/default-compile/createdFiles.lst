@@ -1,9 +1,9 @@
+com\example\sshcontrol\controller\ActivityLogController.class
 com\example\sshcontrol\service\UserService.class
 com\example\sshcontrol\sshcontrol\controller\SSHCommandController.class
 com\example\sshcontrol\sshcontrol\util\ControllerHelper.class
 com\example\sshcontrol\sshcontrol\controller\MultiExecuteController.class
 com\example\sshcontrol\model\MultiConfigRequest.class
-com\example\sshcontrol\sshcontrol\controller\FirewallController.class
 com\example\sshcontrol\service\UserServiceImpl.class
 com\example\sshcontrol\controller\SSHTestController$SSHConnectionRequest.class
 com\example\sshcontrol\service\RemoteCommandExecutor.class
@@ -12,6 +12,8 @@ com\example\sshcontrol\model\MultiSSHRequest.class
 com\example\sshcontrol\model\SSHRequest.class
 com\example\sshcontrol\model\MultiServiceRequest.class
 com\example\sshcontrol\model\Server.class
+com\example\sshcontrol\model\ActivityLog.class
+com\example\sshcontrol\service\ActivityLogService.class
 com\example\sshcontrol\sshcontrol\controller\VMController.class
 com\example\sshcontrol\sshcontrol\SSHController.class
 com\example\sshcontrol\sshcontrol\controller\ExecuteController.class
@@ -21,10 +23,14 @@ com\example\sshcontrol\controller\SSHTestController.class
 com\example\sshcontrol\service\SSHService.class
 com\example\sshcontrol\model\ServiceInfo.class
 com\example\sshcontrol\sshcontrol\service\ServerService.class
+com\example\sshcontrol\controller\FirewallController.class
 com\example\sshcontrol\repository\UserRepository.class
 com\example\sshcontrol\controller\StatsController.class
+com\example\sshcontrol\repository\ActivityLogRepository.class
+com\example\sshcontrol\sshcontrol\controller\MonitoringController.class
 com\example\sshcontrol\SshcontrolApplication.class
 com\example\sshcontrol\repository\ServerRepository.class
+com\example\sshcontrol\service\ActivityLogService$ActivityStatistics.class
 com\example\sshcontrol\sshcontrol\service\FileManagerService.class
 com\example\sshcontrol\service\SystemStatsService.class
 com\example\sshcontrol\model\User.class

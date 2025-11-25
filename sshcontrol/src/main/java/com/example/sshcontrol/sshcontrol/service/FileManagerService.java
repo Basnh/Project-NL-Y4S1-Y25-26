@@ -50,6 +50,7 @@ public class FileManagerService {
 
         try {
             channelSftp.cd(path);
+            @SuppressWarnings("unchecked")
             Vector<ChannelSftp.LsEntry> entries = channelSftp.ls(".");
 
             for (ChannelSftp.LsEntry entry : entries) {
@@ -156,6 +157,7 @@ public class FileManagerService {
      * Xóa thư mục và toàn bộ nội dung
      */
     private void deleteDirectory(ChannelSftp channelSftp, String path) throws SftpException {
+        @SuppressWarnings("unchecked")
         Vector<ChannelSftp.LsEntry> entries = channelSftp.ls(path);
 
         for (ChannelSftp.LsEntry entry : entries) {
@@ -256,6 +258,23 @@ public class FileManagerService {
         try {
             return channelSftp.stat(filePath).getSize();
         } finally {
+            channelSftp.disconnect();
+            session.disconnect();
+        }
+    }
+
+    /**
+     * Tải file lên máy chủ
+     */
+    public void uploadFile(String host, String username, String password, String destinationPath, InputStream fileInputStream) throws Exception {
+        Session session = createSession(host, username, password);
+        ChannelSftp channelSftp = (ChannelSftp) session.openChannel("sftp");
+        channelSftp.connect();
+
+        try {
+            channelSftp.put(fileInputStream, destinationPath);
+        } finally {
+            fileInputStream.close();
             channelSftp.disconnect();
             session.disconnect();
         }

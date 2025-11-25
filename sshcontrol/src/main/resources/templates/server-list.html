@@ -6,13 +6,24 @@
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link rel="stylesheet" href="/layout.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
 </head>
 <body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
     <main class="flex-1">
         <div class="container mx-auto px-4 py-8">
             <div class="max-w-6xl mx-auto">
-                <!-- Sửa tiêu đề từ 'Thêm máy chủ mới' thành 'Danh sách máy chủ' -->
+                <!-- Header -->
                 <div th:replace="~{fragments/header :: header('Danh sách máy chủ hiện có', 'fas fa-server')}"></div>
+
+                <!-- Messages -->
+                <div th:if="${message}" class="mb-4 p-4 bg-green-100 border border-green-400 text-green-700 rounded-lg flex items-center">
+                    <i class="fas fa-check-circle mr-3"></i>
+                    <span th:text="${message}"></span>
+                </div>
+                <div th:if="${error}" class="mb-4 p-4 bg-red-100 border border-red-400 text-red-700 rounded-lg flex items-center">
+                    <i class="fas fa-exclamation-circle mr-3"></i>
+                    <span th:text="${error}"></span>
+                </div>
                 
                 <!-- Add server button -->
                 <div class="mb-6 flex justify-between items-center">
@@ -22,7 +33,7 @@
                     </a>
                 </div>
 
-                <!-- Server table container -->
+                <!-- Table View -->
                 <div class="bg-white shadow-lg rounded-lg overflow-hidden">
                     <div class="overflow-x-auto">
                         <table class="min-w-full divide-y divide-gray-200">
@@ -55,6 +66,11 @@
                                             class="btn-server-info inline-flex items-center px-3 py-1 border border-blue-300 rounded-md text-blue-700 bg-blue-50 hover:bg-blue-100 transition duration-150"
                                             th:data-ip="${server.ip}">
                                             <i class="fas fa-info-circle mr-1"></i> Thông tin
+                                        </button>
+                                        <button type="button" 
+                                            class="btn-server-monitor inline-flex items-center px-3 py-1 border border-green-300 rounded-md text-green-700 bg-green-50 hover:bg-green-100 transition duration-150"
+                                            th:data-ip="${server.ip}">
+                                            <i class="fas fa-chart-line mr-1"></i> Giám sát
                                         </button>
                                         <button type="button" 
                                             class="btn-server-delete inline-flex items-center px-3 py-1 border border-red-300 rounded-md text-red-700 bg-red-50 hover:bg-red-100 transition duration-150"
@@ -103,7 +119,6 @@
                 </button>
             </div>
             <div id="serverInfoContent" class="text-sm text-gray-700">
-                <!-- Loading indicator -->
                 <div id="loadingIndicator" class="text-center py-8">
                     <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-4"></i>
                     <p class="text-gray-600">Đang tải thông tin máy chủ...</p>
@@ -117,42 +132,137 @@
         </div>
     </div>
 
+    <!-- Modal giám sát -->
+    <div id="monitoringModal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 hidden overflow-y-auto">
+        <div class="bg-white p-6 rounded-lg shadow-xl w-full mx-4 my-8" style="max-width: 900px;">
+            <div class="flex justify-between items-center mb-6">
+                <h3 class="text-2xl font-bold text-gray-900">
+                    <i class="fas fa-chart-line mr-2 text-green-600"></i>
+                    Giám sát máy chủ
+                </h3>
+                <button onclick="closeMonitoringModal()" class="text-gray-400 hover:text-gray-600">
+                    <i class="fas fa-times text-xl"></i>
+                </button>
+            </div>
+
+            <div id="monitoringContent">
+                <!-- Quick Stats -->
+                <div class="grid grid-cols-2 md:grid-cols-5 gap-3 mb-6">
+                    <div class="bg-blue-50 p-4 rounded-lg border border-blue-200">
+                        <div class="text-xs text-gray-600 mb-1">CPU</div>
+                        <div class="text-2xl font-bold text-blue-600" id="monitor-cpu">-</div>
+                        <div class="w-full bg-blue-200 rounded-full h-1 mt-2">
+                            <div id="monitor-cpu-bar" class="bg-blue-600 h-1 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-green-50 p-4 rounded-lg border border-green-200">
+                        <div class="text-xs text-gray-600 mb-1">RAM</div>
+                        <div class="text-2xl font-bold text-green-600" id="monitor-ram">-</div>
+                        <div class="w-full bg-green-200 rounded-full h-1 mt-2">
+                            <div id="monitor-ram-bar" class="bg-green-600 h-1 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-yellow-50 p-4 rounded-lg border border-yellow-200">
+                        <div class="text-xs text-gray-600 mb-1">Disk</div>
+                        <div class="text-2xl font-bold text-yellow-600" id="monitor-disk">-</div>
+                        <div class="w-full bg-yellow-200 rounded-full h-1 mt-2">
+                            <div id="monitor-disk-bar" class="bg-yellow-600 h-1 rounded-full" style="width: 0%"></div>
+                        </div>
+                    </div>
+
+                    <div class="bg-purple-50 p-4 rounded-lg border border-purple-200">
+                        <div class="text-xs text-gray-600 mb-1">Network</div>
+                        <div class="text-xl font-bold text-purple-600" id="monitor-net">-</div>
+                    </div>
+
+                    <div class="bg-red-50 p-4 rounded-lg border border-red-200">
+                        <div class="text-xs text-gray-600 mb-1">Uptime</div>
+                        <div class="text-xl font-bold text-red-600" id="monitor-uptime">-</div>
+                    </div>
+                </div>
+
+                <!-- Charts -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    <div class="bg-white border border-gray-200 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">CPU - 24h</h4>
+                        <div style="height: 250px;">
+                            <canvas id="monitoringCpuChart"></canvas>
+                        </div>
+                    </div>
+                    <div class="bg-white border border-gray-200 p-4 rounded-lg">
+                        <h4 class="font-semibold text-gray-700 mb-3">RAM - 24h</h4>
+                        <div style="height: 250px;">
+                            <canvas id="monitoringRamChart"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mt-4 text-center text-sm text-gray-500">
+                    <i class="fas fa-sync-alt mr-1"></i>Dữ liệu cập nhật mỗi 5 giây
+                </div>
+            </div>
+
+            <div class="mt-6 flex justify-end space-x-3">
+                <button onclick="closeMonitoringModal()" class="px-4 py-2 bg-gray-300 text-gray-700 rounded-lg hover:bg-gray-400 transition">
+                    <i class="fas fa-times mr-1"></i> Đóng
+                </button>
+            </div>
+        </div>
+    </div>
+
     <!-- Footer -->
     <div th:replace="~{fragments/footer :: footer}"></div>
 
     <script>
-        // Event delegation cho các nút
+        let monitoringChart = {};
+        let currentMonitoringServer = null;
+        let monitoringInterval = null;
+
+        function formatBytes(bytes) {
+            if (bytes === 0) return '0 B';
+            const k = 1024;
+            const sizes = ['B', 'KB', 'MB', 'GB'];
+            const i = Math.floor(Math.log(bytes) / Math.log(k));
+            return (bytes / Math.pow(k, i)).toFixed(2) + ' ' + sizes[i];
+        }
+
+        function formatUptime(seconds) {
+            const hours = Math.floor(seconds / 3600);
+            const days = Math.floor(hours / 24);
+            if (days > 0) return days + 'd ' + (hours % 24) + 'h';
+            return hours + 'h';
+        }
+
+        // Event delegation
         document.addEventListener('DOMContentLoaded', function() {
-            // Xử lý nút "Xem thông tin"
-            document.querySelectorAll('.btn-server-info').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    const ip = this.getAttribute('data-ip');
-                    showServerInfoModal(ip);
+            document.querySelectorAll('.btn-server-info').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showServerInfoModal(this.getAttribute('data-ip'));
                 });
             });
 
-            // Xử lý nút "Xóa"
-            document.querySelectorAll('.btn-server-delete').forEach(function(button) {
-                button.addEventListener('click', function() {
-                    const ip = this.getAttribute('data-ip');
-                    deleteServer(ip);
+            document.querySelectorAll('.btn-server-monitor').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    showMonitoringModal(this.getAttribute('data-ip'));
+                });
+            });
+
+            document.querySelectorAll('.btn-server-delete').forEach(btn => {
+                btn.addEventListener('click', function() {
+                    deleteServer(this.getAttribute('data-ip'));
                 });
             });
         });
 
         async function showServerInfoModal(ip) {
-            console.log('Requesting server info for IP:', ip); // Debug log
-            
-            // Hiển thị modal với loading indicator
             document.getElementById('serverInfoModal').classList.remove('hidden');
             document.getElementById('loadingIndicator').style.display = 'block';
             
             try {
                 const response = await fetch(`/api/server-info?ip=${encodeURIComponent(ip)}`);
-                console.log('Response status:', response.status); // Debug log
-                
                 const result = await response.json();
-                console.log('Response data:', result); // Debug log
                 
                 document.getElementById('loadingIndicator').style.display = 'none';
                 
@@ -222,7 +332,6 @@
                     `;
                 }
             } catch (error) {
-                console.error('Fetch error:', error); // Debug log
                 document.getElementById('loadingIndicator').style.display = 'none';
                 document.getElementById('serverInfoContent').innerHTML = `
                     <div class="text-center py-8">
@@ -236,40 +345,130 @@
 
         function closeServerInfoModal() {
             document.getElementById('serverInfoModal').classList.add('hidden');
-            // Reset content to loading state
-            document.getElementById('serverInfoContent').innerHTML = `
-                <div id="loadingIndicator" class="text-center py-8">
-                    <i class="fas fa-spinner fa-spin text-3xl text-indigo-600 mb-4"></i>
-                    <p class="text-gray-600">Đang tải thông tin máy chủ...</p>
-                </div>
-            `;
+        }
+
+        async function showMonitoringModal(ip) {
+            currentMonitoringServer = ip;
+            document.getElementById('monitoringModal').classList.remove('hidden');
+            
+            loadMonitoringData();
+            loadMonitoringCharts();
+            
+            clearInterval(monitoringInterval);
+            monitoringInterval = setInterval(loadMonitoringData, 5000);
+        }
+
+        function closeMonitoringModal() {
+            document.getElementById('monitoringModal').classList.add('hidden');
+            clearInterval(monitoringInterval);
+            currentMonitoringServer = null;
+        }
+
+        async function loadMonitoringData() {
+            if (!currentMonitoringServer) return;
+
+            try {
+                const response = await fetch('/api/monitoring/stats', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ serverId: currentMonitoringServer })
+                });
+                const data = await response.json();
+
+                if (data.success) {
+                    const stats = data.data;
+                    document.getElementById('monitor-cpu').textContent = stats.cpu.usage + '%';
+                    document.getElementById('monitor-cpu-bar').style.width = stats.cpu.usage + '%';
+                    document.getElementById('monitor-ram').textContent = stats.ram.usage + '%';
+                    document.getElementById('monitor-ram-bar').style.width = stats.ram.usage + '%';
+                    document.getElementById('monitor-disk').textContent = stats.disk.usage + '%';
+                    document.getElementById('monitor-disk-bar').style.width = stats.disk.usage + '%';
+                    document.getElementById('monitor-net').textContent = formatBytes(stats.network.bytesIn + stats.network.bytesOut) + '/s';
+                    document.getElementById('monitor-uptime').textContent = formatUptime(stats.system.uptime);
+                }
+            } catch (error) {
+                console.error('Error loading monitoring data:', error);
+            }
+        }
+
+        async function loadMonitoringCharts() {
+            if (!currentMonitoringServer) return;
+
+            try {
+                const cpuRes = await fetch('/api/monitoring/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ serverId: currentMonitoringServer, metric: 'cpu' })
+                });
+                const cpuData = await cpuRes.json();
+
+                const ramRes = await fetch('/api/monitoring/history', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    credentials: 'include',
+                    body: JSON.stringify({ serverId: currentMonitoringServer, metric: 'ram' })
+                });
+                const ramData = await ramRes.json();
+
+                if (cpuData.success) createMonitoringChart('monitoringCpuChart', 'CPU', cpuData.data, '#3B82F6');
+                if (ramData.success) createMonitoringChart('monitoringRamChart', 'RAM', ramData.data, '#10B981');
+            } catch (error) {
+                console.error('Error loading charts:', error);
+            }
+        }
+
+        function createMonitoringChart(canvasId, label, data, color) {
+            const ctx = document.getElementById(canvasId).getContext('2d');
+
+            if (monitoringChart[canvasId]) {
+                monitoringChart[canvasId].destroy();
+            }
+
+            monitoringChart[canvasId] = new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: data.map(d => d.time),
+                    datasets: [{
+                        label: label + ' Usage (%)',
+                        data: data.map(d => d.value),
+                        borderColor: color,
+                        backgroundColor: color + '20',
+                        tension: 0.3,
+                        fill: true,
+                        borderWidth: 2
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: { legend: { display: true } },
+                    scales: {
+                        y: { beginAtZero: true, max: 100, ticks: { callback: v => v + '%' } }
+                    }
+                }
+            });
         }
 
         function deleteServer(ip) {
             if (confirm('Bạn có chắc chắn muốn xóa máy chủ này không?\n\nHành động này không thể hoàn tác.')) {
-                // Show loading state
-                const deleteBtn = document.querySelector(`[data-ip="${ip}"].btn-server-delete`);
-                if (deleteBtn) {
-                    deleteBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-1"></i> Đang xóa...';
-                    deleteBtn.disabled = true;
-                }
-                
-                // Redirect to delete endpoint
                 window.location.href = `/delete-server?ip=${encodeURIComponent(ip)}`;
             }
         }
 
-        // Close modal when clicking outside
         document.getElementById('serverInfoModal').addEventListener('click', function(e) {
-            if (e.target === this) {
-                closeServerInfoModal();
-            }
+            if (e.target === this) closeServerInfoModal();
         });
 
-        // Close modal with Escape key
+        document.getElementById('monitoringModal').addEventListener('click', function(e) {
+            if (e.target === this) closeMonitoringModal();
+        });
+
         document.addEventListener('keydown', function(e) {
             if (e.key === 'Escape') {
                 closeServerInfoModal();
+                closeMonitoringModal();
             }
         });
     </script>

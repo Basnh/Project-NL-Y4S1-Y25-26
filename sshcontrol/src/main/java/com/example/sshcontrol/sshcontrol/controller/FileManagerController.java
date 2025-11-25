@@ -16,6 +16,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -640,6 +641,78 @@ public class FileManagerController {
             response.put("success", false);
             response.put("error", e.getMessage());
             response.put("exists", false);
+            return ResponseEntity.ok(response);
+        }
+    }
+
+    /**
+     * Tải file lên máy chủ
+     */
+    @PostMapping("/api/upload")
+    @ResponseBody
+    public ResponseEntity<Map<String, Object>> uploadFileApi(@RequestParam String serverId, 
+                                                             @RequestParam String destinationPath,
+                                                             @RequestParam("file") MultipartFile file,
+                                                             @SessionAttribute(name = "user", required = false) User user) {
+        Map<String, Object> response = new HashMap<>();
+        
+        // Kiểm tra authentication
+        if (user == null) {
+            response.put("success", false);
+            response.put("error", "Auth fail");
+            return ResponseEntity.status(401).body(response);
+        }
+        
+        try {
+            if (serverId == null || serverId.isEmpty() || destinationPath == null || destinationPath.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "Tham số không hợp lệ");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            if (file == null || file.isEmpty()) {
+                response.put("success", false);
+                response.put("error", "Không có file để tải lên");
+                return ResponseEntity.badRequest().body(response);
+            }
+            
+            // Tìm Server từ User
+            Server server = user.getServers().stream()
+                .filter(s -> s.getIp() != null && s.getIp().equals(serverId))
+                .findFirst()
+                .orElse(null);
+            
+            if (server == null) {
+                response.put("success", false);
+                response.put("error", "Máy chủ không tồn tại");
+                return ResponseEntity.badRequest().body(response);
+            }
+
+            // Xác định đường dẫn đầy đủ
+            String fullPath = destinationPath;
+            if (!destinationPath.endsWith("/")) {
+                fullPath = destinationPath + "/";
+            }
+            fullPath = fullPath + file.getOriginalFilename();
+
+            // Tải file lên
+            fileManagerService.uploadFile(
+                server.getIp(), 
+                server.getSshUsername(), 
+                server.getSshPassword(), 
+                fullPath,
+                file.getInputStream()
+            );
+
+            response.put("success", true);
+            response.put("message", "Tải file lên thành công");
+            response.put("fileName", file.getOriginalFilename());
+            response.put("path", fullPath);
+            
+            return ResponseEntity.ok(response);
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("error", e.getMessage());
             return ResponseEntity.ok(response);
         }
     }

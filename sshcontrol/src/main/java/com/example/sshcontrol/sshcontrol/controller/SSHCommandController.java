@@ -33,6 +33,7 @@ public class SSHCommandController {
             }
 
             String command = (String) request.get("command");
+            @SuppressWarnings("unchecked")
             List<String> selectedHosts = (List<String>) request.get("hosts");
             
             if (command == null || command.trim().isEmpty()) {
