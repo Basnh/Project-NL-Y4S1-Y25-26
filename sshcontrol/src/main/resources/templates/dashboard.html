@@ -137,7 +137,30 @@
                     </a>
 
                 </div>
-            </div>        
+            </div>
+
+            <!-- 👑 Quản trị hệ thống (Chỉ Admin) -->
+            <div th:if="${session.user != null && session.user.admin}" class="bg-gradient-to-r from-amber-50 to-yellow-50 p-6 rounded-xl border border-amber-200">
+                <h3 class="text-lg font-bold text-amber-800 mb-4 flex items-center">
+                    <i class="fas fa-crown mr-2"></i>
+                    👑 Quản trị hệ thống
+                </h3>
+                <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+                    <!-- Quản lý người dùng -->
+                    <a th:href="@{/admin/users}" class="p-4 bg-white rounded-lg hover:bg-amber-50 transition transform hover:scale-105 shadow-sm border border-amber-200">
+                        <i class="fas fa-users text-amber-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-amber-800">Quản lý người dùng</h4>
+                        <p class="text-sm text-gray-600">Xem danh sách, cấp quyền admin, kích hoạt/vô hiệu hóa</p>
+                    </a>
+
+                    <!-- Bảng điều khiển admin -->
+                    <a th:href="@{/admin}" class="p-4 bg-white rounded-lg hover:bg-yellow-50 transition transform hover:scale-105 shadow-sm border border-yellow-200">
+                        <i class="fas fa-chart-line text-yellow-600 text-xl mb-2"></i>
+                        <h4 class="font-semibold text-yellow-800">Bảng điều khiển</h4>
+                        <p class="text-sm text-gray-600">Thống kê người dùng, máy chủ và hoạt động</p>
+                    </a>
+                </div>
+            </div>
         </div>
 
         <!-- Navigation List View -->
@@ -302,7 +325,40 @@
                 </div>
             </button>
 
-            <!-- Điều khiển máy ảo -->
+            <!-- Admin Management (Chỉ Admin) -->
+            <div th:if="${session.user != null && session.user.admin}">
+                <!-- Quản lý người dùng -->
+                <a th:href="@{/admin/users}" class="block p-4 bg-white border border-amber-200 rounded-lg hover:bg-amber-50 transition shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-users text-amber-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">👑 Quản lý người dùng</h3>
+                                <p class="text-sm text-gray-600">Xem danh sách, cấp quyền admin, kích hoạt/vô hiệu hóa.</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </a>
+
+                <!-- Bảng điều khiển admin -->
+                <a th:href="@{/admin}" class="block p-4 bg-white border border-yellow-200 rounded-lg hover:bg-yellow-50 transition shadow-sm">
+                    <div class="flex items-center justify-between">
+                        <div class="flex items-center space-x-4">
+                            <div class="flex-shrink-0">
+                                <i class="fas fa-chart-line text-yellow-600 text-xl"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-lg font-semibold text-gray-900">👑 Bảng điều khiển Admin</h3>
+                                <p class="text-sm text-gray-600">Thống kê người dùng, máy chủ và hoạt động.</p>
+                            </div>
+                        </div>
+                        <i class="fas fa-chevron-right text-gray-400"></i>
+                    </div>
+                </a>
+            </div>
             <a th:href="@{/vm-control}" class="block p-4 bg-white border border-gray-200 rounded-lg hover:bg-gray-50 transition shadow-sm">
                 <div class="flex items-center justify-between">
                     <div class="flex items-center space-x-4">

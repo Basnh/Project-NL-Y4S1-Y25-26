@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chi tiết User</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body class="bg-gray-100">
+    <nav class="bg-white shadow">
+        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
+            <h1 class="text-2xl font-bold" th:text="'Chi tiết: ' + ${user.username}">User Detail</h1>
+            <a href="/admin/users" class="text-blue-600 hover:underline">Quay lại</a>
+        </div>
+    </nav>
+    
+    <main class="container mx-auto px-4 py-8">
+        <div th:if="${message != null && #strings.startsWith(message, 'success')}" class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded mb-4">
+            <i class="fas fa-check-circle"></i> <span th:text="${message}"></span>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+            <!-- User Info -->
+            <div class="md:col-span-2 bg-white rounded shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Thông tin User</h2>
+                
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">ID</label>
+                        <p class="text-gray-900" th:text="${user.id}">1</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Username</label>
+                        <p class="text-gray-900" th:text="${user.username}">user1</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Full Name</label>
+                        <p class="text-gray-900" th:text="${user.fullName}">John Doe</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Email</label>
+                        <p class="text-gray-900" th:text="${user.email}">user@example.com</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Phone</label>
+                        <p class="text-gray-900" th:text="${user.phoneNumber ?: 'N/A'}">N/A</p>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Role</label>
+                        <div class="mt-2">
+                            <span th:if="${user.admin}" class="px-3 py-1 bg-purple-100 text-purple-800 rounded">
+                                <i class="fas fa-crown"></i> Admin
+                            </span>
+                            <span th:if="!${user.admin}" class="px-3 py-1 bg-blue-100 text-blue-800 rounded">
+                                User
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Status</label>
+                        <div class="mt-2">
+                            <span th:if="${user.active}" class="px-3 py-1 bg-green-100 text-green-800 rounded">
+                                <i class="fas fa-check-circle"></i> Active
+                            </span>
+                            <span th:if="!${user.active}" class="px-3 py-1 bg-red-100 text-red-800 rounded">
+                                <i class="fas fa-ban"></i> Inactive
+                            </span>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Activity History -->
+                <div class="mt-8">
+                    <h2 class="text-xl font-bold mb-4">
+                        <i class="fas fa-history"></i> Lịch sử hoạt động
+                    </h2>
+                    
+                    <div class="space-y-3">
+                        <div th:each="activity : ${activities.content}" class="p-4 bg-gray-50 border border-gray-200 rounded hover:bg-gray-100 transition">
+                            <div class="flex items-start justify-between">
+                                <div class="flex items-start space-x-3 flex-1">
+                                    <div th:classappend="${activity.getStatusBadgeClass()}" class="p-2 rounded text-sm">
+                                        <i th:class="'fas ' + ${activity.getActionIcon()}"></i>
+                                    </div>
+                                    <div class="flex-1">
+                                        <div class="font-medium text-gray-900">
+                                            <span th:text="${activity.action}">ACTION</span>
+                                            <span th:if="${activity.status}" th:classappend="${activity.getStatusBadgeClass()}" class="ml-2 px-2 py-1 text-xs rounded">
+                                                <i th:if="${activity.status == 'SUCCESS'}" class="fas fa-check"></i>
+                                                <i th:if="${activity.status == 'FAILED'}" class="fas fa-times"></i>
+                                                <i th:if="${activity.status == 'PENDING'}" class="fas fa-hourglass-half"></i>
+                                                <span th:text="${activity.status}">Status</span>
+                                            </span>
+                                        </div>
+                                        <p class="text-sm text-gray-600 mt-1" th:text="${activity.description}">Activity description</p>
+                                        <div class="text-xs text-gray-500 mt-2">
+                                            <i class="fas fa-clock"></i>
+                                            <span th:text="${activity.getFormattedDate()}">12/11/2024 10:30:45</span>
+                                        </div>
+                                        <p th:if="${activity.details}" class="text-xs text-gray-600 mt-2 bg-gray-200 p-2 rounded">
+                                            <strong>Chi tiết:</strong> <span th:text="${activity.details}"></span>
+                                        </p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <p th:if="${#lists.isEmpty(activities.content)}" class="text-gray-500 text-center py-4">
+                            <i class="fas fa-info-circle"></i> Chưa có hoạt động nào
+                        </p>
+                    </div>
+                    
+                    <!-- Pagination -->
+                    <div th:if="${activities.totalPages > 1}" class="mt-4 flex justify-center items-center space-x-2">
+                        <a th:if="${activities.hasPrevious()}" 
+                           th:href="'/admin/users/' + ${user.id} + '?page=' + ${currentPage - 1}"
+                           class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                            <i class="fas fa-chevron-left"></i> Trước
+                        </a>
+                        
+                        <div class="space-x-1">
+                            <span th:each="i : ${#numbers.sequence(0, activities.totalPages - 1)}">
+                                <a th:if="${i != currentPage}"
+                                   th:href="'/admin/users/' + ${user.id} + '?page=' + ${i}"
+                                   class="px-2 py-1 bg-gray-200 rounded hover:bg-gray-300">
+                                    <span th:text="${i + 1}">1</span>
+                                </a>
+                                <span th:if="${i == currentPage}" class="px-2 py-1 bg-blue-600 text-white rounded">
+                                    <span th:text="${i + 1}">1</span>
+                                </span>
+                            </span>
+                        </div>
+                        
+                        <a th:if="${activities.hasNext()}" 
+                           th:href="'/admin/users/' + ${user.id} + '?page=' + ${currentPage + 1}"
+                           class="px-3 py-2 bg-gray-200 rounded hover:bg-gray-300">
+                            Sau <i class="fas fa-chevron-right"></i>
+                        </a>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Actions -->
+            <div class="bg-white rounded shadow p-6">
+                <h2 class="text-xl font-bold mb-4">Hành động</h2>
+                
+                <div class="space-y-3">
+                    <!-- Make Admin -->
+                    <form th:if="!${user.admin}" method="POST" th:action="'/admin/users/' + ${user.id} + '/make-admin'" onsubmit="return confirm('Bạn chắc chắn muốn cấp quyền admin?');">
+                        <button type="submit" class="w-full px-4 py-2 bg-purple-600 text-white rounded hover:bg-purple-700 text-sm">
+                            <i class="fas fa-crown"></i> Cấp quyền Admin
+                        </button>
+                    </form>
+                    
+                    <!-- Remove Admin -->
+                    <form th:if="${user.admin}" method="POST" th:action="'/admin/users/' + ${user.id} + '/remove-admin'" onsubmit="return confirm('Bạn chắc chắn muốn hạ quyền?');">
+                        <button type="submit" class="w-full px-4 py-2 bg-orange-600 text-white rounded hover:bg-orange-700 text-sm">
+                            <i class="fas fa-user-slash"></i> Hạ quyền Admin
+                        </button>
+                    </form>
+                    
+                    <!-- Deactivate -->
+                    <form th:if="${user.active}" method="POST" th:action="'/admin/users/' + ${user.id} + '/deactivate'" onsubmit="return confirm('Bạn chắc chắn muốn vô hiệu hóa tài khoản?');">
+                        <button type="submit" class="w-full px-4 py-2 bg-red-600 text-white rounded hover:bg-red-700 text-sm">
+                            <i class="fas fa-ban"></i> Vô hiệu hóa
+                        </button>
+                    </form>
+                    
+                    <!-- Activate -->
+                    <form th:if="!${user.active}" method="POST" th:action="'/admin/users/' + ${user.id} + '/activate'" onsubmit="return confirm('Bạn chắc chắn muốn kích hoạt tài khoản?');">
+                        <button type="submit" class="w-full px-4 py-2 bg-green-600 text-white rounded hover:bg-green-700 text-sm">
+                            <i class="fas fa-check-circle"></i> Kích hoạt
+                        </button>
+                    </form>
+                </div>
+                
+                <hr class="my-4">
+                
+                <h3 class="font-bold mb-3">Servers của user</h3>
+                <p class="text-sm text-gray-600 mb-3" th:text="'Tổng: ' + ${#lists.size(servers)} + ' servers'">Tổng: 0 servers</p>
+                
+                <div class="space-y-2 max-h-64 overflow-y-auto">
+                    <div th:each="server : ${servers}" class="p-2 bg-gray-50 rounded border text-sm">
+                        <div class="font-medium" th:text="${server.name}">Server 1</div>
+                        <div class="text-gray-600 text-xs" th:text="${server.ip}">192.168.1.1</div>
+                    </div>
+                    <p th:if="${#lists.isEmpty(servers)}" class="text-gray-500 text-sm">Chưa có servers</p>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

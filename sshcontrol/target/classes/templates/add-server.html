@@ -30,6 +30,49 @@
             z-index: 1000;
             max-width: 400px;
         }
+        
+        .connection-status {
+            padding: 1rem;
+            border-radius: 0.5rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        
+        .connection-status.show {
+            display: block;
+        }
+        
+        .connection-status.success {
+            background-color: #d1fae5;
+            border: 1px solid #6ee7b7;
+            color: #047857;
+        }
+        
+        .connection-status.error {
+            background-color: #fee2e2;
+            border: 1px solid #fca5a5;
+            color: #991b1b;
+        }
+        
+        .connection-status.loading {
+            background-color: #fef3c7;
+            border: 1px solid #fde047;
+            color: #92400e;
+        }
+        
+        .spinner {
+            display: inline-block;
+            width: 16px;
+            height: 16px;
+            border: 2px solid rgba(0,0,0,0.1);
+            border-radius: 50%;
+            border-top-color: currentColor;
+            animation: spin 0.8s linear infinite;
+        }
+        
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
@@ -70,9 +113,19 @@
                                 class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 transition duration-200 ease-in-out"
                                 placeholder="Nhập mật khẩu SSH"/>
                         </div>
-                        <div class="flex justify-center">
-                            <button type="submit"
-                                class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center">
+                        
+                        <!-- Connection Test Result -->
+                        <div id="connectionStatus" class="connection-status"></div>
+                        
+                        <!-- Action Buttons -->
+                        <div class="flex justify-center gap-4">
+                            <button type="button" id="testConnectionBtn"
+                                class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition duration-200 ease-in-out font-semibold flex items-center">
+                                <i class="fas fa-plug mr-2"></i> Kiểm tra kết nối
+                            </button>
+                            <button type="submit" id="submitBtn"
+                                class="px-6 py-2 bg-indigo-600 text-white rounded-md hover:bg-indigo-700 transition duration-200 ease-in-out font-semibold flex items-center disabled:opacity-50 disabled:cursor-not-allowed"
+                                disabled>
                                 <i class="fas fa-save mr-2"></i> Lưu
                             </button>
                         </div>
@@ -97,41 +150,134 @@
 
     <!-- Enhanced Script with SSH Connection Validation -->
     <script>
-        // Simple client-side validation
-        document.getElementById('addServerForm').addEventListener('submit', function(e) {
+        let connectionVerified = false;
+
+        // Get form elements
+        const form = document.getElementById('addServerForm');
+        const testBtn = document.getElementById('testConnectionBtn');
+        const submitBtn = document.getElementById('submitBtn');
+        const statusDiv = document.getElementById('connectionStatus');
+        
+        // IP validation regex
+        const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+
+        // Test SSH Connection
+        testBtn.addEventListener('click', async function(e) {
+            e.preventDefault();
+            
             const name = document.getElementById('serverName').value.trim();
             const ip = document.getElementById('ip').value.trim();
             const username = document.getElementById('sshUsername').value.trim();
             const password = document.getElementById('sshPassword').value.trim();
             
-            // IP validation
-            const ipRegex = /^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$/;
+            // Client-side validation
+            const validationError = validateForm(name, ip, username, password);
+            if (validationError) {
+                showStatus('error', validationError);
+                return;
+            }
             
-            if (!name || name.length < 2) {
-                alert('Tên máy chủ phải có ít nhất 2 ký tự');
+            // Show loading status
+            showStatus('loading', '<span class="spinner"></span> Đang kiểm tra kết nối...', false);
+            testBtn.disabled = true;
+            
+            try {
+                const response = await fetch('/api/test-connection', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ip: ip,
+                        username: username,
+                        password: password
+                    })
+                });
+                
+                const data = await response.json();
+                
+                if (data.success) {
+                    showStatus('success', 
+                        '<i class="fas fa-check-circle mr-2"></i><strong>✓ Kết nối thành công!</strong><br><small>' + data.message + '</small>');
+                    connectionVerified = true;
+                    submitBtn.disabled = false;
+                    testBtn.disabled = false;
+                    testBtn.innerHTML = '<i class="fas fa-check mr-2"></i> Đã xác nhận kết nối';
+                    testBtn.classList.add('bg-green-600', 'hover:bg-green-700');
+                    testBtn.classList.remove('bg-blue-600', 'hover:bg-blue-700');
+                } else {
+                    showStatus('error', 
+                        '<i class="fas fa-times-circle mr-2"></i><strong>✗ Kết nối thất bại!</strong><br><small>' + data.message + '</small><br><small style="margin-top: 0.5rem; display: block; opacity: 0.8;">Chi tiết: ' + (data.details || 'Unknown error') + '</small>');
+                    connectionVerified = false;
+                    submitBtn.disabled = true;
+                    testBtn.disabled = false;
+                }
+            } catch (error) {
+                showStatus('error', 
+                    '<i class="fas fa-exclamation-circle mr-2"></i><strong>✗ Lỗi khi kiểm tra kết nối!</strong><br><small>' + error.message + '</small>');
+                connectionVerified = false;
+                submitBtn.disabled = true;
+                testBtn.disabled = false;
+            }
+        });
+        
+        // Form submission validation
+        form.addEventListener('submit', function(e) {
+            if (!connectionVerified) {
                 e.preventDefault();
+                alert('⚠️ Vui lòng kiểm tra kết nối SSH thành công trước khi lưu!');
                 return false;
+            }
+            return true;
+        });
+        
+        // Helper function to validate form
+        function validateForm(name, ip, username, password) {
+            if (!name || name.length < 2) {
+                return 'Tên máy chủ phải có ít nhất 2 ký tự';
             }
             
             if (!ip || !ipRegex.test(ip)) {
-                alert('Địa chỉ IP không hợp lệ. Định dạng đúng: 192.168.1.100');
-                e.preventDefault();
-                return false;
+                return 'Địa chỉ IP không hợp lệ. Định dạng đúng: 192.168.1.100';
             }
             
             if (!username || username.length < 2) {
-                alert('SSH Username phải có ít nhất 2 ký tự');
-                e.preventDefault();
-                return false;
+                return 'SSH Username phải có ít nhất 2 ký tự';
             }
             
             if (!password || password.length < 3) {
-                alert('SSH Password phải có ít nhất 3 ký tự');
-                e.preventDefault();
-                return false;
+                return 'SSH Password phải có ít nhất 3 ký tự';
             }
             
-            return true;
+            return null;
+        }
+        
+        // Helper function to show status
+        function showStatus(type, message, autoHide = true) {
+            statusDiv.className = 'connection-status show ' + type;
+            statusDiv.innerHTML = message;
+            
+            if (autoHide && type !== 'loading') {
+                setTimeout(() => {
+                    if (type === 'error') {
+                        statusDiv.classList.remove('show');
+                    }
+                }, 5000);
+            }
+        }
+        
+        // Reset connection verification when user changes credentials
+        ['ip', 'sshUsername', 'sshPassword'].forEach(id => {
+            document.getElementById(id).addEventListener('input', function() {
+                if (connectionVerified) {
+                    connectionVerified = false;
+                    submitBtn.disabled = true;
+                    testBtn.innerHTML = '<i class="fas fa-plug mr-2"></i> Kiểm tra kết nối';
+                    testBtn.classList.remove('bg-green-600', 'hover:bg-green-700');
+                    testBtn.classList.add('bg-blue-600', 'hover:bg-blue-700');
+                    statusDiv.classList.remove('show');
+                }
+            });
         });
     </script>
 </body>

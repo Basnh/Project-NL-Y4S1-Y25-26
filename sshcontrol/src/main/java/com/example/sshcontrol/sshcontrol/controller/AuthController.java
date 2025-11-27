@@ -1,6 +1,7 @@
 package com.example.sshcontrol.sshcontrol.controller;
 
 import com.example.sshcontrol.model.User;
+import com.example.sshcontrol.model.UserRole;
 import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.service.UserService;
 import com.example.sshcontrol.service.SystemStatsService;
@@ -164,6 +165,8 @@ public class AuthController {
 
         // Tạo user mới
         User newUser = new User(username, password, fullName, email, phoneNumber);
+        newUser.setRole(UserRole.USER); // Set role mặc định là USER (Thành viên)
+        newUser.setActive(true); // Set active mặc định là true
         newUser.setServers(new ArrayList<>()); // Khởi tạo danh sách server rỗng
         userService.save(newUser);
 
@@ -253,11 +256,12 @@ public class AuthController {
             return "add-server";
         }
 
-        // Refresh user from database
+        // Refresh user from database để lấy servers mới nhất từ database
         user = userService.findByUsername(user.getUsername());
         
-        // Kiểm tra trùng IP + SSH Username + Password trong database
-        boolean exists = serverRepository.findAll().stream()
+        // **FIX**: Chỉ kiểm tra trùng IP + SSH Username + Password trong danh sách servers của USER HIỆN TẠI
+        // (Không kiểm tra tất cả servers trong hệ thống)
+        boolean exists = user.getServers() != null && user.getServers().stream()
             .anyMatch(s -> s.getIp() != null && 
                          s.getIp().equalsIgnoreCase(server.getIp()) &&
                          s.getSshUsername() != null &&
@@ -267,13 +271,16 @@ public class AuthController {
         
         if (exists) {
             model.addAttribute("server", server);
-            model.addAttribute("error", "Máy chủ với IP, SSH Username và Password này đã tồn tại!");
+            model.addAttribute("error", "Máy chủ với IP, SSH Username và Password này đã tồn tại trong danh sách của bạn!");
             return "add-server";
         }
 
         // Set user cho server và lưu vào database
         server.setUser(user);
         serverRepository.save(server);
+        
+        // Refresh user từ database để lấy danh sách servers mới nhất
+        user = userService.findByUsername(user.getUsername());
         
         // Cập nhật session với user mới
         session.setAttribute("user", user);
@@ -334,7 +341,7 @@ public class AuthController {
                     activityLogService.logActivity(currentUser, "SERVER_DELETE", 
                         "Xóa máy chủ: " + serverToDelete.getName() + " (" + ip + ")");
                     
-                    // Refresh user data in session
+                    // **FIX**: Refresh user data từ database SAU KHI xóa, để lấy danh sách servers cập nhật
                     currentUser = userService.findByUsername(currentUser.getUsername());
                     session.setAttribute("user", currentUser);
                     

@@ -1,4 +1,7 @@
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\annotation\RequireAdmin.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\aspect\AdminCheckAspect.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\controller\ActivityLogController.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\controller\AdminController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\controller\FirewallController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\controller\SSHTestController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\controller\StatsController.java
@@ -11,6 +14,7 @@ C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\exampl
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\ServiceInfo.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\SSHRequest.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\User.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\UserRole.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\ActivityLogRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\ServerRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\UserRepository.java

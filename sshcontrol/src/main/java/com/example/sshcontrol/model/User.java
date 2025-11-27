@@ -26,6 +26,13 @@ public class User {
     @Column
     private String phoneNumber;
     
+    @Column(name = "role")
+    @Enumerated(EnumType.STRING)
+    private UserRole role = UserRole.USER;
+    
+    @Column(name = "is_active")
+    private boolean isActive = true;
+    
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     private List<Server> servers = new ArrayList<>();
 
@@ -59,8 +66,18 @@ public class User {
     public String getPhoneNumber() { return phoneNumber; }
     public void setPhoneNumber(String phoneNumber) { this.phoneNumber = phoneNumber; }
 
+    public UserRole getRole() { return role; }
+    public void setRole(UserRole role) { this.role = role; }
+
+    public boolean isActive() { return isActive; }
+    public void setActive(boolean active) { isActive = active; }
+
     public List<Server> getServers() { return servers; }
     public void setServers(List<Server> servers) { this.servers = servers; }
+    
+    public boolean isAdmin() {
+        return this.role == UserRole.ADMIN;
+    }
 }
 
 
