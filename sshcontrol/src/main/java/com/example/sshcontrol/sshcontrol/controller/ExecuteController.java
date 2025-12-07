@@ -4,6 +4,8 @@ import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.sshcontrol.service.UserService;
 import com.example.sshcontrol.sshcontrol.util.ControllerHelper;
+import com.example.sshcontrol.service.ActivityLogService;
+import com.example.sshcontrol.util.SystemLogger;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -19,12 +21,29 @@ public class ExecuteController {
     @Autowired
     private UserService userService;
     
+    @Autowired
+    private ActivityLogService activityLogService;
+    
     @GetMapping("/execute-page")
     public String executePage(HttpSession session, Model model) {
         if (!ControllerHelper.isUserLoggedIn(session)) {
             return "redirect:/login";
         }
+        
+        User user = ControllerHelper.getCurrentUser(session);
         ControllerHelper.updateUserAndModel(session, model, userService);
+        
+        // Ghi log khi user vào trang execute-page
+        if (user != null) {
+            // Ghi vào database
+            if (activityLogService != null) {
+                activityLogService.logActivity(user, "PAGE_VIEW", "User accessed execute-page");
+            }
+            
+            // Ghi vào terminal
+            SystemLogger.logActivity(user.getUsername(), "PAGE_VIEW", "accessed execute-page");
+        }
+        
         model.addAttribute("selectedHosts", ""); // Không có hosts được chọn từ modal
         return "execute-page";
     }

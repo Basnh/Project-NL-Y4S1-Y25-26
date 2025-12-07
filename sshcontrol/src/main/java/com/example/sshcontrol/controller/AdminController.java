@@ -6,6 +6,7 @@ import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.UserRole;
 import com.example.sshcontrol.service.ActivityLogService;
 import com.example.sshcontrol.sshcontrol.service.UserService;
+import com.example.sshcontrol.util.SystemLogger;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
@@ -109,6 +110,10 @@ public class AdminController {
         if (user != null) {
             user.setRole(UserRole.ADMIN);
             userService.save(user);
+            
+            // Log admin privilege change
+            SystemLogger.logAdminPrivilegeChange(admin.getUsername(), user.getUsername(), true);
+            
             redirectAttributes.addFlashAttribute("success", "Đã cấp quyền admin cho: " + user.getUsername());
         }
         
@@ -130,6 +135,10 @@ public class AdminController {
         if (user != null) {
             user.setRole(UserRole.USER);
             userService.save(user);
+            
+            // Log admin privilege removal
+            SystemLogger.logAdminPrivilegeChange(admin.getUsername(), user.getUsername(), false);
+            
             redirectAttributes.addFlashAttribute("success", "Đã hạ quyền admin cho: " + user.getUsername());
         }
         
@@ -151,6 +160,10 @@ public class AdminController {
         if (user != null) {
             user.setActive(false);
             userService.save(user);
+            
+            // Log account deactivation
+            SystemLogger.logAccountStatusChange(admin.getUsername(), user.getUsername(), false);
+            
             redirectAttributes.addFlashAttribute("success", "Đã vô hiệu hóa tài khoản: " + user.getUsername());
         }
         
@@ -172,6 +185,10 @@ public class AdminController {
         if (user != null) {
             user.setActive(true);
             userService.save(user);
+            
+            // Log account activation
+            SystemLogger.logAccountStatusChange(admin.getUsername(), user.getUsername(), true);
+            
             redirectAttributes.addFlashAttribute("success", "Đã kích hoạt tài khoản: " + user.getUsername());
         }
         

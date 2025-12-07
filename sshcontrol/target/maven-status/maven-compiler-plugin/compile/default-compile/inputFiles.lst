@@ -7,6 +7,8 @@ C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\exampl
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\controller\StatsController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\ActivityLog.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\FileInfo.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\FirewallIPRule.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\FirewallRule.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\MultiConfigRequest.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\MultiServiceRequest.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\MultiSSHRequest.java
@@ -16,10 +18,13 @@ C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\exampl
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\User.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\model\UserRole.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\ActivityLogRepository.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\FirewallIPRuleRepository.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\FirewallRuleRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\ServerRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\repository\UserRepository.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\ActivityLogService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\FileManagerService_Old.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\FirewallRuleService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\RemoteCommandExecutor.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\SshFileService.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\service\SSHService.java
@@ -43,3 +48,5 @@ C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\exampl
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\SSHController.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\sshcontrol\util\ControllerHelper.java
 C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\SshcontrolApplication.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\util\ConsoleLogger.java
+C:\Users\Admin\Desktop\Project NL Y4S1 25-26\sshcontrol\src\main\java\com\example\sshcontrol\util\SystemLogger.java

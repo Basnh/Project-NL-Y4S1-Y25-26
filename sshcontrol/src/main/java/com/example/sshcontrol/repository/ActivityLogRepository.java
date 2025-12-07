@@ -36,6 +36,9 @@ public interface ActivityLogRepository extends JpaRepository<ActivityLog, Long> 
     // Get recent activities
     List<ActivityLog> findTop10ByUserOrderByCreatedAtDesc(User user);
     
+    // Find all activities for admin (sorted by date descending)
+    Page<ActivityLog> findAllByOrderByCreatedAtDesc(Pageable pageable);
+    
     // Count logs by action
     long countByUserAndAction(User user, String action);
     

@@ -3,77 +3,920 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Firewall</title>
+    <title>Quản Lý Tường Lửa</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <link rel="stylesheet" href="/executepage.css">
+    <link rel="stylesheet" href="/layout.css">
+    <style>
+        .server-card {
+            transition: all 0.3s ease;
+            cursor: pointer;
+        }
+        
+        .server-card:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
+        }
+        
+        .server-card.selected {
+            background: linear-gradient(135deg, #3B82F6 0%, #1D4ED8 100%) !important;
+            color: white !important;
+            transform: scale(1.01);
+            box-shadow: 0 8px 25px rgba(59, 130, 246, 0.3);
+            border-color: #1D4ED8 !important;
+        }
+        
+        .server-card.selected .text-gray-800,
+        .server-card.selected .text-gray-600,
+        .server-card.selected .text-gray-500 {
+            color: white !important;
+        }
+        
+        .server-card.selected .fas {
+            color: white !important;
+        }
+        
+        .rule-row:hover {
+            background-color: #f5f5f5;
+        }
+        
+        .status-badge {
+            padding: 0.25rem 0.75rem;
+            border-radius: 9999px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+        
+        .status-allow {
+            background-color: #d1fae5;
+            color: #065f46;
+        }
+        
+        .status-block {
+            background-color: #fee2e2;
+            color: #7f1d1d;
+        }
+    </style>
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-white shadow">
-        <div class="container mx-auto px-4 py-4">
-            <h1 class="text-2xl font-bold">Firewall Management</h1>
-        </div>
-    </nav>
+<body class="bg-gray-100 min-h-screen flex flex-col">
+    <!-- Header -->
+    <div th:replace="~{fragments/header :: header('Quản Lý Tường Lửa', 'fas fa-shield-alt')}"></div>
     
-    <main class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded shadow p-6">
-            <h2 class="text-xl font-bold mb-4">Firewall Rules</h2>
-            
-            <div class="mb-4">
-                <label class="block text-sm font-medium mb-2">Zone:</label>
-                <select class="px-3 py-2 border border-gray-300 rounded">
-                    <option>public</option>
-                    <option>private</option>
-                    <option>dmz</option>
-                </select>
-            </div>
-            
-            <table class="w-full border-collapse border border-gray-300">
-                <thead>
-                    <tr class="bg-gray-100">
-                        <th class="border border-gray-300 p-2 text-left">Type</th>
-                        <th class="border border-gray-300 p-2 text-left">Service</th>
-                        <th class="border border-gray-300 p-2 text-left">Port</th>
-                        <th class="border border-gray-300 p-2 text-left">Protocol</th>
-                        <th class="border border-gray-300 p-2 text-left">Action</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr>
-                        <td class="border border-gray-300 p-2">Service</td>
-                        <td class="border border-gray-300 p-2">DNS</td>
-                        <td class="border border-gray-300 p-2">53</td>
-                        <td class="border border-gray-300 p-2">TCP/UDP</td>
-                        <td class="border border-gray-300 p-2"><button class="text-red-600">Delete</button></td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">Service</td>
-                        <td class="border border-gray-300 p-2">HTTP</td>
-                        <td class="border border-gray-300 p-2">80</td>
-                        <td class="border border-gray-300 p-2">TCP</td>
-                        <td class="border border-gray-300 p-2"><button class="text-red-600">Delete</button></td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">Service</td>
-                        <td class="border border-gray-300 p-2">HTTPS</td>
-                        <td class="border border-gray-300 p-2">443</td>
-                        <td class="border border-gray-300 p-2">TCP</td>
-                        <td class="border border-gray-300 p-2"><button class="text-red-600">Delete</button></td>
-                    </tr>
-                    <tr>
-                        <td class="border border-gray-300 p-2">Service</td>
-                        <td class="border border-gray-300 p-2">SSH</td>
-                        <td class="border border-gray-300 p-2">22</td>
-                        <td class="border border-gray-300 p-2">TCP</td>
-                        <td class="border border-gray-300 p-2"><button class="text-red-600">Delete</button></td>
-                    </tr>
-                </tbody>
-            </table>
-            
-            <div class="mt-4 flex gap-2">
-                <button class="px-4 py-2 bg-blue-600 text-white rounded">Add Rule</button>
-                <button class="px-4 py-2 bg-red-600 text-white rounded">Delete Selected</button>
+    <main class="flex-1">
+        <div class="container mx-auto px-4 py-8">
+            <div class="max-w-6xl mx-auto">
+                
+                <!-- Server Selection -->
+                <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                    <h2 class="text-lg font-semibold text-gray-800 mb-4">
+                        <i class="fas fa-server mr-2"></i>Chọn máy chủ để cấu hình firewall:
+                    </h2>
+                    
+                    <div th:if="${userServers != null and !userServers.isEmpty()}" class="grid gap-3">
+                        <div th:each="server : ${userServers}" 
+                             class="server-card flex items-center p-4 bg-gray-50 border-2 border-gray-200 rounded-lg"
+                             th:data-server-id="${server.id}"
+                             th:data-server-ip="${server.ip}"
+                             th:data-server-name="${server.name}"
+                             onclick="selectServer(this)">
+                            <div class="flex items-center flex-1">
+                                <i class="fas fa-server text-gray-600 mr-4 text-xl"></i>
+                                <div class="flex-1">
+                                    <div class="font-medium text-gray-800" th:text="${server.name}"></div>
+                                    <div class="text-sm text-gray-600 mt-1" th:text="${server.ip}"></div>
+                                </div>
+                            </div>
+                            <div class="flex items-center gap-2">
+                                <span class="px-3 py-1 text-xs rounded-full font-medium bg-green-100 text-green-800">
+                                    <i class="fas fa-circle text-green-600 mr-1"></i>Sẵn sàng
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div th:unless="${userServers != null and !userServers.isEmpty()}" class="text-center py-6">
+                        <p class="text-gray-600">
+                            <i class="fas fa-exclamation-circle mr-2"></i>Bạn chưa thêm máy chủ nào. 
+                            <a href="/server-list" class="text-blue-600 hover:underline font-semibold">Thêm máy chủ ngay</a>
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Configuration Panel -->
+                <div id="configPanel" class="bg-white rounded-lg shadow-md p-6 mb-6" style="display: none;">
+                    <!-- Firewall Control Section -->
+                    <div class="mb-6 pb-6 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-power-off"></i>Điều khiển Tường Lửa
+                        </h3>
+                        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+                            <button id="enableFirewallBtn" class="px-4 py-3 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
+                                <i class="fas fa-play"></i>Bật
+                            </button>
+                            <button id="disableFirewallBtn" class="px-4 py-3 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
+                                <i class="fas fa-stop"></i>Tắt
+                            </button>
+                            <button id="restartFirewallBtn" class="px-4 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
+                                <i class="fas fa-sync"></i>Khởi động lại
+                            </button>
+                            <button id="reloadFirewallBtn" class="px-4 py-3 bg-purple-600 hover:bg-purple-700 text-white rounded-lg font-medium transition flex items-center justify-center gap-2">
+                                <i class="fas fa-reload"></i>Tải lại
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Zone & Info Bar -->
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pb-6 border-b border-gray-200">
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">
+                                <i class="fas fa-layer-group mr-2"></i>Hiển thị quy tắc trong zone:
+                            </label>
+                            <select id="zoneSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
+                                <option value="public">public (default)</option>
+                                <option value="private">private</option>
+                                <option value="dmz">dmz</option>
+                            </select>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p class="text-sm text-gray-700">
+                                <span class="font-medium">Trạng thái Firewall:</span>
+                                <span id="firewallStatus" class="ml-1 font-semibold text-gray-800 block mt-1">
+                                    <i class="fas fa-spinner fa-spin"></i> Kiểm tra...
+                                </span>
+                            </p>
+                        </div>
+
+                        <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
+                            <p class="text-sm text-gray-700">
+                                <span class="font-medium">Tổng quy tắc:</span>
+                                <span id="ruleCount" class="ml-1 font-bold text-blue-600 block mt-1">0</span>
+                            </p>
+                        </div>
+                    </div>
+
+                    <!-- Action Buttons -->
+                    <div class="flex flex-wrap gap-2 mb-6 pb-6 border-b border-gray-200">
+                        <button class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-check-square mr-2"></i>Chọn tất cả
+                        </button>
+                        <button class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-times-circle mr-2"></i>Bỏ chọn
+                        </button>
+                        <button class="px-3 py-2 bg-gray-100 hover:bg-gray-200 text-gray-800 rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-arrows-alt-h mr-2"></i>Đảo ngược
+                        </button>
+                        <div class="flex-1"></div>
+                        <button id="refreshBtn" class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+                            <i class="fas fa-sync-alt mr-2"></i>Làm mới
+                        </button>
+                    </div>
+
+                    <!-- Add Rules Buttons -->
+                    <div class="flex flex-wrap gap-2 mb-6 pb-6 border-b border-gray-200">
+                        <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-plus-circle mr-2"></i>Thêm cổng cho phép
+                        </button>
+                        <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-plus-circle mr-2"></i>Thêm dịch vụ cho phép
+                        </button>
+                        <button class="px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg text-sm font-medium transition">
+                            <i class="fas fa-arrow-right mr-2"></i>Thêm chuyển tiếp cổng
+                        </button>
+                    </div>
+
+                    <!-- Common Rules Templates -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-star text-yellow-500"></i>Quy tắc thông dụng
+                        </h3>
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <!-- SSH -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="ssh" data-port="22" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-terminal text-blue-600"></i>SSH
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 22 - Truy cập từ xa</div>
+                            </button>
+
+                            <!-- HTTP -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="http" data-port="80" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-globe text-red-600"></i>HTTP
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 80 - Web không mã hóa</div>
+                            </button>
+
+                            <!-- HTTPS -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="https" data-port="443" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-lock text-green-600"></i>HTTPS
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 443 - Web mã hóa</div>
+                            </button>
+
+                            <!-- DNS -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="dns" data-port="53" data-protocol="TCP/UDP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-sitemap text-purple-600"></i>DNS
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 53 - Dịch vụ tên miền</div>
+                            </button>
+
+                            <!-- MySQL -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="mysql" data-port="3306" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-database text-orange-600"></i>MySQL
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 3306 - Cơ sở dữ liệu</div>
+                            </button>
+
+                            <!-- PostgreSQL -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="postgresql" data-port="5432" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-database text-blue-600"></i>PostgreSQL
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 5432 - Cơ sở dữ liệu</div>
+                            </button>
+
+                            <!-- MongoDB -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="mongodb" data-port="27017" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-leaf text-green-600"></i>MongoDB
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 27017 - NoSQL DB</div>
+                            </button>
+
+                            <!-- FTP -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="ftp" data-port="21" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-file-import text-indigo-600"></i>FTP
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 21 - Truyền file</div>
+                            </button>
+
+                            <!-- SMTP -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="smtp" data-port="25" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-envelope text-pink-600"></i>SMTP
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 25 - Email gửi</div>
+                            </button>
+
+                            <!-- POP3 -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="pop3" data-port="110" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-inbox text-red-600"></i>POP3
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 110 - Email nhận</div>
+                            </button>
+
+                            <!-- IMAP -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="imap" data-port="143" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-envelope-open text-blue-600"></i>IMAP
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 143 - Email quản lý</div>
+                            </button>
+
+                            <!-- Redis -->
+                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="redis" data-port="6379" data-protocol="TCP">
+                                <div class="font-semibold text-gray-800 flex items-center gap-2">
+                                    <i class="fas fa-bolt text-yellow-600"></i>Redis
+                                </div>
+                                <div class="text-sm text-gray-600 mt-1">Cổng 6379 - Cache/Queue</div>
+                            </button>
+                        </div>
+                        <p class="text-sm text-gray-600 mt-3">
+                            <i class="fas fa-info-circle mr-2"></i>Nhấp vào một quy tắc để thêm vào firewall
+                        </p>
+                    </div>
+                </div>
+
+                <!-- Rules Table -->
+                <div id="rulesPanel" class="bg-white rounded-lg shadow-md overflow-hidden" style="display: none;">
+                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
+                        <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
+                            <i class="fas fa-list"></i>Danh sách quy tắc
+                        </h3>
+                    </div>
+
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-sm">
+                            <thead>
+                                <tr class="bg-gray-50 border-b border-gray-200">
+                                    <th class="px-6 py-3 text-left">
+                                        <input type="checkbox" class="cursor-pointer">
+                                    </th>
+                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Loại</th>
+                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Cổng/Dịch vụ</th>
+                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Giao thức</th>
+                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Trạng thái</th>
+                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Hành động</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <!-- Sample Rules -->
+                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-mono text-gray-800">dns (53)</td>
+                                    <td class="px-6 py-4">TCP/UDP</td>
+                                    <td class="px-6 py-4">
+                                        <span class="status-badge status-allow">✓ Cho phép</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
+                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-mono text-gray-800">http (80)</td>
+                                    <td class="px-6 py-4">TCP</td>
+                                    <td class="px-6 py-4">
+                                        <span class="status-badge status-allow">✓ Cho phép</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
+                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-mono text-gray-800">https (443)</td>
+                                    <td class="px-6 py-4">TCP</td>
+                                    <td class="px-6 py-4">
+                                        <span class="status-badge status-allow">✓ Cho phép</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
+                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+
+                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
+                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
+                                    <td class="px-6 py-4">
+                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
+                                    </td>
+                                    <td class="px-6 py-4 font-mono text-gray-800">ssh (22)</td>
+                                    <td class="px-6 py-4">TCP</td>
+                                    <td class="px-6 py-4">
+                                        <span class="status-badge status-allow">✓ Cho phép</span>
+                                    </td>
+                                    <td class="px-6 py-4">
+                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
+                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
+                                        </button>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
+                        <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+                            <i class="fas fa-trash-alt mr-2"></i>Xóa các quy tắc được chọn
+                        </button>
+                        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+                            <i class="fas fa-check mr-2"></i>Áp dụng quy tắc
+                        </button>
+                    </div>
+                </div>
+
+                <!-- IP Management Section -->
+                <div id="ipManagementPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" style="display: none;">
+                    <!-- Allow IP -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold text-gray-800">Cho phép IP/CIDR</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <input type="text" placeholder="VD: 192.168.1.100 hoặc 10.0.0.0/8" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700">
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" class="cursor-pointer">
+                                <span class="text-gray-700">Cho phép vĩnh viễn</span>
+                            </label>
+                            <button class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+                                <i class="fas fa-plus-circle mr-2"></i>Thêm vào danh sách cho phép
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Block IP -->
+                    <div class="bg-white rounded-lg shadow-md p-6">
+                        <div class="flex items-center gap-2 mb-4">
+                            <i class="fas fa-ban text-red-600 text-xl"></i>
+                            <h3 class="text-lg font-semibold text-gray-800">Chặn IP/CIDR</h3>
+                        </div>
+                        <div class="space-y-3">
+                            <input type="text" placeholder="VD: 192.168.1.100 hoặc 10.0.0.0/8" 
+                                   class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-700">
+                            <label class="flex items-center gap-2 text-sm">
+                                <input type="checkbox" class="cursor-pointer">
+                                <span class="text-gray-700">Chặn vĩnh viễn</span>
+                            </label>
+                            <button class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+                                <i class="fas fa-ban mr-2"></i>Thêm vào danh sách chặn
+                            </button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Footer Actions -->
+                <div id="footerActions" class="mt-6 flex justify-end gap-3" style="display: none;">
+                    <button class="px-6 py-2 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-medium transition">
+                        <i class="fas fa-times mr-2"></i>Hủy
+                    </button>
+                    <button class="px-6 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
+                        <i class="fas fa-check mr-2"></i>Áp dụng thay đổi
+                    </button>
+                </div>
             </div>
         </div>
     </main>
+
+    <!-- Footer -->
+    <div th:replace="~{fragments/footer :: footer}"></div>
+
+    <script>
+        let selectedServer = null;
+
+        document.addEventListener('DOMContentLoaded', function() {
+            const serverCards = document.querySelectorAll('.server-card');
+            const configPanel = document.getElementById('configPanel');
+            const rulesPanel = document.getElementById('rulesPanel');
+            const ipManagementPanel = document.getElementById('ipManagementPanel');
+            const footerActions = document.getElementById('footerActions');
+            const checkboxes = document.querySelectorAll('tbody input[type="checkbox"]');
+            const headerCheckbox = document.querySelector('thead input[type="checkbox"]');
+            const refreshBtn = document.getElementById('refreshBtn');
+
+            // Server Selection
+            serverCards.forEach(card => {
+                card.addEventListener('click', function() {
+                    serverCards.forEach(c => c.classList.remove('selected'));
+                    this.classList.add('selected');
+                    
+                    selectedServer = {
+                        id: this.dataset.serverId,
+                        ip: this.dataset.serverIp,
+                        name: this.dataset.serverName
+                    };
+                    
+                    configPanel.style.display = 'block';
+                    rulesPanel.style.display = 'block';
+                    ipManagementPanel.style.display = 'grid';
+                    footerActions.style.display = 'flex';
+                    checkFirewallStatus();
+                    loadRulesForZone();
+                });
+            });
+
+            // Firewall Control Buttons
+            const enableBtn = document.getElementById('enableFirewallBtn');
+            const disableBtn = document.getElementById('disableFirewallBtn');
+            const restartBtn = document.getElementById('restartFirewallBtn');
+            const reloadBtn = document.getElementById('reloadFirewallBtn');
+
+            if (enableBtn) {
+                enableBtn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    enableBtn.disabled = true;
+                    try {
+                        const response = await fetch(`/firewall/api/enable?ip=${selectedServer.ip}`, { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            showNotification('Bật tường lửa thành công', 'success');
+                            // Wait a moment for firewall to start, then check status
+                            await new Promise(r => setTimeout(r, 1500));
+                            await checkFirewallStatus();
+                        } else {
+                            showNotification('Lỗi: ' + (data.message || 'Không thể bật tường lửa'), 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Lỗi kết nối', 'error');
+                    } finally {
+                        enableBtn.disabled = false;
+                    }
+                });
+            }
+
+            if (disableBtn) {
+                disableBtn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    if (!confirm('Bạn chắc chắn muốn tắt tường lửa?')) return;
+                    disableBtn.disabled = true;
+                    try {
+                        const response = await fetch(`/firewall/api/disable?ip=${selectedServer.ip}`, { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            showNotification('Tắt tường lửa thành công', 'success');
+                            // Wait for firewall to process
+                            await new Promise(r => setTimeout(r, 1500));
+                            await checkFirewallStatus();
+                        } else {
+                            showNotification('Lỗi: ' + (data.message || 'Không thể tắt tường lửa'), 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Lỗi kết nối', 'error');
+                    } finally {
+                        disableBtn.disabled = false;
+                    }
+                });
+            }
+
+            if (restartBtn) {
+                restartBtn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    restartBtn.disabled = true;
+                    try {
+                        const response = await fetch(`/firewall/api/restart?ip=${selectedServer.ip}`, { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            showNotification('Khởi động lại tường lửa thành công', 'success');
+                            // Wait for firewall to restart
+                            await new Promise(r => setTimeout(r, 1500));
+                            await checkFirewallStatus();
+                        } else {
+                            showNotification('Lỗi: ' + (data.message || 'Không thể khởi động lại tường lửa'), 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Lỗi kết nối', 'error');
+                    } finally {
+                        restartBtn.disabled = false;
+                    }
+                });
+            }
+
+            if (reloadBtn) {
+                reloadBtn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    reloadBtn.disabled = true;
+                    try {
+                        const response = await fetch(`/firewall/api/reload?ip=${selectedServer.ip}`, { method: 'POST' });
+                        const data = await response.json();
+                        if (data.success) {
+                            showNotification('Tải lại tường lửa thành công', 'success');
+                            // Wait for firewall to reload
+                            await new Promise(r => setTimeout(r, 1500));
+                            await checkFirewallStatus();
+                        } else {
+                            showNotification('Lỗi: ' + (data.message || 'Không thể tải lại tường lửa'), 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Lỗi kết nối', 'error');
+                    } finally {
+                        reloadBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Refresh Button
+            refreshBtn.addEventListener('click', async () => {
+                if (!selectedServer) {
+                    alert('Vui lòng chọn máy chủ');
+                    return;
+                }
+                await checkFirewallStatus();
+                await loadRulesForZone();
+            });
+
+            // Zone Selector Change
+            const zoneSelect = document.getElementById('zoneSelect');
+            if (zoneSelect) {
+                zoneSelect.addEventListener('change', async () => {
+                    await loadRulesForZone();
+                });
+            }
+
+            // Select All
+            const selectAllBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Chọn tất cả')
+            );
+            if (selectAllBtn) {
+                selectAllBtn.addEventListener('click', () => {
+                    checkboxes.forEach(cb => cb.checked = true);
+                    if (headerCheckbox) headerCheckbox.checked = true;
+                });
+            }
+
+            // Deselect All
+            const deselectBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Bỏ chọn')
+            );
+            if (deselectBtn) {
+                deselectBtn.addEventListener('click', () => {
+                    checkboxes.forEach(cb => cb.checked = false);
+                    if (headerCheckbox) headerCheckbox.checked = false;
+                });
+            }
+
+            // Invert Selection
+            const invertBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Đảo ngược')
+            );
+            if (invertBtn) {
+                invertBtn.addEventListener('click', () => {
+                    checkboxes.forEach(cb => cb.checked = !cb.checked);
+                });
+            }
+
+            // Header checkbox
+            if (headerCheckbox) {
+                headerCheckbox.addEventListener('change', function() {
+                    checkboxes.forEach(cb => cb.checked = this.checked);
+                });
+            }
+
+            // Add Port
+            const addPortBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Thêm cổng cho phép')
+            );
+            if (addPortBtn) {
+                addPortBtn.addEventListener('click', () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    const port = prompt('Nhập số cổng:');
+                    const protocol = prompt('Giao thức (TCP/UDP/TCP,UDP):', 'TCP');
+                    if (port && protocol) {
+                        addRule('port', port, protocol, 'allow');
+                    }
+                });
+            }
+
+            // Add Service
+            const addServiceBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Thêm dịch vụ cho phép')
+            );
+            if (addServiceBtn) {
+                addServiceBtn.addEventListener('click', () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    const service = prompt('Tên dịch vụ (http, https, ssh, v.v.):');
+                    const protocol = prompt('Giao thức:', 'TCP');
+                    if (service && protocol) {
+                        addRule('service', service, protocol, 'allow');
+                    }
+                });
+            }
+
+            // Add Port Forward
+            const addForwardBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Thêm chuyển tiếp cổng')
+            );
+            if (addForwardBtn) {
+                addForwardBtn.addEventListener('click', () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    const port = prompt('Cổng bên ngoài:');
+                    const targetIp = prompt('IP đích:');
+                    const targetPort = prompt('Cổng đích:');
+                    if (port && targetIp && targetPort) {
+                        addRule('forward', `${port}->${targetIp}:${targetPort}`, 'TCP', 'allow');
+                    }
+                });
+            }
+
+            // Delete selected
+            const deleteSelectedBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Xóa các quy tắc được chọn')
+            );
+            if (deleteSelectedBtn) {
+                deleteSelectedBtn.addEventListener('click', async () => {
+                    if (!selectedServer) return;
+                    const selected = Array.from(checkboxes).filter(cb => cb.checked).length;
+                    if (selected === 0) {
+                        alert('Chọn ít nhất một quy tắc');
+                        return;
+                    }
+                    if (confirm(`Xóa ${selected} quy tắc?`)) {
+                        showNotification('Đã xóa quy tắc', 'success');
+                        setTimeout(() => location.reload(), 1000);
+                    }
+                });
+            }
+
+            // Apply rules
+            const applyBtn = Array.from(document.querySelectorAll('button')).find(btn => 
+                btn.textContent.includes('Áp dụng quy tắc') && btn.closest('#rulesPanel')
+            );
+            if (applyBtn) {
+                applyBtn.addEventListener('click', async () => {
+                    if (!selectedServer) return;
+                    try {
+                        const zone = document.getElementById('zoneSelect').value;
+                        await fetch(`/api/firewall/apply?zone=${zone}`, { method: 'POST' });
+                        showNotification('Áp dụng quy tắc thành công', 'success');
+                    } catch (error) {
+                        showNotification('Lỗi khi áp dụng', 'error');
+                    }
+                });
+            }
+
+            // Common Rules
+            const commonRuleBtns = document.querySelectorAll('.commonRuleBtn');
+            commonRuleBtns.forEach(btn => {
+                btn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    
+                    const service = btn.dataset.service;
+                    const port = btn.dataset.port;
+                    const protocol = btn.dataset.protocol;
+                    
+                    // Show confirmation
+                    if (!confirm(`Thêm quy tắc cho ${service.toUpperCase()} (cổng ${port})?`)) {
+                        return;
+                    }
+                    
+                    try {
+                        const response = await fetch('/api/firewall/add-rule', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'port',
+                                value: port,
+                                protocol: protocol,
+                                action: 'allow',
+                                zone: document.getElementById('zoneSelect').value || 'public'
+                            })
+                        });
+                        
+                        if (response.ok) {
+                            showNotification(`Thêm quy tắc ${service.toUpperCase()} thành công`, 'success');
+                            await new Promise(r => setTimeout(r, 1000));
+                            await loadRulesForZone();
+                        } else {
+                            showNotification('Lỗi khi thêm quy tắc', 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Lỗi: ' + error.message, 'error');
+                    }
+                });
+            });
+        });
+
+        async function checkFirewallStatus() {
+            if (!selectedServer) return;
+            try {
+                const statusEl = document.getElementById('firewallStatus');
+                statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kiểm tra...';
+                
+                const response = await fetch(`/firewall/api/status?ip=${selectedServer.ip}`, { method: 'POST' });
+                const data = await response.json();
+                
+                if (data.isRunning) {
+                    statusEl.innerHTML = '<span class="text-green-600 font-semibold">✓ Đang chạy</span>';
+                } else {
+                    statusEl.innerHTML = '<span class="text-red-600 font-semibold">✗ Không chạy</span>';
+                }
+            } catch (error) {
+                console.error('Status check error:', error);
+                document.getElementById('firewallStatus').innerHTML = '<span class="text-gray-600">Lỗi kiểm tra</span>';
+            }
+        }
+
+        async function loadRulesForZone() {
+            if (!selectedServer) return;
+            try {
+                const zone = document.getElementById('zoneSelect').value || 'public';
+                const response = await fetch(`/api/firewall/rules?zone=${zone}`);
+                const data = await response.json();
+                
+                // Update rule count
+                document.getElementById('ruleCount').textContent = data.length || 0;
+                
+                // Update rules table
+                const tbody = document.querySelector('#rulesPanel tbody');
+                if (tbody) {
+                    tbody.innerHTML = ''; // Clear existing rows
+                    
+                    if (data && data.length > 0) {
+                        data.forEach(rule => {
+                            const row = document.createElement('tr');
+                            row.className = 'border-t border-gray-200 hover:bg-gray-50 transition';
+                            row.innerHTML = `
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" class="w-4 h-4 cursor-pointer">
+                                </td>
+                                <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleValue || '-'}</td>
+                                <td class="px-4 py-3 text-sm text-gray-800">${rule.protocol || '-'}</td>
+                                <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleType || '-'}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                                        rule.action === 'allow' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                    }">${rule.action === 'allow' ? 'Cho phép' : 'Chặn'}</span>
+                                </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <button onclick="deleteRule(${rule.id})" class="text-red-600 hover:text-red-800 font-medium">
+                                        <i class="fas fa-trash-alt"></i> Xóa
+                                    </button>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = '<td colspan="6" class="px-4 py-6 text-center text-gray-500">Không có quy tắc nào</td>';
+                        tbody.appendChild(row);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading rules:', error);
+                document.getElementById('ruleCount').textContent = '0';
+            }
+        }
+
+        async function addRule(type, value, protocol, action) {
+            if (!selectedServer) return;
+            try {
+                const response = await fetch('/api/firewall/add-rule', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ type, value, protocol, action, zone: 'public' })
+                });
+                if (response.ok) {
+                    showNotification('Thêm quy tắc thành công', 'success');
+                    setTimeout(() => location.reload(), 1000);
+                }
+            } catch (error) {
+                showNotification('Lỗi khi thêm quy tắc', 'error');
+            }
+        }
+
+        async function deleteRule(ruleId) {
+            if (!confirm('Bạn chắc chắn muốn xóa quy tắc này?')) return;
+            try {
+                const response = await fetch(`/api/firewall/delete-rule/${ruleId}`, {
+                    method: 'DELETE'
+                });
+                if (response.ok) {
+                    showNotification('Xóa quy tắc thành công', 'success');
+                    await loadRulesForZone();
+                } else {
+                    showNotification('Lỗi khi xóa quy tắc', 'error');
+                }
+            } catch (error) {
+                showNotification('Lỗi: ' + error.message, 'error');
+            }
+        }
+
+        function showNotification(message, type = 'info') {
+            const notification = document.createElement('div');
+            notification.className = `fixed top-4 right-4 px-6 py-3 rounded-lg font-medium text-white z-50 ${
+                type === 'success' ? 'bg-green-500' : type === 'error' ? 'bg-red-500' : 'bg-blue-500'
+            }`;
+            notification.textContent = message;
+            document.body.appendChild(notification);
+            setTimeout(() => {
+                notification.style.opacity = '0';
+                setTimeout(() => notification.remove(), 300);
+            }, 3000);
+        }
+
+        function selectServer(element) {
+            // This is for CSS selection, actual logic is in event listener
+        }
+    </script>
 </body>
 </html>

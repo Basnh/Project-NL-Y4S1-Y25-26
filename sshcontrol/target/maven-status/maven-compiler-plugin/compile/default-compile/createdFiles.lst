@@ -1,7 +1,9 @@
 com\example\sshcontrol\controller\ActivityLogController.class
+com\example\sshcontrol\model\FirewallRule.class
 com\example\sshcontrol\service\UserService.class
 com\example\sshcontrol\sshcontrol\controller\SSHCommandController.class
 com\example\sshcontrol\sshcontrol\util\ControllerHelper.class
+com\example\sshcontrol\util\ConsoleLogger.class
 com\example\sshcontrol\sshcontrol\controller\MultiExecuteController.class
 com\example\sshcontrol\model\MultiConfigRequest.class
 com\example\sshcontrol\model\UserRole.class
@@ -22,6 +24,7 @@ com\example\sshcontrol\sshcontrol\SSHController.class
 com\example\sshcontrol\sshcontrol\controller\ExecuteController.class
 com\example\sshcontrol\sshcontrol\service\FileManagerService$FileInfo.class
 com\example\sshcontrol\model\FileInfo.class
+com\example\sshcontrol\repository\FirewallIPRuleRepository.class
 com\example\sshcontrol\controller\SSHTestController.class
 com\example\sshcontrol\service\SSHService.class
 com\example\sshcontrol\model\ServiceInfo.class
@@ -29,9 +32,12 @@ com\example\sshcontrol\sshcontrol\service\ServerService.class
 com\example\sshcontrol\controller\FirewallController.class
 com\example\sshcontrol\repository\UserRepository.class
 com\example\sshcontrol\controller\StatsController.class
+com\example\sshcontrol\service\FirewallRuleService.class
 com\example\sshcontrol\repository\ActivityLogRepository.class
+com\example\sshcontrol\model\FirewallIPRule.class
 com\example\sshcontrol\sshcontrol\controller\MonitoringController.class
 com\example\sshcontrol\SshcontrolApplication.class
+com\example\sshcontrol\repository\FirewallRuleRepository.class
 com\example\sshcontrol\repository\ServerRepository.class
 com\example\sshcontrol\service\ActivityLogService$ActivityStatistics.class
 com\example\sshcontrol\aspect\AdminCheckAspect.class
@@ -45,3 +51,4 @@ com\example\sshcontrol\sshcontrol\controller\FileManagerController.class
 com\example\sshcontrol\sshcontrol\controller\ServerInfoController.class
 com\example\sshcontrol\sshcontrol\controller\AuthController.class
 com\example\sshcontrol\sshcontrol\service\StatisticsService.class
+com\example\sshcontrol\util\SystemLogger.class

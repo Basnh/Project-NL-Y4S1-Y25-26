@@ -6,6 +6,7 @@ import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.service.UserService;
 import com.example.sshcontrol.service.SystemStatsService;
 import com.example.sshcontrol.service.ActivityLogService;
+import com.example.sshcontrol.util.SystemLogger;
 import com.example.sshcontrol.repository.ServerRepository;
 import java.util.List;
 import jakarta.servlet.http.HttpSession;
@@ -55,6 +56,7 @@ public class AuthController {
     public String logout(HttpSession session) {
         User user = (User) session.getAttribute("user");
         if (user != null) {
+            SystemLogger.logUserLogout(user.getUsername());
             activityLogService.logActivity(user, "LOGOUT", "Người dùng đã đăng xuất");
         }
         
@@ -169,6 +171,9 @@ public class AuthController {
         newUser.setActive(true); // Set active mặc định là true
         newUser.setServers(new ArrayList<>()); // Khởi tạo danh sách server rỗng
         userService.save(newUser);
+        
+        // Log đăng ký
+        SystemLogger.logUserRegistration(username, email);
 
         // Xóa CAPTCHA khỏi session
         session.removeAttribute("captcha");
@@ -279,6 +284,9 @@ public class AuthController {
         server.setUser(user);
         serverRepository.save(server);
         
+        // Log thêm server
+        SystemLogger.logAddServer(user.getUsername(), server.getName(), server.getIp());
+        
         // Refresh user từ database để lấy danh sách servers mới nhất
         user = userService.findByUsername(user.getUsername());
         
@@ -336,6 +344,9 @@ public class AuthController {
                     
                     // Lưu user (để cập nhật relationship)
                     userService.save(currentUser);
+                    
+                    // Log xóa server
+                    SystemLogger.logDeleteServer(currentUser.getUsername(), serverToDelete.getName(), ip);
                     
                     // Ghi nhận hoạt động
                     activityLogService.logActivity(currentUser, "SERVER_DELETE", 
@@ -548,6 +559,9 @@ public class AuthController {
             session.setAttribute("user", user);
             session.setAttribute("servers", user.getServers());
             
+            // Log đăng nhập thành công
+            SystemLogger.logUserLogin(username);
+            
             // Ghi nhận hoạt động đăng nhập
             activityLogService.logActivity(user, "LOGIN", "Người dùng đã đăng nhập từ trình duyệt");
             
@@ -557,6 +571,10 @@ public class AuthController {
             
             return "redirect:/";
         } else {
+            // Log đăng nhập thất bại
+            String reason = user != null ? "Mật khẩu sai" : "Tên người dùng không tồn tại";
+            SystemLogger.logLoginFailed(username, reason);
+            
             // Ghi nhận đăng nhập thất bại
             if (user != null) {
                 activityLogService.logActivity(user, "LOGIN_FAILED", "Cố gắng đăng nhập thất bại - mật khẩu sai", null, "FAILED");

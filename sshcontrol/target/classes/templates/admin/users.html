@@ -3,62 +3,95 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quản lý Users</title>
+    <title>Quản lý Users - Admin</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/layout.css">
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-white shadow">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Quản lý Users</h1>
-            <a href="/admin" class="text-blue-600 hover:underline">Quay lại</a>
+<body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
+    <main class="flex-1">
+        <div class="min-h-screen bg-gray-100 py-10 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div th:replace="~{fragments/header(title='Quản lý Users', icon='fas fa-users')}"></div>
+                
+                <div class="bg-white rounded-xl shadow-lg border border-gray-200">
+                    <div class="overflow-x-auto">
+                        <table class="w-full">
+                            <thead class="bg-gray-50 border-b border-gray-200">
+                                <tr>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-hashtag text-gray-400 mr-2"></i>ID
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-user text-gray-400 mr-2"></i>Username
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-id-card text-gray-400 mr-2"></i>Họ tên
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-envelope text-gray-400 mr-2"></i>Email
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-shield-alt text-gray-400 mr-2"></i>Role
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-heart text-gray-400 mr-2"></i>Trạng thái
+                                    </th>
+                                    <th class="px-6 py-4 text-left text-sm font-semibold text-gray-800">
+                                        <i class="fas fa-cog text-gray-400 mr-2"></i>Hành động
+                                    </th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-gray-200">
+                                <tr th:each="user : ${users}" class="hover:bg-gray-50 transition-colors duration-150">
+                                    <td class="px-6 py-4 text-sm text-gray-900" th:text="${user.id}">1</td>
+                                    <td class="px-6 py-4">
+                                        <div class="flex items-center space-x-3">
+                                            <img src="/images/avatar-default.png" alt="Avatar" class="w-8 h-8 rounded-full border border-gray-300" />
+                                            <span class="font-medium text-gray-900" th:text="${user.username}">user1</span>
+                                        </div>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm text-gray-700" th:text="${user.fullName}">John Doe</td>
+                                    <td class="px-6 py-4 text-sm text-gray-700" th:text="${user.email}">user@example.com</td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span th:if="${user.admin}" class="inline-flex items-center px-3 py-1 bg-purple-100 text-purple-800 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-crown mr-1"></i> Admin
+                                        </span>
+                                        <span th:if="!${user.admin}" class="inline-flex items-center px-3 py-1 bg-blue-100 text-blue-800 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-user-circle mr-1"></i> User
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <span th:if="${user.active}" class="inline-flex items-center px-3 py-1 bg-green-100 text-green-800 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-check-circle mr-1"></i> Active
+                                        </span>
+                                        <span th:if="!${user.active}" class="inline-flex items-center px-3 py-1 bg-red-100 text-red-800 rounded-full text-xs font-semibold">
+                                            <i class="fas fa-ban mr-1"></i> Inactive
+                                        </span>
+                                    </td>
+                                    <td class="px-6 py-4 text-sm">
+                                        <a th:href="'/admin/users/' + ${user.id}" class="inline-flex items-center px-3 py-1.5 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors duration-200 text-xs font-medium">
+                                            <i class="fas fa-eye mr-1"></i> Chi tiết
+                                        </a>
+                                    </td>
+                                </tr>
+                                <tr th:if="${#lists.isEmpty(users)}">
+                                    <td colspan="7" class="px-6 py-8 text-center text-gray-500 text-sm">
+                                        <i class="fas fa-inbox text-3xl text-gray-300 mb-2"></i>
+                                        <p>Không có user nào</p>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
         </div>
-    </nav>
+    </main>
     
-    <main class="container mx-auto px-4 py-8">
-        <div class="bg-white rounded shadow overflow-hidden">
-            <table class="w-full border-collapse">
-                <thead class="bg-gray-100 border-b">
-                    <tr>
-                        <th class="p-4 text-left">ID</th>
-                        <th class="p-4 text-left">Username</th>
-                        <th class="p-4 text-left">Full Name</th>
-                        <th class="p-4 text-left">Email</th>
-                        <th class="p-4 text-left">Role</th>
-                        <th class="p-4 text-left">Status</th>
-                        <th class="p-4 text-left">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr th:each="user : ${users}" class="border-b hover:bg-gray-50">
-                        <td class="p-4" th:text="${user.id}">1</td>
-                        <td class="p-4" th:text="${user.username}">user1</td>
-                        <td class="p-4" th:text="${user.fullName}">John Doe</td>
-                        <td class="p-4" th:text="${user.email}">user@example.com</td>
-                        <td class="p-4">
-                            <span th:if="${user.admin}" class="px-3 py-1 bg-purple-100 text-purple-800 rounded text-sm font-medium">
-                                <i class="fas fa-crown"></i> Admin
-                            </span>
-                            <span th:if="!${user.admin}" class="px-3 py-1 bg-blue-100 text-blue-800 rounded text-sm font-medium">
-                                User
-                            </span>
-                        </td>
-                        <td class="p-4">
-                            <span th:if="${user.active}" class="px-3 py-1 bg-green-100 text-green-800 rounded text-sm">
-                                <i class="fas fa-check-circle"></i> Active
-                            </span>
-                            <span th:if="!${user.active}" class="px-3 py-1 bg-red-100 text-red-800 rounded text-sm">
-                                <i class="fas fa-ban"></i> Inactive
-                            </span>
-                        </td>
-                        <td class="p-4">
-                            <a th:href="'/admin/users/' + ${user.id}" class="text-blue-600 hover:underline text-sm">
-                                <i class="fas fa-eye"></i> Chi tiết
-                            </a>
-                        </td>
-                    </tr>
-                    <tr th:if="${#lists.isEmpty(users)}">
-                        <td colspan="7" class="p-4 text-center text-gray-500">Không có user nào</td>
+    <div th:replace="~{fragments/footer}"></div>
+</body>
+</html>
                     </tr>
                 </tbody>
             </table>

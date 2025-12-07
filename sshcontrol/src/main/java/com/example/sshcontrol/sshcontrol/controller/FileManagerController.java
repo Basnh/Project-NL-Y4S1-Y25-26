@@ -6,6 +6,8 @@ import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
 import com.example.sshcontrol.sshcontrol.service.UserService;
 import com.example.sshcontrol.sshcontrol.util.ControllerHelper;
+import com.example.sshcontrol.util.SystemLogger;
+import com.example.sshcontrol.service.ActivityLogService;
 import jakarta.servlet.http.HttpSession;
 import jakarta.servlet.http.HttpServletResponse;
 
@@ -36,6 +38,9 @@ public class FileManagerController {
 
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ActivityLogService activityLogService;
 
     // Trang chính hiển thị file manager
     @GetMapping
@@ -53,6 +58,17 @@ public class FileManagerController {
         if (user == null) {
             return "redirect:/login";
         }
+        
+        // Ghi log khi user vào trang file-manager
+        if (activityLogService != null) {
+            String description = serverId != null ? 
+                "User accessed file-manager page for server " + serverId : 
+                "User accessed file-manager page";
+            activityLogService.logActivity(user, "PAGE_VIEW", description);
+        }
+        
+        // Ghi vào terminal
+        SystemLogger.logActivity(user.getUsername(), "PAGE_VIEW", "accessed file-manager page");
         
         ControllerHelper.updateUserAndModel(session, model, userService);
         
@@ -403,6 +419,10 @@ public class FileManagerController {
                 server.getSshPassword(), 
                 path
             );
+            
+            // Log file delete
+            SystemLogger.logFileDelete(user.getUsername(), server.getIp(), path);
+            
             response.put("success", true);
             response.put("message", "Xóa file thành công");
             
@@ -579,6 +599,9 @@ public class FileManagerController {
             outputStream.flush();
             outputStream.close();
             inputStream.close();
+            
+            // Log file download
+            SystemLogger.logFileDownload(user.getUsername(), server.getIp(), path);
         } catch (Exception e) {
             try {
                 response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e.getMessage());
@@ -703,6 +726,9 @@ public class FileManagerController {
                 fullPath,
                 file.getInputStream()
             );
+            
+            // Log file upload
+            SystemLogger.logFileUpload(user.getUsername(), server.getIp(), file.getOriginalFilename());
 
             response.put("success", true);
             response.put("message", "Tải file lên thành công");

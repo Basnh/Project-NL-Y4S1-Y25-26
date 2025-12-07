@@ -15,17 +15,16 @@ import org.springframework.web.bind.annotation.*;
 import java.util.List;
 
 @Controller
-@RequestMapping("/log")
 public class ActivityLogController {
 
     @Autowired
     private ActivityLogService activityLogService;
 
     /**
-     * Hiển thị trang lịch sử hoạt động
+     * Hiển thị trang lịch sử hoạt động cho user (route: /activity-log)
      */
-    @GetMapping
-    public String getActivityLogs(
+    @GetMapping("/activity-log")
+    public String getActivityLog(
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(required = false) String action,
             @RequestParam(required = false) String status,
@@ -62,9 +61,34 @@ public class ActivityLogController {
     }
 
     /**
-     * API lấy dữ liệu hoạt động theo ngày
+     * Hiển thị trang lịch sử hoạt động cho admin (xem tất cả users) - route: /admin/activity-logs
      */
-    @PostMapping("/api/activities/date-range")
+    @GetMapping("/admin/activity-logs")
+    public String getAdminActivityLogs(
+            @RequestParam(defaultValue = "0") int page,
+            HttpSession session,
+            Model model) {
+        
+        User admin = (User) session.getAttribute("user");
+        if (admin == null || !admin.isAdmin()) {
+            return "redirect:/";
+        }
+
+        Pageable pageable = PageRequest.of(page, 20);
+        Page<ActivityLog> activities = activityLogService.getAllActivities(pageable);
+
+        model.addAttribute("activities", activities);
+        model.addAttribute("currentPage", page);
+        model.addAttribute("totalPages", activities.getTotalPages());
+        model.addAttribute("isAdmin", true);
+
+        return "admin/activity-logs";
+    }
+
+    /**
+     * Lịch sử hoạt động endpoint (legacy)
+     */
+    @GetMapping("/log")
     @ResponseBody
     public Page<ActivityLog> getActivitiesByDateRange(
             @RequestParam String startDate,

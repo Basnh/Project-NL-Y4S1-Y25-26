@@ -3,74 +3,84 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Admin Dashboard</title>
+    <title>Quản trị hệ thống - Admin Dashboard</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="/layout.css">
 </head>
-<body class="bg-gray-100">
-    <nav class="bg-white shadow">
-        <div class="container mx-auto px-4 py-4 flex justify-between items-center">
-            <h1 class="text-2xl font-bold">Admin Dashboard</h1>
-            <a href="/" class="text-blue-600 hover:underline">Trang chủ</a>
-        </div>
-    </nav>
-    
-    <main class="container mx-auto px-4 py-8">
-        <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
-            <!-- Total Users -->
-            <div class="bg-white rounded shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Tổng Users</p>
-                        <p class="text-3xl font-bold text-blue-600" th:text="${totalUsers}">0</p>
+<body class="bg-gray-100 font-sans antialiased min-h-screen flex flex-col">
+    <main class="flex-1">
+        <div class="min-h-screen bg-gray-100 py-10 px-6">
+            <div class="max-w-6xl mx-auto">
+                <div th:replace="~{fragments/header(title='Quản trị hệ thống', icon='fas fa-shield-alt')}"></div>
+                
+                <div class="container mx-auto px-4 py-8">
+                <!-- Stats Grid -->
+                <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-8">
+                    <!-- Total Users -->
+                    <div class="bg-gradient-to-br from-blue-50 to-blue-100 rounded-xl shadow p-6 border border-blue-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-blue-700 text-sm font-medium">Tổng Users</p>
+                                <p class="text-3xl font-bold text-blue-600 mt-2" th:text="${totalUsers}">0</p>
+                            </div>
+                            <i class="fas fa-users text-5xl text-blue-200"></i>
+                        </div>
                     </div>
-                    <i class="fas fa-users text-4xl text-blue-200"></i>
-                </div>
-            </div>
-            
-            <!-- Admins -->
-            <div class="bg-white rounded shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Admins</p>
-                        <p class="text-3xl font-bold text-purple-600" th:text="${admins}">0</p>
+                    
+                    <!-- Admins -->
+                    <div class="bg-gradient-to-br from-purple-50 to-purple-100 rounded-xl shadow p-6 border border-purple-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-purple-700 text-sm font-medium">Admins</p>
+                                <p class="text-3xl font-bold text-purple-600 mt-2" th:text="${admins}">0</p>
+                            </div>
+                            <i class="fas fa-crown text-5xl text-purple-200"></i>
+                        </div>
                     </div>
-                    <i class="fas fa-crown text-4xl text-purple-200"></i>
-                </div>
-            </div>
-            
-            <!-- Active Users -->
-            <div class="bg-white rounded shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Users Hoạt động</p>
-                        <p class="text-3xl font-bold text-green-600" th:text="${activeUsers}">0</p>
+                    
+                    <!-- Active Users -->
+                    <div class="bg-gradient-to-br from-green-50 to-green-100 rounded-xl shadow p-6 border border-green-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-green-700 text-sm font-medium">Users Hoạt động</p>
+                                <p class="text-3xl font-bold text-green-600 mt-2" th:text="${activeUsers}">0</p>
+                            </div>
+                            <i class="fas fa-check-circle text-5xl text-green-200"></i>
+                        </div>
                     </div>
-                    <i class="fas fa-check-circle text-4xl text-green-200"></i>
-                </div>
-            </div>
-            
-            <!-- Servers -->
-            <div class="bg-white rounded shadow p-6">
-                <div class="flex items-center justify-between">
-                    <div>
-                        <p class="text-gray-600 text-sm">Tổng Servers</p>
-                        <p class="text-3xl font-bold text-orange-600">0</p>
+                    
+                    <!-- Servers -->
+                    <div class="bg-gradient-to-br from-orange-50 to-orange-100 rounded-xl shadow p-6 border border-orange-200">
+                        <div class="flex items-center justify-between">
+                            <div>
+                                <p class="text-orange-700 text-sm font-medium">Tổng Servers</p>
+                                <p class="text-3xl font-bold text-orange-600 mt-2">0</p>
+                            </div>
+                            <i class="fas fa-server text-5xl text-orange-200"></i>
+                        </div>
                     </div>
-                    <i class="fas fa-server text-4xl text-orange-200"></i>
                 </div>
-            </div>
-        </div>
-        
-        <!-- Quick Actions -->
-        <div class="bg-white rounded shadow p-6 mb-8">
-            <h2 class="text-xl font-bold mb-4">Hành động nhanh</h2>
-            <div class="flex gap-4">
-                <a href="/admin/users" class="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
-                    <i class="fas fa-list"></i> Xem danh sách Users
-                </a>
+                
+                <!-- Quick Actions -->
+                <div class="bg-white rounded-xl shadow p-6 mb-8 border border-gray-200">
+                    <h2 class="text-xl font-bold mb-4 flex items-center">
+                        <i class="fas fa-bolt text-yellow-500 mr-2"></i>
+                        Hành động nhanh
+                    </h2>
+                    <div class="flex flex-wrap gap-3">
+                        <a href="/admin/users" class="inline-flex items-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors duration-200 shadow hover:shadow-md">
+                            <i class="fas fa-list mr-2"></i> Xem danh sách Users
+                        </a>
+                        <a href="/" class="inline-flex items-center px-4 py-2 bg-gray-600 text-white rounded-lg hover:bg-gray-700 transition-colors duration-200 shadow hover:shadow-md">
+                            <i class="fas fa-arrow-left mr-2"></i> Quay lại trang chủ
+                        </a>
+                    </div>
+                </div>
             </div>
         </div>
     </main>
+    
+    <div th:replace="~{fragments/footer}"></div>
 </body>
 </html>

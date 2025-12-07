@@ -2,14 +2,16 @@ package com.example.sshcontrol.sshcontrol;
 
 import com.example.sshcontrol.model.MultiSSHRequest;
 import com.example.sshcontrol.model.SSHRequest;
+import com.example.sshcontrol.service.ActivityLogService;
 import com.example.sshcontrol.service.SSHService;
 import com.example.sshcontrol.sshcontrol.service.UserService;
 import com.example.sshcontrol.sshcontrol.util.ControllerHelper;
 import com.example.sshcontrol.model.MultiServiceRequest;
 import com.example.sshcontrol.model.MultiConfigRequest;
-import com.example.sshcontrol.model.FileInfo;
 import com.example.sshcontrol.model.User;
 import com.example.sshcontrol.model.Server;
+import com.example.sshcontrol.model.FileInfo;
+import com.example.sshcontrol.util.SystemLogger;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -30,6 +32,9 @@ public class SSHController {
     
     @Autowired
     private UserService userService;
+    
+    @Autowired
+    private ActivityLogService activityLogService;
 
     // ===============================
     // MAIN PAGES
@@ -133,6 +138,12 @@ public class SSHController {
             sshRequest.getPassword(),
             command
         );
+        
+        // Log command execution
+        User currentUser = (User) session.getAttribute("user");
+        if (currentUser != null) {
+            SystemLogger.logCommandExecution(currentUser.getUsername(), host, sshRequest.getCommand());
+        }
         
         sshRequest.setCommand("");
         model.addAttribute("result", result);
@@ -239,6 +250,14 @@ public class SSHController {
         User sessionUser = (User) session.getAttribute("user");
         if (sessionUser != null) {
             model.addAttribute("userServers", sessionUser.getServers());
+            
+            // Ghi log khi user vào trang list-services
+            if (activityLogService != null) {
+                activityLogService.logActivity(sessionUser, "PAGE_VIEW", "User accessed list-services page");
+            }
+            
+            // Ghi vào terminal
+            SystemLogger.logActivity(sessionUser.getUsername(), "PAGE_VIEW", "accessed list-services page");
         }
         return "list-services";
     }
@@ -281,6 +300,7 @@ public class SSHController {
         String serviceName = request.get("serviceName");
         String action = request.get("action");
         
+        User user = (User) session.getAttribute("user");
         String[] credentials = getUserCredentials(host, session);
         String username = credentials[0];
         String password = credentials[1];
@@ -311,13 +331,78 @@ public class SSHController {
             if (output != null) {
                 result.put("success", true);
                 result.put("output", output);
+                
+                // Ghi log vào database
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - %s on %s", serviceName, action, host);
+                    activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description);
+                }
+                
+                // Ghi log vào terminal
+                if (user != null) {
+                    SystemLogger.logActivity(user.getUsername(), "SERVICE_" + action.toUpperCase(), 
+                        serviceName + " on " + host + " (" + action + ")");
+                }
             } else {
                 result.put("success", false);
                 result.put("error", "Không thể thực hiện hành động");
+                
+                // Ghi log lỗi
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - %s on %s [FAILED]", serviceName, action, host);
+                    activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description, null, "FAILED");
+                }
             }
         } catch (Exception e) {
             result.put("success", false);
             result.put("error", "Lỗi: " + e.getMessage());
+            
+            // Ghi log exception
+            if (user != null && activityLogService != null) {
+                String description = String.format("Service '%s' - %s on %s [ERROR: %s]", serviceName, action, host, e.getMessage());
+                activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description, null, "FAILED");
+            }
+        }
+        
+        return result;
+    }
+
+    /**
+     * API endpoint để ghi log khi người dùng chọn dịch vụ hoặc thực hiện hành động
+     */
+    @PostMapping("/api/log-service-action")
+    @ResponseBody
+    public Map<String, Object> logServiceAction(@RequestBody Map<String, String> request, HttpSession session) {
+        Map<String, Object> result = new HashMap<>();
+        
+        try {
+            User user = (User) session.getAttribute("user");
+            if (user == null) {
+                result.put("success", false);
+                result.put("error", "User not authenticated");
+                return result;
+            }
+            
+            String host = request.get("host");
+            String serviceName = request.get("serviceName");
+            String action = request.get("action"); // "view", "start", "stop", "restart", "status"
+            
+            // Ghi log dịch vụ được chọn/thực hiện hành động
+            String description = String.format("Service '%s' - %s on %s", serviceName, action, host);
+            
+            // Ghi vào database activity log
+            if (activityLogService != null) {
+                activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description);
+            }
+            
+            // Ghi vào terminal thông qua SystemLogger
+            SystemLogger.logActivity(user.getUsername(), "SERVICE_" + action.toUpperCase(), 
+                serviceName + " on " + host + " (" + action + ")");
+            
+            result.put("success", true);
+        } catch (Exception e) {
+            result.put("success", false);
+            result.put("error", e.getMessage());
         }
         
         return result;
@@ -361,6 +446,7 @@ public class SSHController {
         String host = (String) session.getAttribute("host");
         String username = (String) session.getAttribute("username");
         String password = (String) session.getAttribute("password");
+        User user = (User) session.getAttribute("user");
 
         if (host == null || username == null || password == null) {
             return "redirect:/login";
@@ -412,8 +498,26 @@ public class SSHController {
             if (result == null || result.trim().isEmpty() || result.toLowerCase().contains("failed") || result.toLowerCase().contains("error")) {
                 errorMessage = "Thao tác " + action + " dịch vụ '" + serviceName + "' thất bại. " + result;
                 model.addAttribute("error", errorMessage);
+                
+                // Ghi log lỗi
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - %s on %s [FAILED]", serviceName, action, host);
+                    activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description, null, "FAILED");
+                }
             } else {
                 model.addAttribute("message", successMessage);
+                
+                // Ghi log thành công
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - %s on %s", serviceName, action, host);
+                    activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description);
+                }
+                
+                // Ghi log vào terminal
+                if (user != null) {
+                    SystemLogger.logActivity(user.getUsername(), "SERVICE_" + action.toUpperCase(), 
+                        serviceName + " on " + host + " (" + action + ")");
+                }
             }
         }
         
@@ -434,6 +538,7 @@ public class SSHController {
         String host = (String) session.getAttribute("host");
         String username = (String) session.getAttribute("username");
         String password = (String) session.getAttribute("password");
+        User user = (User) session.getAttribute("user");
 
         if (host == null || username == null || password == null) {
             return "Chưa đăng nhập!";
@@ -460,10 +565,38 @@ public class SSHController {
             String statusCmd = "systemctl is-active " + serviceName;
             String status = sshService.executeCommand(host, username, password, statusCmd);
             if (status != null && status.trim().equals("active") && action.equals("start")) {
+                // Ghi log thành công
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - started on %s", serviceName, host);
+                    activityLogService.logActivity(user, "SERVICE_START", description);
+                }
+                
+                if (user != null) {
+                    SystemLogger.logActivity(user.getUsername(), "SERVICE_START", 
+                        serviceName + " on " + host);
+                }
+                
                 return "Dịch vụ đã được khởi động thành công!";
             } else if (status != null && status.trim().equals("inactive") && action.equals("stop")) {
+                // Ghi log thành công
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - stopped on %s", serviceName, host);
+                    activityLogService.logActivity(user, "SERVICE_STOP", description);
+                }
+                
+                if (user != null) {
+                    SystemLogger.logActivity(user.getUsername(), "SERVICE_STOP", 
+                        serviceName + " on " + host);
+                }
+                
                 return "Dịch vụ đã được dừng thành công!";
             } else {
+                // Ghi log lỗi
+                if (user != null && activityLogService != null) {
+                    String description = String.format("Service '%s' - %s on %s [FAILED]", serviceName, action, host);
+                    activityLogService.logActivity(user, "SERVICE_" + action.toUpperCase(), description, null, "FAILED");
+                }
+                
                 return "Không xác định được trạng thái dịch vụ sau khi thực hiện. Kết quả: " + (result == null ? "" : result);
             }
         }

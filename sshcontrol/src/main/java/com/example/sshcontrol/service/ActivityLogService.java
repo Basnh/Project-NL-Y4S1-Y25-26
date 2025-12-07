@@ -101,6 +101,13 @@ public class ActivityLogService {
     }
 
     /**
+     * Lấy tất cả hoạt động (cho admin - xem toàn bộ hệ thống)
+     */
+    public Page<ActivityLog> getAllActivities(Pageable pageable) {
+        return activityLogRepository.findAllByOrderByCreatedAtDesc(pageable);
+    }
+
+    /**
      * Lấy chi tiết một hoạt động
      */
     public Optional<ActivityLog> getActivityById(Long id) {
