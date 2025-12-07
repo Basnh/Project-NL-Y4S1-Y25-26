@@ -9,6 +9,9 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
+import java.util.Map;
+import java.util.ArrayList;
+import java.util.HashMap;
 
 @Service
 public class FirewallRuleService {
@@ -28,7 +31,54 @@ public class FirewallRuleService {
     public FirewallRule addRule(Server server, String ruleType, String ruleValue,
                                String protocol, String action, String zone) {
         FirewallRule rule = new FirewallRule(server, ruleType, ruleValue, protocol, action, zone);
-        return ruleRepository.save(rule);
+        FirewallRule savedRule = ruleRepository.save(rule);
+        
+        // Apply rule to firewall via SSH
+        try {
+            applyRuleOnServer(server, ruleType, ruleValue, protocol, action, zone);
+        } catch (Exception e) {
+            System.err.println("[Firewall] Error applying rule on server: " + e.getMessage());
+            // Rule is saved in DB even if SSH fails
+        }
+        
+        return savedRule;
+    }
+    
+    /**
+     * Áp dụng quy tắc lên server thực tế
+     */
+    private void applyRuleOnServer(Server server, String ruleType, String ruleValue, 
+                                    String protocol, String action, String zone) throws Exception {
+        if (sshService == null) {
+            System.err.println("[Firewall] SSHService not available");
+            return;
+        }
+        
+        String command = "";
+        
+        if ("port".equals(ruleType)) {
+            // ufw allow/deny 80/tcp
+            String dir = "allow".equals(action) ? "allow" : "deny";
+            String proto = protocol != null ? protocol.toLowerCase() : "tcp";
+            command = String.format("sudo ufw %s %s/%s", dir, ruleValue, proto);
+        } else if ("ip".equals(ruleType)) {
+            // ufw allow/deny from 192.168.1.1
+            String dir = "allow".equals(action) ? "allow" : "deny";
+            command = String.format("sudo ufw %s from %s", dir, ruleValue);
+        }
+        
+        if (!command.isEmpty()) {
+            System.out.println("[Firewall] Executing on server " + server.getIp() + ": " + command);
+            // Pass password for sudo
+            String result = sshService.executeCommandWithInput(
+                server.getIp(), 
+                server.getSshUsername(), 
+                server.getSshPassword(), 
+                command, 
+                server.getSshPassword() + "\ny\n" // password + auto-confirm
+            );
+            System.out.println("[Firewall] Result: " + result);
+        }
     }
     
     /**
@@ -39,10 +89,104 @@ public class FirewallRuleService {
     }
     
     /**
+     * Lấy tất cả quy tắc trong hệ thống
+     */
+    public List<FirewallRule> getAllRules() {
+        return ruleRepository.findAll();
+    }
+    
+    /**
      * Lấy quy tắc theo zone
      */
     public List<FirewallRule> getRulesByZone(Server server, String zone) {
         return ruleRepository.findByServerAndZone(server, zone);
+    }
+    
+    /**
+     * Lấy rules trực tiếp từ UFW trên server
+     */
+    public List<Map<String, Object>> getActiveRulesFromServer(Server server, String zone) {
+        List<Map<String, Object>> rules = new ArrayList<>();
+        
+        if (sshService == null) {
+            System.err.println("[Firewall] SSHService not available");
+            return rules;
+        }
+        
+        try {
+            // Execute: sudo ufw status
+            String command = "sudo ufw status";
+            String output = sshService.executeCommand(server.getIp(), server.getSshUsername(), server.getSshPassword(), command);
+            
+            System.out.println("[Firewall] UFW Status Output:\n" + output);
+            
+            // Parse output - handle both numbered and regular format
+            String[] lines = output.split("\n");
+            for (String line : lines) {
+                line = line.trim();
+                if (line.isEmpty() || line.startsWith("Status:") || line.startsWith("--") || line.startsWith("To")) {
+                    continue;
+                }
+                
+                // Split by spaces to parse fields
+                String[] parts = line.split("\\s+");
+                if (parts.length < 2) {
+                    continue;
+                }
+                
+                Map<String, Object> rule = new HashMap<>();
+                
+                // Parse first field (could be "[ 1]" for numbered or "22" for regular)
+                String firstField = parts[0];
+                String portProtoField = "";
+                int actionIndex = 1;
+                
+                if (firstField.startsWith("[")) {
+                    // Numbered format: "[ 1] 22/tcp ..."
+                    portProtoField = parts[1];
+                    actionIndex = 2;
+                } else {
+                    // Regular format: "22/tcp ALLOW ..." or "22 ALLOW ..."
+                    portProtoField = parts[0];
+                    actionIndex = 1;
+                }
+                
+                // Extract port and protocol from portProtoField
+                String port = portProtoField;
+                String protocol = "TCP"; // default
+                
+                if (portProtoField.contains("/")) {
+                    String[] pp = portProtoField.split("/");
+                    port = pp[0];
+                    protocol = pp[1].toUpperCase();
+                } else if (portProtoField.matches("\\d+")) {
+                    // Plain port number, assume TCP
+                    port = portProtoField;
+                    protocol = "TCP";
+                }
+                
+                // Extract action
+                String action = "allow"; // default
+                if (actionIndex < parts.length) {
+                    action = parts[actionIndex].toLowerCase();
+                }
+                
+                rule.put("port", port);
+                rule.put("protocol", protocol);
+                rule.put("action", action);
+                rule.put("zone", zone);
+                rule.put("ruleType", "port");
+                rule.put("ruleValue", port);
+                
+                rules.add(rule);
+            }
+            
+        } catch (Exception e) {
+            System.err.println("[Firewall] Error getting rules from server: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return rules;
     }
     
     /**

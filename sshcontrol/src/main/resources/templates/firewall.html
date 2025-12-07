@@ -127,17 +127,7 @@
                     </div>
 
                     <!-- Zone & Info Bar -->
-                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 pb-6 border-b border-gray-200">
-                        <div>
-                            <label class="block text-sm font-medium text-gray-700 mb-2">
-                                <i class="fas fa-layer-group mr-2"></i>Hiển thị quy tắc trong zone:
-                            </label>
-                            <select id="zoneSelect" class="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700">
-                                <option value="public">public (default)</option>
-                                <option value="private">private</option>
-                                <option value="dmz">dmz</option>
-                            </select>
-                        </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6 pb-6 border-b border-gray-200">
 
                         <div class="bg-blue-50 border border-blue-200 rounded-lg p-3">
                             <p class="text-sm text-gray-700">
@@ -186,111 +176,70 @@
                         </button>
                     </div>
 
-                    <!-- Common Rules Templates -->
+                    <!-- Common Rules Dropdown -->
                     <div class="mb-6">
                         <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
-                            <i class="fas fa-star text-yellow-500"></i>Quy tắc thông dụng
+                            <i class="fas fa-star text-yellow-500"></i>Thêm quy tắc thông dụng
                         </h3>
-                        <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                            <!-- SSH -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="ssh" data-port="22" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-terminal text-blue-600"></i>SSH
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 22 - Truy cập từ xa</div>
-                            </button>
-
-                            <!-- HTTP -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="http" data-port="80" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-globe text-red-600"></i>HTTP
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 80 - Web không mã hóa</div>
-                            </button>
-
-                            <!-- HTTPS -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="https" data-port="443" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-lock text-green-600"></i>HTTPS
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 443 - Web mã hóa</div>
-                            </button>
-
-                            <!-- DNS -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="dns" data-port="53" data-protocol="TCP/UDP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-sitemap text-purple-600"></i>DNS
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 53 - Dịch vụ tên miền</div>
-                            </button>
-
-                            <!-- MySQL -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="mysql" data-port="3306" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-database text-orange-600"></i>MySQL
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 3306 - Cơ sở dữ liệu</div>
-                            </button>
-
-                            <!-- PostgreSQL -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="postgresql" data-port="5432" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-database text-blue-600"></i>PostgreSQL
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 5432 - Cơ sở dữ liệu</div>
-                            </button>
-
-                            <!-- MongoDB -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="mongodb" data-port="27017" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-leaf text-green-600"></i>MongoDB
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 27017 - NoSQL DB</div>
-                            </button>
-
-                            <!-- FTP -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="ftp" data-port="21" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-file-import text-indigo-600"></i>FTP
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 21 - Truyền file</div>
-                            </button>
-
-                            <!-- SMTP -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="smtp" data-port="25" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-envelope text-pink-600"></i>SMTP
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 25 - Email gửi</div>
-                            </button>
-
-                            <!-- POP3 -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="pop3" data-port="110" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-inbox text-red-600"></i>POP3
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 110 - Email nhận</div>
-                            </button>
-
-                            <!-- IMAP -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="imap" data-port="143" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-envelope-open text-blue-600"></i>IMAP
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 143 - Email quản lý</div>
-                            </button>
-
-                            <!-- Redis -->
-                            <button class="commonRuleBtn px-4 py-3 bg-white border-2 border-gray-200 hover:border-blue-500 hover:bg-blue-50 rounded-lg text-left transition" data-service="redis" data-port="6379" data-protocol="TCP">
-                                <div class="font-semibold text-gray-800 flex items-center gap-2">
-                                    <i class="fas fa-bolt text-yellow-600"></i>Redis
-                                </div>
-                                <div class="text-sm text-gray-600 mt-1">Cổng 6379 - Cache/Queue</div>
+                        <div class="flex gap-3 flex-wrap">
+                            <select id="commonRulesSelect" class="flex-1 min-w-xs px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-gray-700 bg-white">
+                                <option value="">-- Chọn dịch vụ thông dụng --</option>
+                                <option value="ssh">🔒 SSH (Cổng 22)</option>
+                                <option value="http">🌐 HTTP (Cổng 80)</option>
+                                <option value="https">🔐 HTTPS (Cổng 443)</option>
+                                <option value="dns">📍 DNS (Cổng 53)</option>
+                                <option value="mysql">📊 MySQL (Cổng 3306)</option>
+                                <option value="postgresql">📈 PostgreSQL (Cổng 5432)</option>
+                                <option value="mongodb">🍃 MongoDB (Cổng 27017)</option>
+                                <option value="ftp">📁 FTP (Cổng 21)</option>
+                                <option value="smtp">✉️ SMTP (Cổng 25)</option>
+                                <option value="pop3">📬 POP3 (Cổng 110)</option>
+                                <option value="imap">📭 IMAP (Cổng 143)</option>
+                                <option value="redis">⚡ Redis (Cổng 6379)</option>
+                            </select>
+                            <button id="addCommonRuleBtn" class="px-6 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+                                <i class="fas fa-plus-circle mr-2"></i>Thêm
                             </button>
                         </div>
-                        <p class="text-sm text-gray-600 mt-3">
-                            <i class="fas fa-info-circle mr-2"></i>Nhấp vào một quy tắc để thêm vào firewall
-                        </p>
+                    </div>
+
+                    <!-- Current Firewall Rules -->
+                    <div class="mb-6">
+                        <h3 class="text-lg font-semibold text-gray-800 mb-4 flex items-center gap-2">
+                            <i class="fas fa-list text-blue-600"></i>Quy tắc hiện tại
+                        </h3>
+                        <div class="bg-white rounded-lg shadow-md overflow-hidden">
+                            <div class="p-4 bg-gray-50 border-b border-gray-200">
+                                <div class="flex justify-between items-center">
+                                    <p class="text-sm text-gray-700">
+                                        <span class="font-semibold">Tổng quy tắc:</span>
+                                        <span id="currentRuleCount" class="font-bold text-blue-600 ml-2">0</span>
+                                    </p>
+                                    <button id="refreshCurrentRulesBtn" class="px-3 py-1 bg-blue-600 hover:bg-blue-700 text-white rounded text-sm font-medium transition">
+                                        <i class="fas fa-sync-alt mr-1"></i>Làm mới
+                                    </button>
+                                </div>
+                            </div>
+                            <div class="overflow-x-auto">
+                                <table class="w-full">
+                                    <thead class="bg-gray-50 border-b border-gray-200">
+                                        <tr>
+                                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Cổng/Dịch vụ</th>
+                                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Giao thức</th>
+                                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Loại</th>
+                                            <th class="px-4 py-3 text-left text-sm font-medium text-gray-700">Trạng thái</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody id="currentRulesTable">
+                                        <tr>
+                                            <td colspan="4" class="px-4 py-6 text-center text-gray-500">
+                                                <i class="fas fa-info-circle mr-2"></i>Chọn máy chủ để xem quy tắc
+                                            </td>
+                                        </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -408,13 +357,13 @@
                             <h3 class="text-lg font-semibold text-gray-800">Cho phép IP/CIDR</h3>
                         </div>
                         <div class="space-y-3">
-                            <input type="text" placeholder="VD: 192.168.1.100 hoặc 10.0.0.0/8" 
+                            <input type="text" id="allowIPInput" placeholder="VD: 192.168.1.100 hoặc 10.0.0.0/8" 
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-green-500 text-gray-700">
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" class="cursor-pointer">
+                                <input type="checkbox" id="allowPermanent" class="cursor-pointer">
                                 <span class="text-gray-700">Cho phép vĩnh viễn</span>
                             </label>
-                            <button class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
+                            <button id="allowIPBtn" class="w-full px-4 py-2 bg-green-600 hover:bg-green-700 text-white rounded-lg font-medium transition">
                                 <i class="fas fa-plus-circle mr-2"></i>Thêm vào danh sách cho phép
                             </button>
                         </div>
@@ -427,13 +376,13 @@
                             <h3 class="text-lg font-semibold text-gray-800">Chặn IP/CIDR</h3>
                         </div>
                         <div class="space-y-3">
-                            <input type="text" placeholder="VD: 192.168.1.100 hoặc 10.0.0.0/8" 
+                            <input type="text" id="blockIPInput" placeholder="VD: 192.168.1.100 hoặc 10.0.0.0/8" 
                                    class="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 text-gray-700">
                             <label class="flex items-center gap-2 text-sm">
-                                <input type="checkbox" class="cursor-pointer">
+                                <input type="checkbox" id="blockPermanent" class="cursor-pointer">
                                 <span class="text-gray-700">Chặn vĩnh viễn</span>
                             </label>
-                            <button class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
+                            <button id="blockIPBtn" class="w-full px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
                                 <i class="fas fa-ban mr-2"></i>Thêm vào danh sách chặn
                             </button>
                         </div>
@@ -487,6 +436,7 @@
                     footerActions.style.display = 'flex';
                     checkFirewallStatus();
                     loadRulesForZone();
+                    loadCurrentRules();
                 });
             });
 
@@ -611,13 +561,6 @@
                 await loadRulesForZone();
             });
 
-            // Zone Selector Change
-            const zoneSelect = document.getElementById('zoneSelect');
-            if (zoneSelect) {
-                zoneSelect.addEventListener('change', async () => {
-                    await loadRulesForZone();
-                });
-            }
 
             // Select All
             const selectAllBtn = Array.from(document.querySelectorAll('button')).find(btn => 
@@ -749,50 +692,226 @@
                 });
             }
 
-            // Common Rules
-            const commonRuleBtns = document.querySelectorAll('.commonRuleBtn');
-            commonRuleBtns.forEach(btn => {
-                btn.addEventListener('click', async () => {
+            // Common Rules Dictionary
+            const commonRulesData = {
+                ssh: { port: '22', protocol: 'TCP', name: 'SSH' },
+                http: { port: '80', protocol: 'TCP', name: 'HTTP' },
+                https: { port: '443', protocol: 'TCP', name: 'HTTPS' },
+                dns: { port: '53', protocol: 'TCP/UDP', name: 'DNS' },
+                mysql: { port: '3306', protocol: 'TCP', name: 'MySQL' },
+                postgresql: { port: '5432', protocol: 'TCP', name: 'PostgreSQL' },
+                mongodb: { port: '27017', protocol: 'TCP', name: 'MongoDB' },
+                ftp: { port: '21', protocol: 'TCP', name: 'FTP' },
+                smtp: { port: '25', protocol: 'TCP', name: 'SMTP' },
+                pop3: { port: '110', protocol: 'TCP', name: 'POP3' },
+                imap: { port: '143', protocol: 'TCP', name: 'IMAP' },
+                redis: { port: '6379', protocol: 'TCP', name: 'Redis' }
+            };
+
+            // Common Rules Dropdown
+            const commonRulesSelect = document.getElementById('commonRulesSelect');
+            const addCommonRuleBtn = document.getElementById('addCommonRuleBtn');
+
+            if (addCommonRuleBtn) {
+                addCommonRuleBtn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+
+                    const service = commonRulesSelect.value;
+                    if (!service) {
+                        alert('Vui lòng chọn dịch vụ');
+                        return;
+                    }
+
+                    const ruleData = commonRulesData[service];
+                    if (!confirm(`Thêm quy tắc cho ${ruleData.name} (cổng ${ruleData.port})?`)) {
+                        return;
+                    }
+
+                    addCommonRuleBtn.disabled = true;
+                    try {
+                        const response = await fetch('/firewall/api/firewall/add-rule', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                type: 'port',
+                                value: ruleData.port,
+                                protocol: ruleData.protocol,
+                                action: 'allow',
+                                zone: 'public'
+                            })
+                        });
+
+                        const responseText = await response.text();
+                        console.log('API Response Status:', response.status);
+                        console.log('API Response Text:', responseText);
+                        
+                        let data;
+                        try {
+                            data = JSON.parse(responseText);
+                        } catch (e) {
+                            console.error('JSON Parse Error:', e);
+                            showNotification('Lỗi parse JSON: ' + e.message, 'error');
+                            return;
+                        }
+                        
+                        if (response.ok || data.success) {
+                            showNotification(`Thêm quy tắc ${ruleData.name} thành công`, 'success');
+                            commonRulesSelect.value = '';
+                            await new Promise(r => setTimeout(r, 1000));
+                            await loadRulesForZone();
+                            await loadCurrentRules();
+                        } else {
+                            console.error('Add rule error:', data);
+                            showNotification(data.message || 'Lỗi khi thêm quy tắc', 'error');
+                        }
+                    } catch (error) {
+                        console.error('Catch error:', error);
+                        showNotification('Lỗi: ' + error.message, 'error');
+                    } finally {
+                        addCommonRuleBtn.disabled = false;
+                    }
+                });
+            }
+
+            // Load Current Rules Button
+            const refreshCurrentRulesBtn = document.getElementById('refreshCurrentRulesBtn');
+            if (refreshCurrentRulesBtn) {
+                refreshCurrentRulesBtn.addEventListener('click', async () => {
+                    await loadCurrentRules();
+                });
+            }
+
+            // Allow IP Button
+            const allowIPBtn = document.getElementById('allowIPBtn');
+            if (allowIPBtn) {
+                allowIPBtn.addEventListener('click', async () => {
                     if (!selectedServer) {
                         alert('Vui lòng chọn máy chủ');
                         return;
                     }
                     
-                    const service = btn.dataset.service;
-                    const port = btn.dataset.port;
-                    const protocol = btn.dataset.protocol;
-                    
-                    // Show confirmation
-                    if (!confirm(`Thêm quy tắc cho ${service.toUpperCase()} (cổng ${port})?`)) {
+                    const ip = document.getElementById('allowIPInput').value.trim();
+                    if (!ip) {
+                        alert('Vui lòng nhập IP/CIDR');
                         return;
                     }
                     
+                    const permanent = document.getElementById('allowPermanent').checked;
+                    
                     try {
-                        const response = await fetch('/api/firewall/add-rule', {
+                        const response = await fetch('/firewall/api/firewall/allow-ip', {
                             method: 'POST',
                             headers: { 'Content-Type': 'application/json' },
                             body: JSON.stringify({
-                                type: 'port',
-                                value: port,
-                                protocol: protocol,
-                                action: 'allow',
-                                zone: document.getElementById('zoneSelect').value || 'public'
+                                ip: ip,
+                                permanent: permanent
                             })
                         });
                         
-                        if (response.ok) {
-                            showNotification(`Thêm quy tắc ${service.toUpperCase()} thành công`, 'success');
-                            await new Promise(r => setTimeout(r, 1000));
-                            await loadRulesForZone();
+                        const data = await response.json();
+                        if (response.ok || data.success) {
+                            showNotification(`Cho phép IP ${ip} thành công`, 'success');
+                            document.getElementById('allowIPInput').value = '';
+                            document.getElementById('allowPermanent').checked = false;
                         } else {
-                            showNotification('Lỗi khi thêm quy tắc', 'error');
+                            showNotification(data.message || 'Lỗi khi cho phép IP', 'error');
                         }
                     } catch (error) {
                         showNotification('Lỗi: ' + error.message, 'error');
                     }
                 });
-            });
+            }
+
+            // Block IP Button
+            const blockIPBtn = document.getElementById('blockIPBtn');
+            if (blockIPBtn) {
+                blockIPBtn.addEventListener('click', async () => {
+                    if (!selectedServer) {
+                        alert('Vui lòng chọn máy chủ');
+                        return;
+                    }
+                    
+                    const ip = document.getElementById('blockIPInput').value.trim();
+                    if (!ip) {
+                        alert('Vui lòng nhập IP/CIDR');
+                        return;
+                    }
+                    
+                    const permanent = document.getElementById('blockPermanent').checked;
+                    
+                    try {
+                        const response = await fetch('/firewall/api/firewall/block-ip', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({
+                                ip: ip,
+                                permanent: permanent
+                            })
+                        });
+                        
+                        const data = await response.json();
+                        if (response.ok || data.success) {
+                            showNotification(`Chặn IP ${ip} thành công`, 'success');
+                            document.getElementById('blockIPInput').value = '';
+                            document.getElementById('blockPermanent').checked = false;
+                        } else {
+                            showNotification(data.message || 'Lỗi khi chặn IP', 'error');
+                        }
+                    } catch (error) {
+                        showNotification('Lỗi: ' + error.message, 'error');
+                    }
+                });
+            }
         });
+
+        async function loadCurrentRules() {
+            if (!selectedServer) return;
+            try {
+                const response = await fetch(`/firewall/api/rules?zone=public`);
+                const data = await response.json();
+                
+                // Extract rules array
+                const rules = data.rules || [];
+                
+                // Update count
+                document.getElementById('currentRuleCount').textContent = rules.length || 0;
+                
+                // Update table
+                const tbody = document.getElementById('currentRulesTable');
+                if (tbody) {
+                    tbody.innerHTML = '';
+                    
+                    if (rules && rules.length > 0) {
+                        rules.forEach(rule => {
+                            const row = document.createElement('tr');
+                            row.className = 'border-b border-gray-200 hover:bg-gray-50 transition';
+                            row.innerHTML = `
+                                <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleValue || '-'}</td>
+                                <td class="px-4 py-3 text-sm text-gray-800">${rule.protocol || '-'}</td>
+                                <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleType || '-'}</td>
+                                <td class="px-4 py-3 text-sm">
+                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
+                                        rule.action === 'allow' 
+                                            ? 'bg-green-100 text-green-800' 
+                                            : 'bg-red-100 text-red-800'
+                                    }">${rule.action === 'allow' ? '✓ Cho phép' : '✗ Chặn'}</span>
+                                </td>
+                            `;
+                            tbody.appendChild(row);
+                        });
+                    } else {
+                        const row = document.createElement('tr');
+                        row.innerHTML = '<td colspan="4" class="px-4 py-6 text-center text-gray-500"><i class="fas fa-info-circle mr-2"></i>Không có quy tắc nào</td>';
+                        tbody.appendChild(row);
+                    }
+                }
+            } catch (error) {
+                console.error('Error loading current rules:', error);
+            }
+        }
 
         async function checkFirewallStatus() {
             if (!selectedServer) return;
@@ -817,20 +936,23 @@
         async function loadRulesForZone() {
             if (!selectedServer) return;
             try {
-                const zone = document.getElementById('zoneSelect').value || 'public';
-                const response = await fetch(`/api/firewall/rules?zone=${zone}`);
+                const zone = 'public'; // Always use public zone
+                const response = await fetch(`/firewall/api/rules?zone=${zone}`);
                 const data = await response.json();
                 
+                // Extract rules array
+                const rules = data.rules || [];
+                
                 // Update rule count
-                document.getElementById('ruleCount').textContent = data.length || 0;
+                document.getElementById('ruleCount').textContent = rules.length || 0;
                 
                 // Update rules table
                 const tbody = document.querySelector('#rulesPanel tbody');
                 if (tbody) {
                     tbody.innerHTML = ''; // Clear existing rows
                     
-                    if (data && data.length > 0) {
-                        data.forEach(rule => {
+                    if (rules && rules.length > 0) {
+                        rules.forEach(rule => {
                             const row = document.createElement('tr');
                             row.className = 'border-t border-gray-200 hover:bg-gray-50 transition';
                             row.innerHTML = `
@@ -870,7 +992,7 @@
         async function addRule(type, value, protocol, action) {
             if (!selectedServer) return;
             try {
-                const response = await fetch('/api/firewall/add-rule', {
+                const response = await fetch('/firewall/api/firewall/add-rule', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ type, value, protocol, action, zone: 'public' })
@@ -887,17 +1009,24 @@
         async function deleteRule(ruleId) {
             if (!confirm('Bạn chắc chắn muốn xóa quy tắc này?')) return;
             try {
-                const response = await fetch(`/api/firewall/delete-rule/${ruleId}`, {
+                const response = await fetch(`/firewall/api/firewall/delete-rule/${ruleId}`, {
                     method: 'DELETE'
                 });
-                if (response.ok) {
+                
+                const data = await response.json();
+                
+                if (data.success) {
                     showNotification('Xóa quy tắc thành công', 'success');
+                    await new Promise(r => setTimeout(r, 800));
+                    await loadCurrentRules();
                     await loadRulesForZone();
                 } else {
-                    showNotification('Lỗi khi xóa quy tắc', 'error');
+                    showNotification(data.message || 'Lỗi khi xóa quy tắc', 'error');
+                    console.error('Delete error:', data);
                 }
             } catch (error) {
                 showNotification('Lỗi: ' + error.message, 'error');
+                console.error('Delete catch error:', error);
             }
         }
 

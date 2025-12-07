@@ -381,7 +381,9 @@ public class FirewallController {
             }
             
             Server server = userServers.get(0);
-            List<FirewallRule> rules = firewallRuleService.getRulesByZone(server, zone);
+            
+            // Get active rules from server via SSH
+            List<Map<String, Object>> rules = firewallRuleService.getActiveRulesFromServer(server, zone);
             
             response.put("success", true);
             response.put("rules", rules);
@@ -435,7 +437,11 @@ public class FirewallController {
             
             response.put("success", true);
             response.put("message", "Đã thêm quy tắc thành công");
-            response.put("rule", rule);
+            response.put("ruleId", rule.getId());
+            response.put("ruleValue", rule.getRuleValue());
+            response.put("protocol", rule.getProtocol());
+            response.put("ruleType", rule.getRuleType());
+            response.put("action", rule.getAction());
             
         } catch (Exception e) {
             response.put("success", false);
@@ -458,6 +464,19 @@ public class FirewallController {
         User user = (User) session.getAttribute("user");
         
         try {
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "Không được xác thực");
+                return response;
+            }
+            
+            // Verify rule exists
+            if (ruleId == null || ruleId <= 0) {
+                response.put("success", false);
+                response.put("message", "ID quy tắc không hợp lệ");
+                return response;
+            }
+            
             firewallRuleService.deleteRule(ruleId);
             
             SystemLogger.logActivity(user.getUsername(), "FIREWALL_DELETE_RULE", 
@@ -468,11 +487,13 @@ public class FirewallController {
             
             response.put("success", true);
             response.put("message", "Đã xóa quy tắc thành công");
+            System.out.println("[Firewall] Deleted rule ID: " + ruleId);
             
         } catch (Exception e) {
             response.put("success", false);
-            response.put("message", "Lỗi: " + e.getMessage());
+            response.put("message", "Lỗi khi xóa quy tắc: " + e.getMessage());
             System.err.println("[Firewall] Delete rule error: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return response;
@@ -538,6 +559,25 @@ public class FirewallController {
             String ip = (String) body.get("ip");
             Boolean permanent = (Boolean) body.getOrDefault("permanent", true);
             
+            if (ip == null || ip.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "IP không hợp lệ");
+                return response;
+            }
+            
+            // Execute UFW command on server
+            String command = String.format("echo 'y' | sudo ufw allow from %s", ip.trim());
+            String result = sshService.executeCommandWithInput(
+                server.getIp(),
+                server.getSshUsername(),
+                server.getSshPassword(),
+                command,
+                server.getSshPassword() + "\ny\n"
+            );
+            
+            System.out.println("[Firewall] Allow IP result: " + result);
+            
+            // Save to database for record keeping
             FirewallIPRule rule = firewallRuleService.allowIP(server, ip, permanent);
             
             SystemLogger.logActivity(user.getUsername(), "FIREWALL_ALLOW_IP", 
@@ -547,13 +587,16 @@ public class FirewallController {
                 "Cho phép IP: " + ip);
             
             response.put("success", true);
-            response.put("message", "Đã thêm IP vào danh sách cho phép");
-            response.put("rule", rule);
+            response.put("message", "Đã cho phép IP " + ip + " thành công");
+            response.put("ruleId", rule.getId());
+            response.put("ipAddress", rule.getIpAddress());
+            response.put("action", rule.getAction());
             
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Lỗi: " + e.getMessage());
             System.err.println("[Firewall] Allow IP error: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return response;
@@ -582,6 +625,25 @@ public class FirewallController {
             String ip = (String) body.get("ip");
             Boolean permanent = (Boolean) body.getOrDefault("permanent", true);
             
+            if (ip == null || ip.trim().isEmpty()) {
+                response.put("success", false);
+                response.put("message", "IP không hợp lệ");
+                return response;
+            }
+            
+            // Execute UFW command on server
+            String command = String.format("echo 'y' | sudo ufw deny from %s", ip.trim());
+            String result = sshService.executeCommandWithInput(
+                server.getIp(),
+                server.getSshUsername(),
+                server.getSshPassword(),
+                command,
+                server.getSshPassword() + "\ny\n"
+            );
+            
+            System.out.println("[Firewall] Block IP result: " + result);
+            
+            // Save to database for record keeping
             FirewallIPRule rule = firewallRuleService.blockIP(server, ip, permanent);
             
             SystemLogger.logActivity(user.getUsername(), "FIREWALL_BLOCK_IP", 
@@ -591,8 +653,10 @@ public class FirewallController {
                 "Chặn IP: " + ip);
             
             response.put("success", true);
-            response.put("message", "Đã thêm IP vào danh sách chặn");
-            response.put("rule", rule);
+            response.put("message", "Đã chặn IP " + ip + " thành công");
+            response.put("ruleId", rule.getId());
+            response.put("ipAddress", rule.getIpAddress());
+            response.put("action", rule.getAction());
             
         } catch (Exception e) {
             response.put("success", false);
@@ -647,4 +711,90 @@ public class FirewallController {
         
         return response;
     }
+
+    /**
+     * Clear all firewall rules from database (admin only)
+     */
+    @PostMapping("/api/clear-all-rules")
+    @ResponseBody
+    public Map<String, Object> clearAllRules(HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        User user = (User) session.getAttribute("user");
+        
+        try {
+            // Security check - only admin can clear
+            if (user == null || !("ADMIN".equals(user.getRole()))) {
+                response.put("success", false);
+                response.put("message", "Chỉ admin mới có quyền");
+                return response;
+            }
+            
+            // Get all rules and delete
+            List<FirewallRule> allRules = firewallRuleService.getAllRules();
+            for (FirewallRule rule : allRules) {
+                firewallRuleService.deleteRule(rule.getId());
+            }
+            
+            response.put("success", true);
+            response.put("message", "Đã xóa tất cả " + allRules.size() + " quy tắc");
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+            System.err.println("[Firewall] Clear rules error: " + e.getMessage());
+        }
+        
+        return response;
+    }
+
+    /**
+     * Update server IP (for fixing connection issues)
+     */
+    @PostMapping("/api/update-server-ip")
+    @ResponseBody
+    public Map<String, Object> updateServerIP(
+            @RequestParam String serverId,
+            @RequestParam String newIP,
+            HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        User user = (User) session.getAttribute("user");
+        
+        try {
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "Không được xác thực");
+                return response;
+            }
+            
+            Long id = Long.parseLong(serverId);
+            Server server = serverRepository.findById(id).orElse(null);
+            
+            if (server == null) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy server");
+                return response;
+            }
+            
+            // Verify ownership
+            if (!server.getUser().getId().equals(user.getId())) {
+                response.put("success", false);
+                response.put("message", "Không có quyền");
+                return response;
+            }
+            
+            String oldIP = server.getIp();
+            server.setIp(newIP);
+            serverRepository.save(server);
+            
+            response.put("success", true);
+            response.put("message", "Cập nhật IP từ " + oldIP + " thành " + newIP);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi: " + e.getMessage());
+        }
+        
+        return response;
+    }
+
 }
