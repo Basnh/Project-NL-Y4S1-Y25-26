@@ -128,57 +128,83 @@ public class FirewallRuleService {
                     continue;
                 }
                 
-                // Split by spaces to parse fields
-                String[] parts = line.split("\\s+");
-                if (parts.length < 2) {
-                    continue;
-                }
-                
                 Map<String, Object> rule = new HashMap<>();
                 
-                // Parse first field (could be "[ 1]" for numbered or "22" for regular)
-                String firstField = parts[0];
-                String portProtoField = "";
-                int actionIndex = 1;
+                String port = "";
+                String protocol = "TCP"; // default
+                String action = "allow"; // default
                 
-                if (firstField.startsWith("[")) {
-                    // Numbered format: "[ 1] 22/tcp ..."
-                    portProtoField = parts[1];
-                    actionIndex = 2;
+                // Handle different formats
+                if (line.contains("[") && line.contains("]")) {
+                    // Numbered format: [ 1] 22                         ALLOW IN    Anywhere
+                    // Extract port/service from the middle
+                    int closeIdx = line.indexOf("]");
+                    String rest = line.substring(closeIdx + 1).trim();
+                    
+                    String[] parts = rest.split("\\s+");
+                    if (parts.length >= 3) {
+                        port = parts[0]; // "22" or "http" or "22/tcp"
+                        
+                        // Extract action (ALLOW, DENY, REJECT, etc)
+                        String actionPart = parts[1].toUpperCase(); // "ALLOW", "DENY"
+                        
+                        // Check if it's "ALLOW IN" or just "ALLOW"
+                        if (actionPart.equals("ALLOW")) {
+                            action = "allow";
+                        } else if (actionPart.equals("DENY")) {
+                            action = "deny";
+                        } else if (actionPart.equals("REJECT")) {
+                            action = "reject";
+                        }
+                    }
                 } else {
-                    // Regular format: "22/tcp ALLOW ..." or "22 ALLOW ..."
-                    portProtoField = parts[0];
-                    actionIndex = 1;
+                    // Regular format: 22/tcp                     ALLOW       Anywhere
+                    String[] parts = line.split("\\s+");
+                    if (parts.length >= 2) {
+                        String portProtoField = parts[0];
+                        
+                        // Extract port and protocol
+                        if (portProtoField.contains("/")) {
+                            String[] pp = portProtoField.split("/");
+                            port = pp[0];
+                            protocol = pp[1].toUpperCase();
+                        } else if (portProtoField.matches("\\d+")) {
+                            port = portProtoField;
+                            protocol = "TCP";
+                        } else {
+                            port = portProtoField; // service name
+                            protocol = "TCP";
+                        }
+                        
+                        // Extract action
+                        String actionPart = parts[1].toUpperCase();
+                        if (actionPart.equals("ALLOW")) {
+                            action = "allow";
+                        } else if (actionPart.equals("DENY")) {
+                            action = "deny";
+                        } else if (actionPart.equals("REJECT")) {
+                            action = "reject";
+                        }
+                    }
                 }
                 
-                // Extract port and protocol from portProtoField
-                String port = portProtoField;
-                String protocol = "TCP"; // default
-                
-                if (portProtoField.contains("/")) {
-                    String[] pp = portProtoField.split("/");
+                // Parse protocol from port field if present
+                if (port.contains("/")) {
+                    String[] pp = port.split("/");
                     port = pp[0];
                     protocol = pp[1].toUpperCase();
-                } else if (portProtoField.matches("\\d+")) {
-                    // Plain port number, assume TCP
-                    port = portProtoField;
-                    protocol = "TCP";
                 }
                 
-                // Extract action
-                String action = "allow"; // default
-                if (actionIndex < parts.length) {
-                    action = parts[actionIndex].toLowerCase();
+                if (!port.isEmpty()) {
+                    rule.put("port", port);
+                    rule.put("protocol", protocol);
+                    rule.put("action", action);
+                    rule.put("zone", zone);
+                    rule.put("ruleType", "port");
+                    rule.put("ruleValue", port);
+                    
+                    rules.add(rule);
                 }
-                
-                rule.put("port", port);
-                rule.put("protocol", protocol);
-                rule.put("action", action);
-                rule.put("zone", zone);
-                rule.put("ruleType", "port");
-                rule.put("ruleValue", port);
-                
-                rules.add(rule);
             }
             
         } catch (Exception e) {

@@ -243,111 +243,6 @@
                     </div>
                 </div>
 
-                <!-- Rules Table -->
-                <div id="rulesPanel" class="bg-white rounded-lg shadow-md overflow-hidden" style="display: none;">
-                    <div class="px-6 py-4 bg-gray-50 border-b border-gray-200">
-                        <h3 class="text-lg font-semibold text-gray-800 flex items-center gap-2">
-                            <i class="fas fa-list"></i>Danh sách quy tắc
-                        </h3>
-                    </div>
-
-                    <div class="overflow-x-auto">
-                        <table class="w-full text-sm">
-                            <thead>
-                                <tr class="bg-gray-50 border-b border-gray-200">
-                                    <th class="px-6 py-3 text-left">
-                                        <input type="checkbox" class="cursor-pointer">
-                                    </th>
-                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Loại</th>
-                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Cổng/Dịch vụ</th>
-                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Giao thức</th>
-                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Trạng thái</th>
-                                    <th class="px-6 py-3 text-left font-medium text-gray-700">Hành động</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <!-- Sample Rules -->
-                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-gray-800">dns (53)</td>
-                                    <td class="px-6 py-4">TCP/UDP</td>
-                                    <td class="px-6 py-4">
-                                        <span class="status-badge status-allow">✓ Cho phép</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
-                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-gray-800">http (80)</td>
-                                    <td class="px-6 py-4">TCP</td>
-                                    <td class="px-6 py-4">
-                                        <span class="status-badge status-allow">✓ Cho phép</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
-                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-gray-800">https (443)</td>
-                                    <td class="px-6 py-4">TCP</td>
-                                    <td class="px-6 py-4">
-                                        <span class="status-badge status-allow">✓ Cho phép</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
-                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                        </button>
-                                    </td>
-                                </tr>
-
-                                <tr class="rule-row border-b border-gray-200 hover:bg-gray-50">
-                                    <td class="px-6 py-4"><input type="checkbox" class="cursor-pointer"></td>
-                                    <td class="px-6 py-4">
-                                        <span class="inline-block px-2 py-1 bg-blue-100 text-blue-800 rounded text-xs font-medium">Dịch vụ</span>
-                                    </td>
-                                    <td class="px-6 py-4 font-mono text-gray-800">ssh (22)</td>
-                                    <td class="px-6 py-4">TCP</td>
-                                    <td class="px-6 py-4">
-                                        <span class="status-badge status-allow">✓ Cho phép</span>
-                                    </td>
-                                    <td class="px-6 py-4">
-                                        <button class="text-red-600 hover:text-red-800 font-medium text-sm transition">
-                                            <i class="fas fa-trash-alt mr-1"></i>Xóa
-                                        </button>
-                                    </td>
-                                </tr>
-                            </tbody>
-                        </table>
-                    </div>
-
-                    <div class="px-6 py-4 bg-gray-50 border-t border-gray-200 flex justify-end gap-3">
-                        <button class="px-4 py-2 bg-red-600 hover:bg-red-700 text-white rounded-lg font-medium transition">
-                            <i class="fas fa-trash-alt mr-2"></i>Xóa các quy tắc được chọn
-                        </button>
-                        <button class="px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition">
-                            <i class="fas fa-check mr-2"></i>Áp dụng quy tắc
-                        </button>
-                    </div>
-                </div>
-
                 <!-- IP Management Section -->
                 <div id="ipManagementPanel" class="grid grid-cols-1 md:grid-cols-2 gap-6 mt-6" style="display: none;">
                     <!-- Allow IP -->
@@ -431,7 +326,6 @@
                     };
                     
                     configPanel.style.display = 'block';
-                    rulesPanel.style.display = 'block';
                     ipManagementPanel.style.display = 'grid';
                     footerActions.style.display = 'flex';
                     checkFirewallStatus();
@@ -663,14 +557,52 @@
             if (deleteSelectedBtn) {
                 deleteSelectedBtn.addEventListener('click', async () => {
                     if (!selectedServer) return;
-                    const selected = Array.from(checkboxes).filter(cb => cb.checked).length;
-                    if (selected === 0) {
+                    
+                    // Get all checked checkboxes dynamically
+                    const currentCheckboxes = document.querySelectorAll('#currentRulesTable input[type="checkbox"]:checked');
+                    if (currentCheckboxes.length === 0) {
                         alert('Chọn ít nhất một quy tắc');
                         return;
                     }
-                    if (confirm(`Xóa ${selected} quy tắc?`)) {
-                        showNotification('Đã xóa quy tắc', 'success');
-                        setTimeout(() => location.reload(), 1000);
+                    
+                    if (confirm(`Xóa ${currentCheckboxes.length} quy tắc?`)) {
+                        try {
+                            // Collect rule IDs from checked rows
+                            const ruleIds = Array.from(currentCheckboxes)
+                                .map(checkbox => {
+                                    const row = checkbox.closest('tr');
+                                    // Get rule ID from delete button's onclick or data attribute
+                                    const deleteBtn = row.querySelector('[onclick*="deleteRule"]');
+                                    if (deleteBtn) {
+                                        const match = deleteBtn.getAttribute('onclick').match(/deleteRule\((\d+)\)/);
+                                        return match ? parseInt(match[1]) : null;
+                                    }
+                                    return null;
+                                })
+                                .filter(id => id !== null);
+                            
+                            if (ruleIds.length > 0) {
+                                const response = await fetch('/firewall/api/firewall/delete-rules', {
+                                    method: 'POST',
+                                    headers: { 'Content-Type': 'application/json' },
+                                    body: JSON.stringify({ ruleIds: ruleIds })
+                                });
+                                
+                                const data = await response.json();
+                                if (data.success) {
+                                    showNotification(`Đã xóa ${currentCheckboxes.length} quy tắc thành công`, 'success');
+                                    await new Promise(r => setTimeout(r, 800));
+                                    await loadCurrentRules();
+                                } else {
+                                    showNotification(data.message || 'Lỗi khi xóa quy tắc', 'error');
+                                }
+                            } else {
+                                showNotification('Không tìm thấy ID quy tắc', 'error');
+                            }
+                        } catch (error) {
+                            showNotification('Lỗi: ' + error.message, 'error');
+                            console.error('Delete error:', error);
+                        }
                     }
                 });
             }
@@ -870,7 +802,7 @@
         async function loadCurrentRules() {
             if (!selectedServer) return;
             try {
-                const response = await fetch(`/firewall/api/rules?zone=public`);
+                const response = await fetch(`/firewall/api/rules?zone=public&ip=${selectedServer.ip}`);
                 const data = await response.json();
                 
                 // Extract rules array
@@ -885,10 +817,13 @@
                     tbody.innerHTML = '';
                     
                     if (rules && rules.length > 0) {
-                        rules.forEach(rule => {
+                        rules.forEach((rule, index) => {
                             const row = document.createElement('tr');
                             row.className = 'border-b border-gray-200 hover:bg-gray-50 transition';
                             row.innerHTML = `
+                                <td class="px-4 py-3">
+                                    <input type="checkbox" class="w-4 h-4 cursor-pointer">
+                                </td>
                                 <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleValue || '-'}</td>
                                 <td class="px-4 py-3 text-sm text-gray-800">${rule.protocol || '-'}</td>
                                 <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleType || '-'}</td>
@@ -899,12 +834,17 @@
                                             : 'bg-red-100 text-red-800'
                                     }">${rule.action === 'allow' ? '✓ Cho phép' : '✗ Chặn'}</span>
                                 </td>
+                                <td class="px-4 py-3 text-sm">
+                                    <button onclick="deleteRule('${rule.ruleValue}', '${rule.protocol}', '${rule.action}')" class="text-red-600 hover:text-red-800 font-medium">
+                                        <i class="fas fa-trash-alt"></i> Xóa
+                                    </button>
+                                </td>
                             `;
                             tbody.appendChild(row);
                         });
                     } else {
                         const row = document.createElement('tr');
-                        row.innerHTML = '<td colspan="4" class="px-4 py-6 text-center text-gray-500"><i class="fas fa-info-circle mr-2"></i>Không có quy tắc nào</td>';
+                        row.innerHTML = '<td colspan="6" class="px-4 py-6 text-center text-gray-500"><i class="fas fa-info-circle mr-2"></i>Không có quy tắc nào</td>';
                         tbody.appendChild(row);
                     }
                 }
@@ -917,7 +857,6 @@
             if (!selectedServer) return;
             try {
                 const statusEl = document.getElementById('firewallStatus');
-                statusEl.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Kiểm tra...';
                 
                 const response = await fetch(`/firewall/api/status?ip=${selectedServer.ip}`, { method: 'POST' });
                 const data = await response.json();
@@ -937,7 +876,7 @@
             if (!selectedServer) return;
             try {
                 const zone = 'public'; // Always use public zone
-                const response = await fetch(`/firewall/api/rules?zone=${zone}`);
+                const response = await fetch(`/firewall/api/rules?zone=${zone}&ip=${selectedServer.ip}`);
                 const data = await response.json();
                 
                 // Extract rules array
@@ -945,44 +884,6 @@
                 
                 // Update rule count
                 document.getElementById('ruleCount').textContent = rules.length || 0;
-                
-                // Update rules table
-                const tbody = document.querySelector('#rulesPanel tbody');
-                if (tbody) {
-                    tbody.innerHTML = ''; // Clear existing rows
-                    
-                    if (rules && rules.length > 0) {
-                        rules.forEach(rule => {
-                            const row = document.createElement('tr');
-                            row.className = 'border-t border-gray-200 hover:bg-gray-50 transition';
-                            row.innerHTML = `
-                                <td class="px-4 py-3">
-                                    <input type="checkbox" class="w-4 h-4 cursor-pointer">
-                                </td>
-                                <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleValue || '-'}</td>
-                                <td class="px-4 py-3 text-sm text-gray-800">${rule.protocol || '-'}</td>
-                                <td class="px-4 py-3 text-sm text-gray-800">${rule.ruleType || '-'}</td>
-                                <td class="px-4 py-3 text-sm">
-                                    <span class="px-2 py-1 rounded-full text-xs font-medium ${
-                                        rule.action === 'allow' 
-                                            ? 'bg-green-100 text-green-800' 
-                                            : 'bg-red-100 text-red-800'
-                                    }">${rule.action === 'allow' ? 'Cho phép' : 'Chặn'}</span>
-                                </td>
-                                <td class="px-4 py-3 text-sm">
-                                    <button onclick="deleteRule(${rule.id})" class="text-red-600 hover:text-red-800 font-medium">
-                                        <i class="fas fa-trash-alt"></i> Xóa
-                                    </button>
-                                </td>
-                            `;
-                            tbody.appendChild(row);
-                        });
-                    } else {
-                        const row = document.createElement('tr');
-                        row.innerHTML = '<td colspan="6" class="px-4 py-6 text-center text-gray-500">Không có quy tắc nào</td>';
-                        tbody.appendChild(row);
-                    }
-                }
             } catch (error) {
                 console.error('Error loading rules:', error);
                 document.getElementById('ruleCount').textContent = '0';
@@ -1006,11 +907,19 @@
             }
         }
 
-        async function deleteRule(ruleId) {
+        async function deleteRule(ruleValue, protocol, action) {
             if (!confirm('Bạn chắc chắn muốn xóa quy tắc này?')) return;
             try {
-                const response = await fetch(`/firewall/api/firewall/delete-rule/${ruleId}`, {
-                    method: 'DELETE'
+                const response = await fetch(`/firewall/api/firewall/delete-rule-by-details`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        ruleValue: ruleValue,
+                        protocol: protocol,
+                        action: action
+                    })
                 });
                 
                 const data = await response.json();

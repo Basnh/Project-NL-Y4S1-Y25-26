@@ -35,6 +35,9 @@ public class FirewallController {
     
     @Autowired
     private FirewallRuleService firewallRuleService;
+    
+    @Autowired
+    private com.example.sshcontrol.repository.FirewallRuleRepository ruleRepository;
 
     /**
      * Hiển thị trang quản lý firewall
@@ -477,6 +480,39 @@ public class FirewallController {
                 return response;
             }
             
+            List<Server> userServers = serverRepository.findByUser(user);
+            if (userServers.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy server");
+                return response;
+            }
+            
+            Server server = userServers.get(0);
+            
+            // Try to find the rule to get details for UFW deletion
+            Optional<com.example.sshcontrol.model.FirewallRule> ruleOpt = 
+                java.util.Optional.ofNullable(ruleRepository.findById(ruleId).orElse(null));
+            
+            if (ruleOpt.isPresent()) {
+                com.example.sshcontrol.model.FirewallRule rule = ruleOpt.get();
+                // Execute UFW delete command
+                String protocol = rule.getProtocol() != null ? rule.getProtocol().toLowerCase() : "tcp";
+                String command = String.format("echo 'y' | sudo ufw delete %s %s/%s", 
+                    rule.getAction().toLowerCase(), 
+                    rule.getRuleValue(), 
+                    protocol);
+                
+                System.out.println("[Firewall] Deleting rule via SSH: " + command);
+                String result = sshService.executeCommandWithInput(
+                    server.getIp(),
+                    server.getSshUsername(),
+                    server.getSshPassword(),
+                    command,
+                    server.getSshPassword() + "\ny\n"
+                );
+                System.out.println("[Firewall] Delete SSH result: " + result);
+            }
+            
             firewallRuleService.deleteRule(ruleId);
             
             SystemLogger.logActivity(user.getUsername(), "FIREWALL_DELETE_RULE", 
@@ -500,6 +536,148 @@ public class FirewallController {
     }
 
     /**
+     * Xóa quy tắc theo chi tiết (ruleValue, protocol, action)
+     */
+    @PostMapping("/api/firewall/delete-rule-by-details")
+    @ResponseBody
+    public Map<String, Object> deleteRuleByDetails(
+            @RequestBody Map<String, Object> body,
+            HttpSession session) {
+        Map<String, Object> response = new HashMap<>();
+        User user = (User) session.getAttribute("user");
+        
+        try {
+            if (user == null) {
+                response.put("success", false);
+                response.put("message", "Không được xác thực");
+                return response;
+            }
+            
+            List<Server> userServers = serverRepository.findByUser(user);
+            if (userServers.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy server");
+                return response;
+            }
+            
+            Server server = userServers.get(0);
+            
+            String ruleValue = (String) body.get("ruleValue");
+            String protocol = (String) body.get("protocol");
+            String action = (String) body.get("action");
+            
+            if (ruleValue == null || protocol == null || action == null) {
+                response.put("success", false);
+                response.put("message", "Thiếu thông tin quy tắc");
+                return response;
+            }
+            
+            // Step 1: Get numbered rules
+            String statusCommand = "sudo ufw status numbered";
+            System.out.println("[Firewall] Getting numbered rules via SSH: " + statusCommand);
+            String statusResult = sshService.executeCommand(
+                server.getIp(),
+                server.getSshUsername(),
+                server.getSshPassword(),
+                statusCommand
+            );
+            System.out.println("[Firewall] Status result:\n" + statusResult);
+            
+            // Step 2: Find the rule number
+            int ruleNumber = findRuleNumber(statusResult, ruleValue, protocol, action);
+            
+            if (ruleNumber == -1) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy quy tắc để xóa");
+                return response;
+            }
+            
+            // Step 3: Delete by number
+            String deleteCommand = String.format("echo 'y' | sudo ufw delete %d", ruleNumber);
+            System.out.println("[Firewall] Deleting rule via SSH: " + deleteCommand);
+            String deleteResult = sshService.executeCommandWithInput(
+                server.getIp(),
+                server.getSshUsername(),
+                server.getSshPassword(),
+                deleteCommand,
+                "y\n"
+            );
+            System.out.println("[Firewall] Delete SSH result: " + deleteResult);
+            
+            // Also delete from database if exists
+            try {
+                com.example.sshcontrol.model.FirewallRule dbRule = 
+                    ruleRepository.findByRuleValueAndProtocolAndAction(ruleValue, protocol, action);
+                if (dbRule != null) {
+                    ruleRepository.delete(dbRule);
+                }
+            } catch (Exception e) {
+                System.out.println("[Firewall] Note: Rule not found in database: " + e.getMessage());
+            }
+            
+            SystemLogger.logActivity(user.getUsername(), "FIREWALL_DELETE_RULE", 
+                "Xóa quy tắc: " + ruleValue + "/" + protocol);
+            
+            activityLogService.logActivity(user, "FIREWALL_DELETE_RULE", 
+                "Xóa quy tắc firewall: " + ruleValue + "/" + protocol);
+            
+            response.put("success", true);
+            response.put("message", "Đã xóa quy tắc thành công");
+            System.out.println("[Firewall] Deleted rule: " + ruleValue + "/" + protocol);
+            
+        } catch (Exception e) {
+            response.put("success", false);
+            response.put("message", "Lỗi khi xóa quy tắc: " + e.getMessage());
+            System.err.println("[Firewall] Delete rule error: " + e.getMessage());
+            e.printStackTrace();
+        }
+        
+        return response;
+    }
+    
+    /**
+     * Find rule number by matching rule details
+     */
+    private int findRuleNumber(String statusOutput, String ruleValue, String protocol, String action) {
+        String[] lines = statusOutput.split("\n");
+        
+        for (String line : lines) {
+            // Look for lines with format: [ 1] 22                         ALLOW IN    Anywhere
+            if (line.contains("[") && line.contains("]")) {
+                try {
+                    // Extract rule number
+                    int startIdx = line.indexOf("[") + 1;
+                    int endIdx = line.indexOf("]");
+                    String numberStr = line.substring(startIdx, endIdx).trim();
+                    int number = Integer.parseInt(numberStr);
+                    
+                    // Check if this line matches our rule
+                    String upperLine = line.toUpperCase();
+                    String searchValue = ruleValue.trim();
+                    String searchProtocol = protocol.trim().toUpperCase();
+                    String searchAction = action.trim().toUpperCase();
+                    
+                    // Normalize protocol (tcp/udp might appear as separate entries or combined)
+                    if (searchProtocol.equals("TCP/UDP")) {
+                        searchProtocol = "TCP";
+                    }
+                    
+                    // Check if line contains the rule details
+                    if ((line.contains(searchValue) || line.contains(searchProtocol)) &&
+                        (upperLine.contains("ALLOW") && searchAction.equals("ALLOW")) ||
+                        (upperLine.contains("DENY") && searchAction.equals("DENY"))) {
+                        return number;
+                    }
+                } catch (NumberFormatException e) {
+                    // Skip lines that don't have valid rule numbers
+                }
+            }
+        }
+        
+        return -1;
+    }
+
+    /**
      * Xóa nhiều quy tắc
      */
     @PostMapping("/api/firewall/delete-rules")
@@ -511,26 +689,83 @@ public class FirewallController {
         User user = (User) session.getAttribute("user");
         
         try {
-            @SuppressWarnings("unchecked")
-            List<Integer> ruleIds = (List<Integer>) body.get("ruleIds");
+            List<Server> userServers = serverRepository.findByUser(user);
+            if (userServers.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Không tìm thấy server");
+                return response;
+            }
             
-            for (Integer id : ruleIds) {
-                firewallRuleService.deleteRule(Long.valueOf(id));
+            Server server = userServers.get(0);
+            
+            @SuppressWarnings("unchecked")
+            List<Map<String, String>> rules = (List<Map<String, String>>) body.get("rules");
+            
+            if (rules == null || rules.isEmpty()) {
+                response.put("success", false);
+                response.put("message", "Không có quy tắc nào để xóa");
+                return response;
+            }
+            
+            int deletedCount = 0;
+            for (Map<String, String> rule : rules) {
+                try {
+                    String ruleValue = rule.get("ruleValue");
+                    String protocol = rule.get("protocol");
+                    String action = rule.get("action");
+                    
+                    if (ruleValue == null || ruleValue.isEmpty()) {
+                        continue;
+                    }
+                    
+                    // Execute UFW delete command
+                    // Format: sudo ufw delete [allow/deny] [port/protocol]
+                    String protocol_lower = protocol != null ? protocol.toLowerCase() : "tcp";
+                    String command;
+                    
+                    if (ruleValue.equals("Anywhere")) {
+                        // For "Anywhere" rules, need to figure out the port from context
+                        command = String.format("echo 'y' | sudo ufw delete %s", action);
+                    } else {
+                        // Normal port rule
+                        if (protocol_lower.contains("/")) {
+                            command = String.format("echo 'y' | sudo ufw delete %s %s/%s", action, ruleValue, protocol_lower);
+                        } else {
+                            command = String.format("echo 'y' | sudo ufw delete %s %s/%s", action, ruleValue, protocol_lower);
+                        }
+                    }
+                    
+                    System.out.println("[Firewall] Deleting rule via SSH: " + command);
+                    String result = sshService.executeCommandWithInput(
+                        server.getIp(),
+                        server.getSshUsername(),
+                        server.getSshPassword(),
+                        command,
+                        server.getSshPassword() + "\ny\n"
+                    );
+                    
+                    System.out.println("[Firewall] Delete result: " + result);
+                    deletedCount++;
+                    
+                } catch (Exception e) {
+                    System.err.println("[Firewall] Error deleting rule: " + e.getMessage());
+                }
             }
             
             SystemLogger.logActivity(user.getUsername(), "FIREWALL_DELETE_RULES", 
-                "Xóa " + ruleIds.size() + " quy tắc");
+                "Xóa " + deletedCount + " quy tắc từ UFW");
             
             activityLogService.logActivity(user, "FIREWALL_DELETE_RULES", 
-                "Xóa " + ruleIds.size() + " quy tắc firewall");
+                "Xóa " + deletedCount + " quy tắc firewall từ UFW");
             
             response.put("success", true);
-            response.put("message", "Đã xóa " + ruleIds.size() + " quy tắc");
+            response.put("message", "Đã xóa " + deletedCount + " quy tắc từ UFW");
             
         } catch (Exception e) {
             response.put("success", false);
             response.put("message", "Lỗi: " + e.getMessage());
             System.err.println("[Firewall] Delete rules error: " + e.getMessage());
+            e.printStackTrace();
         }
         
         return response;

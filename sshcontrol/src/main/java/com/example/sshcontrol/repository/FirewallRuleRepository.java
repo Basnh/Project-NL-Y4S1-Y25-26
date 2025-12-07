@@ -13,5 +13,6 @@ public interface FirewallRuleRepository extends JpaRepository<FirewallRule, Long
     List<FirewallRule> findByServer(Server server);
     List<FirewallRule> findByServerAndZone(Server server, String zone);
     List<FirewallRule> findByServerAndAction(Server server, String action);
+    FirewallRule findByRuleValueAndProtocolAndAction(String ruleValue, String protocol, String action);
     void deleteById(@NonNull Long id);
 }
