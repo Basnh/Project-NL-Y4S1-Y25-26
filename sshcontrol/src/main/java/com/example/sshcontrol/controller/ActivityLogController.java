@@ -89,20 +89,26 @@ public class ActivityLogController {
      * Lịch sử hoạt động endpoint (legacy)
      */
     @GetMapping("/log")
-    @ResponseBody
-    public Page<ActivityLog> getActivitiesByDateRange(
-            @RequestParam String startDate,
-            @RequestParam String endDate,
+    public String getActivitiesByDateRange(
+            @RequestParam(required = false) String startDate,
+            @RequestParam(required = false) String endDate,
             @RequestParam(defaultValue = "0") int page,
-            HttpSession session) {
+            HttpSession session,
+            Model model) {
         
         User user = (User) session.getAttribute("user");
         if (user == null) {
-            return null;
+            return "redirect:/login";
         }
 
         Pageable pageable = PageRequest.of(page, 20);
-        return activityLogService.getUserActivities(user, pageable);
+        Page<ActivityLog> activities = activityLogService.getUserActivities(user, pageable);
+        
+        model.addAttribute("activities", activities);
+        model.addAttribute("stats", activityLogService.getStatistics(user));
+        model.addAttribute("recentActivities", activityLogService.getRecentActivities(user));
+        
+        return "log";
     }
 
     /**
