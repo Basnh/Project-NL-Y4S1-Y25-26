@@ -174,10 +174,28 @@
       </p>
     </div>
 
+    <!-- Alerts & Notifications Panel -->
+    <div id="alertsPanel" class="mb-8 hidden">
+      <div class="bg-red-500/10 border border-red-500/30 rounded-lg p-4">
+        <div class="flex items-center justify-between mb-3">
+          <h4 class="text-lg font-semibold text-red-300 flex items-center">
+            <i class="fas fa-exclamation-circle mr-2"></i>
+            Cảnh báo quan trọng
+          </h4>
+          <button onclick="dismissAlerts()" class="text-red-400 hover:text-red-300">
+            <i class="fas fa-times"></i>
+          </button>
+        </div>
+        <div id="alertsList" class="space-y-2">
+          <!-- Alerts will be populated by JavaScript -->
+        </div>
+      </div>
+    </div>
+
     <!-- Dashboard Summary -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-8 mb-12">
       <!-- Server Overview -->
-      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10">
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all cursor-pointer" onclick="location.href='/server-list'">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">Tổng quan máy chủ</h3>
           <i class="fas fa-server text-blue-400"></i>
@@ -198,9 +216,10 @@
             <span class="text-gray-300">Tải CPU</span>
             <div class="flex items-center">
               <div class="w-16 h-1.5 bg-gray-700 rounded-full overflow-hidden">
-                <div th:style="${'width:' + (statistics != null ? statistics.cpuLoad : 0) + '%'}" class="h-full bg-blue-500"></div>
+                <div id="cpuTrend" th:style="${'width:' + (statistics != null ? statistics.cpuLoad : 0) + '%'}" class="h-full bg-blue-500 transition-all duration-300"></div>
               </div>
-              <span class="ml-2 text-white text-sm" th:text="${(statistics != null ? statistics.cpuLoad : 0) + '%'}">0%</span>
+              <span class="ml-2 text-white text-sm" id="cpuLoadValue" th:text="${(statistics != null ? statistics.cpuLoad : 0) + '%'}">0%</span>
+              <span id="cpuTrendArrow" class="ml-2 text-xs text-gray-400"></span>
             </div>
           </div>
           <div class="mt-4">
@@ -213,7 +232,7 @@
       </div>
 
       <!-- System Health -->
-      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10">
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10 hover:border-white/20 transition-all">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-semibold text-white">Sức khỏe hệ thống</h3>
           <i class="fas fa-heartbeat text-pink-400"></i>
@@ -227,9 +246,10 @@
             <span class="text-gray-300">Hiệu suất</span>
             <div class="flex items-center">
               <div class="w-24 h-2 bg-gray-700 rounded-full overflow-hidden">
-                <div th:style="${'width:' + (statistics != null ? statistics.performance : 90) + '%'}" class="h-full bg-green-500"></div>
+                <div id="perfBar" th:style="${'width:' + (statistics != null ? statistics.performance : 90) + '%'}" class="h-full transition-all duration-300" th:classappend="${(statistics != null ? statistics.performance : 90) >= 85 ? 'bg-green-500' : (statistics != null ? statistics.performance : 90) >= 70 ? 'bg-yellow-500' : 'bg-red-500'}"></div>
               </div>
-              <span class="ml-2 text-white" th:text="${(statistics != null ? statistics.performance : 90) + '%'}">90%</span>
+              <span class="ml-2 text-white" id="perfValue" th:text="${(statistics != null ? statistics.performance : 90) + '%'}">90%</span>
+              <span id="perfTrendArrow" class="ml-2 text-xs text-gray-400"></span>
             </div>
           </div>
           <div class="mt-4">
@@ -241,35 +261,77 @@
         </div>
       </div>
 
-      <!-- Quick Actions -->
+      <!-- Recent Activity / Server Status -->
       <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10">
         <div class="flex items-center justify-between mb-4">
-          <h3 class="text-lg font-semibold text-white">Thao tác nhanh</h3>
-          <i class="fas fa-bolt text-yellow-400"></i>
+          <h3 class="text-lg font-semibold text-white">Server gần đây</h3>
+          <i class="fas fa-history text-green-400"></i>
         </div>
-        <div class="space-y-3">
-          <a href="/dashboard" class="flex items-center justify-between p-3 bg-blue-500/20 rounded-lg hover:bg-blue-500/30 transition-all">
-            <span class="text-white flex items-center">
-              <i class="fas fa-tachometer-alt mr-2"></i>
-              Bảng điều khiển
-            </span>
-            <i class="fas fa-chevron-right text-gray-400"></i>
-          </a>
-          <a href="/add-server" class="flex items-center justify-between p-3 bg-green-500/20 rounded-lg hover:bg-green-500/30 transition-all">
-            <span class="text-white flex items-center">
-              <i class="fas fa-plus mr-2"></i>
-              Thêm máy chủ
-            </span>
-            <i class="fas fa-chevron-right text-gray-400"></i>
-          </a>
-          <a href="/server-list" class="flex items-center justify-between p-3 bg-purple-500/20 rounded-lg hover:bg-purple-500/30 transition-all">
-            <span class="text-white flex items-center">
-              <i class="fas fa-chart-line mr-2"></i>
-              Giám sát
-            </span>
-            <i class="fas fa-chevron-right text-gray-400"></i>
-          </a>
+        <div id="recentServers" class="space-y-2">
+          <!-- Recent servers will be populated by JavaScript -->
+          <p class="text-gray-400 text-sm">Chưa có server được truy cập gần đây</p>
         </div>
+      </div>
+    </div>
+
+    <!-- Activity Feed -->
+    <div class="mb-12">
+      <div class="bg-white/10 backdrop-blur-md rounded-xl p-6 border border-white/10">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-semibold text-white flex items-center">
+            <i class="fas fa-list-ul mr-2"></i>
+            Hoạt động gần đây
+          </h3>
+          <a href="/log" class="text-sm text-blue-400 hover:text-blue-300">Xem tất cả</a>
+        </div>
+        <div id="activityFeed" class="space-y-3">
+          <!-- Activity items will be populated by JavaScript -->
+          <p class="text-gray-400 text-sm text-center py-4">Chưa có hoạt động nào</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Quick Search / Command Palette -->
+    <div class="mb-12">
+      <div class="max-w-2xl mx-auto">
+        <div class="relative group">
+          <input type="text" id="commandPalette" placeholder="🔍 Tìm server, lệnh, dịch vụ... (Ctrl+K)" 
+            class="w-full px-6 py-3 rounded-lg bg-white/10 border border-white/20 text-white placeholder-gray-400 focus:outline-none focus:border-blue-400 focus:ring-2 focus:ring-blue-400/30 transition-all"
+          />
+          <div id="searchResults" class="absolute top-full left-0 right-0 mt-2 bg-slate-800 border border-white/20 rounded-lg shadow-xl hidden max-h-64 overflow-y-auto z-50">
+            <!-- Results will be populated by JavaScript -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Pinned Shortcuts -->
+    <div class="mb-12">
+      <div class="flex flex-wrap justify-center gap-3">
+        <a href="/execute-page" class="inline-flex items-center px-4 py-2 bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-200 rounded-lg transition-all border border-yellow-500/30 hover:border-yellow-400/50" data-shortcut="execute">
+          <i class="fas fa-terminal mr-2"></i>
+          Thực thi lệnh
+        </a>
+        <a href="/server-list" class="inline-flex items-center px-4 py-2 bg-blue-500/20 hover:bg-blue-500/30 text-blue-200 rounded-lg transition-all border border-blue-500/30 hover:border-blue-400/50" data-shortcut="servers">
+          <i class="fas fa-server mr-2"></i>
+          Danh sách server
+        </a>
+        <a href="/list-services" class="inline-flex items-center px-4 py-2 bg-green-500/20 hover:bg-green-500/30 text-green-200 rounded-lg transition-all border border-green-500/30 hover:border-green-400/50" data-shortcut="services">
+          <i class="fas fa-cogs mr-2"></i>
+          Dịch vụ
+        </a>
+        <a href="/add-server" class="inline-flex items-center px-4 py-2 bg-purple-500/20 hover:bg-purple-500/30 text-purple-200 rounded-lg transition-all border border-purple-500/30 hover:border-purple-400/50" data-shortcut="addserver">
+          <i class="fas fa-plus mr-2"></i>
+          Thêm server
+        </a>
+        <a href="/log" class="inline-flex items-center px-4 py-2 bg-orange-500/20 hover:bg-orange-500/30 text-orange-200 rounded-lg transition-all border border-orange-500/30 hover:border-orange-400/50" data-shortcut="logs">
+          <i class="fas fa-history mr-2"></i>
+          Lịch sử
+        </a>
+        <button id="pinnedToggle" class="inline-flex items-center px-4 py-2 bg-white/10 hover:bg-white/20 text-white/70 rounded-lg transition-all border border-white/20 hover:border-white/40">
+          <i class="fas fa-star mr-2"></i>
+          Tùy chỉnh
+        </button>
       </div>
     </div>
 
@@ -467,7 +529,7 @@
   </div>
 </section>
 
-<section class="py-20 bg-gray-50" id="faq">
+<section th:if="${session.user == null}" class="py-20 bg-gray-50" id="faq">
     <div class="max-w-5xl mx-auto px-6">
       <div class="text-center mb-16">
         <h2 class="text-4xl font-bold text-gray-800 mb-4">Câu hỏi thường gặp</h2>
@@ -606,7 +668,7 @@
   </section>
 
   <!-- Testimonials Section -->
-<section class="py-20 bg-white">
+<section th:if="${session.user == null}" class="py-20 bg-white">
   <div class="max-w-7xl mx-auto px-6">
     <div class="text-center mb-16">
       <h2 class="text-4xl font-bold text-gray-800 mb-4">Khách hàng nói gì về chúng tôi</h2>
@@ -745,10 +807,259 @@
       .catch(error => console.log('Error fetching statistics:', error));
     }
 
+    // ============================================
+    // NEW FEATURES FOR LOGGED IN USERS
+    // ============================================
+
+    // Command Palette / Quick Search
+    const commandPalette = document.getElementById('commandPalette');
+    const searchResults = document.getElementById('searchResults');
+
+    if (commandPalette) {
+      // Keyboard shortcut Ctrl+K or Cmd+K
+      document.addEventListener('keydown', function(e) {
+        if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+          e.preventDefault();
+          commandPalette.focus();
+        }
+      });
+
+      commandPalette.addEventListener('input', function(e) {
+        const query = e.target.value.toLowerCase();
+        if (!query) {
+          searchResults.classList.add('hidden');
+          return;
+        }
+
+        const commands = [
+          { name: 'Thực thi lệnh', url: '/execute-page', icon: 'fa-terminal', type: 'execute' },
+          { name: 'Danh sách server', url: '/server-list', icon: 'fa-server', type: 'servers' },
+          { name: 'Dịch vụ', url: '/list-services', icon: 'fa-cogs', type: 'services' },
+          { name: 'Thêm server', url: '/add-server', icon: 'fa-plus', type: 'add' },
+          { name: 'Lịch sử', url: '/log', icon: 'fa-history', type: 'logs' },
+          { name: 'Bảng điều khiển', url: '/dashboard', icon: 'fa-tachometer-alt', type: 'dashboard' },
+          { name: 'Tường lửa', url: '/firewall', icon: 'fa-fire-burner', type: 'firewall' },
+          { name: 'Quản lý file', url: '/file-manager', icon: 'fa-folder-open', type: 'files' }
+        ];
+
+        const filtered = commands.filter(cmd => 
+          cmd.name.toLowerCase().includes(query) || cmd.type.includes(query)
+        );
+
+        if (filtered.length === 0) {
+          searchResults.innerHTML = '<div class="p-4 text-center text-gray-400">Không tìm thấy kết quả</div>';
+        } else {
+          searchResults.innerHTML = filtered.map(cmd => `
+            <a href="${cmd.url}" class="flex items-center px-4 py-2 hover:bg-white/10 transition-colors border-b border-white/10 last:border-b-0">
+              <i class="fas ${cmd.icon} text-blue-400 mr-3 w-4"></i>
+              <span class="text-white flex-1">${cmd.name}</span>
+              <span class="text-xs text-gray-500">↵</span>
+            </a>
+          `).join('');
+        }
+        searchResults.classList.remove('hidden');
+      });
+
+      // Hide results when clicking outside
+      document.addEventListener('click', function(e) {
+        if (!commandPalette.contains(e.target) && !searchResults.contains(e.target)) {
+          searchResults.classList.add('hidden');
+        }
+      });
+    }
+
+    // Activity Feed - Mock data
+    function loadActivityFeed() {
+      fetch('/api/activity', { credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+          const activityFeed = document.getElementById('activityFeed');
+          if (!activityFeed) return;
+
+          if (!data || data.length === 0) {
+            activityFeed.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Chưa có hoạt động nào</p>';
+            return;
+          }
+
+          activityFeed.innerHTML = data.slice(0, 5).map(activity => {
+            // Safely get timestamp - API returns formatted string
+            let timeDisplay = activity.timestamp || 'N/A';
+            
+            let icon = 'fa-info-circle';
+            let color = 'text-blue-400';
+            
+            if (activity.type === 'connect') {
+              icon = 'fa-plug';
+              color = 'text-green-400';
+            } else if (activity.type === 'disconnect') {
+              icon = 'fa-plug-circle-xmark';
+              color = 'text-red-400';
+            } else if (activity.type === 'execute') {
+              icon = 'fa-terminal';
+              color = 'text-yellow-400';
+            } else if (activity.type === 'edit') {
+              icon = 'fa-pen';
+              color = 'text-purple-400';
+            }
+
+            // Safely get message
+            let message = activity.message || 'Hoạt động không xác định';
+
+            return `
+              <div class="flex items-start space-x-3 pb-3 border-b border-white/5 last:border-b-0">
+                <i class="fas ${icon} ${color} mt-1"></i>
+                <div class="flex-1">
+                  <p class="text-white text-sm">${message}</p>
+                  <p class="text-gray-500 text-xs">${timeDisplay}</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+        })
+        .catch(error => {
+          console.log('Error loading activity feed:', error);
+          const activityFeed = document.getElementById('activityFeed');
+          if (activityFeed) {
+            activityFeed.innerHTML = '<p class="text-gray-400 text-sm text-center py-4">Không thể tải hoạt động</p>';
+          }
+        });
+    }
+
+    // Load Recent Servers
+    function loadRecentServers() {
+      fetch('/api/recent-servers', { credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+          const recentServers = document.getElementById('recentServers');
+          if (!recentServers) return;
+
+          if (!data || data.length === 0) {
+            recentServers.innerHTML = '<p class="text-gray-400 text-sm">Chưa có server được truy cập gần đây</p>';
+            return;
+          }
+
+          recentServers.innerHTML = data.slice(0, 4).map(server => `
+            <div class="flex items-center justify-between p-2 hover:bg-white/5 rounded transition-colors">
+              <div class="flex items-center">
+                <span class="w-2 h-2 ${server.status === 'online' ? 'bg-green-400' : 'bg-red-400'} rounded-full mr-2"></span>
+                <span class="text-white text-sm">${server.name}</span>
+              </div>
+              <span class="text-xs text-gray-500">${server.ip}</span>
+            </div>
+          `).join('');
+        })
+        .catch(error => {
+          console.log('Error loading recent servers:', error);
+          const recentServers = document.getElementById('recentServers');
+          if (recentServers) {
+            recentServers.innerHTML = '<p class="text-gray-400 text-sm">Không thể tải server</p>';
+          }
+        });
+    }
+
+    // Real-time metrics update
+    let previousCpuLoad = 0;
+    let previousPerf = 0;
+
+    function updateMetricsWithTrend() {
+      fetch('/api/system-stats', { credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+          if (data.error) return;
+
+          // CPU Load trend
+          const cpuTrend = document.getElementById('cpuTrend');
+          const cpuValue = document.getElementById('cpuLoadValue');
+          const cpuArrow = document.getElementById('cpuTrendArrow');
+          if (cpuTrend && data.cpuLoad !== undefined) {
+            cpuTrend.style.width = data.cpuLoad + '%';
+            cpuValue.textContent = data.cpuLoad + '%';
+            
+            if (data.cpuLoad > previousCpuLoad) {
+              cpuArrow.innerHTML = '<span class="text-red-400">↑</span>';
+            } else if (data.cpuLoad < previousCpuLoad) {
+              cpuArrow.innerHTML = '<span class="text-green-400">↓</span>';
+            }
+            previousCpuLoad = data.cpuLoad;
+          }
+
+          // Performance trend
+          const perfBar = document.getElementById('perfBar');
+          const perfValue = document.getElementById('perfValue');
+          const perfArrow = document.getElementById('perfTrendArrow');
+          if (perfBar && data.performance !== undefined) {
+            perfBar.style.width = data.performance + '%';
+            perfValue.textContent = data.performance + '%';
+            
+            if (data.performance > previousPerf) {
+              perfArrow.innerHTML = '<span class="text-green-400">↑</span>';
+            } else if (data.performance < previousPerf) {
+              perfArrow.innerHTML = '<span class="text-red-400">↓</span>';
+            }
+            previousPerf = data.performance;
+          }
+        })
+        .catch(error => console.log('Error updating metrics:', error));
+    }
+
+    // Load alerts
+    function loadAlerts() {
+      fetch('/api/alerts', { credentials: 'include' })
+        .then(response => response.json())
+        .then(data => {
+          const alertsPanel = document.getElementById('alertsPanel');
+          const alertsList = document.getElementById('alertsList');
+          if (!alertsPanel || !alertsList) return;
+          
+          if (!data || data.length === 0) {
+            alertsPanel.classList.add('hidden');
+            return;
+          }
+
+          alertsPanel.classList.remove('hidden');
+          alertsList.innerHTML = data.slice(0, 3).map(alert => {
+            // Safely get values
+            const severity = alert.severity || 'warning';
+            const message = alert.message || 'Cảnh báo hệ thống';
+            const timestamp = alert.timestamp || 'N/A';
+            const icon = severity === 'critical' ? 'exclamation-triangle' : 'exclamation-circle';
+            
+            return `
+              <div class="flex items-start space-x-2">
+                <i class="fas fa-${icon} text-red-300 mt-0.5"></i>
+                <div class="flex-1">
+                  <p class="text-white text-sm">${message}</p>
+                  <p class="text-red-400 text-xs">${timestamp}</p>
+                </div>
+              </div>
+            `;
+          }).join('');
+        })
+        .catch(error => {
+          console.log('Error loading alerts:', error);
+          const alertsPanel = document.getElementById('alertsPanel');
+          if (alertsPanel) alertsPanel.classList.add('hidden');
+        });
+    }
+
+    function dismissAlerts() {
+      const alertsPanel = document.getElementById('alertsPanel');
+      if (alertsPanel) alertsPanel.classList.add('hidden');
+    }
+
     // Call on page load and refresh every 30 seconds
     document.addEventListener('DOMContentLoaded', function() {
       updateStatistics();
-      setInterval(updateStatistics, 30000); // Update every 30 seconds
+      loadActivityFeed();
+      loadRecentServers();
+      updateMetricsWithTrend();
+      loadAlerts();
+
+      setInterval(() => {
+        updateStatistics();
+        updateMetricsWithTrend();
+        loadActivityFeed();
+      }, 30000); // Update every 30 seconds
       
       // Welcome message animation for logged in users
       const heroLoggedIn = document.getElementById('hero-logged-in');
